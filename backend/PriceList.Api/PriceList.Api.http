@@ -1,0 +1,6 @@
+@PriceList.Api_HostAddress = http://localhost:5230
+
+GET {{PriceList.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
