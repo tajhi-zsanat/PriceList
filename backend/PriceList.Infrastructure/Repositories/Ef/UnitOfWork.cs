@@ -19,6 +19,7 @@ namespace PriceList.Infrastructure.Repositories.Ef
         public IProductGroupRepository ProductGroups { get; }
         public IProductTypeRepository ProductTypes { get; }
         public IBrandRepository Brands { get; }
+        public IErrorLogRepository Errors { get; }
 
         public UnitOfWork(
             AppDbContext db,
@@ -26,7 +27,8 @@ namespace PriceList.Infrastructure.Repositories.Ef
             ICategoryRepository categories,
             IProductGroupRepository productGroups,
             IProductTypeRepository productTypes,
-            IBrandRepository brands)
+            IBrandRepository brands,
+            IErrorLogRepository errors)
         {
             _db = db;
             Products = products;
@@ -34,6 +36,7 @@ namespace PriceList.Infrastructure.Repositories.Ef
             ProductGroups = productGroups;
             ProductTypes = productTypes;
             Brands = brands;
+            Errors = errors;
         }
 
         public Task<int> SaveChangesAsync(CancellationToken ct = default) => _db.SaveChangesAsync(ct);

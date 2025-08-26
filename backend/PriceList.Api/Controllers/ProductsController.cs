@@ -3,8 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 using PriceList.Api.Dtos;
 using PriceList.Api.Mappings;
 using PriceList.Core.Abstractions.Repositories;
+using PriceList.Core.Common;
 using PriceList.Core.Entities;
 using PriceList.Infrastructure.Repositories;
+using PriceList.Infrastructure.Repositories.Ef;
+using System.Text.RegularExpressions;
 
 namespace PriceList.Api.Controllers
 {
@@ -12,11 +15,36 @@ namespace PriceList.Api.Controllers
     [Route("api/[controller]")]
     public class ProductsController(IUnitOfWork uow) : ControllerBase
     {
-        [HttpGet]
-        public async Task<ActionResult<List<ProductListItemDto>>> GetAll(CancellationToken ct)
+        [HttpGet("by-brand")]
+        [ProducesResponseType(typeof(PaginatedResult<ProductListItemDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<PaginatedResult<ProductListItemDto>>> GetByBrand(
+            [FromQuery] int brandId,
+            [FromQuery] int categoryId,
+            [FromQuery] int groupId,
+            [FromQuery] int typeId,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20,
+            CancellationToken ct = default)
         {
-            var list = await uow.Products.ListAsync(predicate: null, selector: ProductMappings.ToListItem, ct);
-            return Ok(list);
+            if (brandId <= 0) return BadRequest("شناسه برند کالا نامعتبر است.");
+            if (categoryId <= 0) return BadRequest("شناسه دسته‌بندی نامعتبر است.");
+            if (groupId <= 0) return BadRequest("شناسه گروه کالا نامعتبر است.");
+            if (typeId <= 0) return BadRequest("شناسه نوع کالا نامعتبر است.");
+
+            var result = await uow.Products.ListPagedAsync(
+                predicate: p =>
+                    p.BrandId == brandId &&
+                    (p.CategoryId == categoryId) &&
+                    (p.ProductGroupId == groupId) &&
+                    (p.ProductTypeId == typeId),
+                orderBy: q => q.OrderBy(p => p.Model),                  
+                selector: ProductMappings.ToListItem,               
+                page: page,
+                pageSize: pageSize,
+                ct: ct);
+
+            return Ok(result);
         }
 
         [HttpGet("{id:int}")]

@@ -25,6 +25,11 @@ namespace PriceList.Infrastructure.Configurations
              .WithOne(p => p.ProductType)
              .HasForeignKey(p => p.ProductTypeId)
              .OnDelete(DeleteBehavior.NoAction);
+
+            b.HasOne(pt => pt.ProductGroup)
+             .WithMany(pg => pg.ProductTypes)
+             .HasForeignKey(pt => pt.ProductGroupId)
+             .OnDelete(DeleteBehavior.Restrict); 
         }
     }
 }

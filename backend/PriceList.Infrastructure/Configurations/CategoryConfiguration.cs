@@ -16,7 +16,20 @@ namespace PriceList.Infrastructure.Configurations
             b.ToTable("Categories");
             b.HasKey(x => x.Id);
 
-            b.Property(x => x.Name).IsRequired().HasMaxLength(200);
+            b.Property(x => x.Name)
+             .IsRequired()
+             .HasMaxLength(200);
+
+            b.HasIndex(x => x.Name)
+             .IsUnique();
+
+            b.Property(x => x.DisplayOrder)
+             .HasDefaultValue(0);
+
+            b.HasMany(c => c.Products)
+             .WithOne(p => p.Category)
+             .HasForeignKey(p => p.CategoryId)
+             .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

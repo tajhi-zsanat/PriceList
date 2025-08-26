@@ -14,11 +14,26 @@ namespace PriceList.Infrastructure.Configurations
         public void Configure(EntityTypeBuilder<ProductGroup> b)
         {
             b.ToTable("ProductGroups");
+
             b.HasKey(x => x.Id);
 
             b.Property(x => x.Name)
                 .IsRequired()
                 .HasMaxLength(200);
+
+            // Uniqueness per Category
+            b.HasIndex(x => new { x.CategoryId, x.Name })
+             .IsUnique()
+             .HasDatabaseName("UX_ProductGroups_CategoryId_Name");
+
+            // DisplayOrder
+            b.Property(x => x.DisplayOrder)
+             .HasDefaultValue(0);
+
+            b.HasMany(pg => pg.ProductTypes)
+             .WithOne(pt => pt.ProductGroup)       
+             .HasForeignKey(pt => pt.ProductGroupId) 
+             .OnDelete(DeleteBehavior.Restrict);
 
             // ProductGroup ↔ Product
             b.HasMany(pg => pg.Products)

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PriceList.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using PriceList.Infrastructure.Data;
 namespace PriceList.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250825123141_AddMediatorTableForBrandAndType")]
+    partial class AddMediatorTableForBrandAndType
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -288,35 +291,6 @@ namespace PriceList.Infrastructure.Data.Migrations
                     b.ToTable("Products", (string)null);
                 });
 
-            modelBuilder.Entity("PriceList.Core.Entities.ProductCustomProperty", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Key")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId", "Key")
-                        .IsUnique();
-
-                    b.ToTable("ProductCustomProperties", (string)null);
-                });
-
             modelBuilder.Entity("PriceList.Core.Entities.ProductGroup", b =>
                 {
                     b.Property<int>("Id")
@@ -526,17 +500,6 @@ namespace PriceList.Infrastructure.Data.Migrations
                     b.Navigation("Unit");
                 });
 
-            modelBuilder.Entity("PriceList.Core.Entities.ProductCustomProperty", b =>
-                {
-                    b.HasOne("PriceList.Core.Entities.Product", "Product")
-                        .WithMany("CustomProperties")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-                });
-
             modelBuilder.Entity("PriceList.Core.Entities.ProductGroup", b =>
                 {
                     b.HasOne("PriceList.Core.Entities.Category", "Category")
@@ -582,8 +545,6 @@ namespace PriceList.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("PriceList.Core.Entities.Product", b =>
                 {
-                    b.Navigation("CustomProperties");
-
                     b.Navigation("Images");
                 });
 

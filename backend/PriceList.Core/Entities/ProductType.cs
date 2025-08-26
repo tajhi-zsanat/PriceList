@@ -23,6 +23,9 @@ namespace PriceList.Core.Entities
 
         public ICollection<Product> Products { get; set; } = new List<Product>();
 
+        // 🔗 Many-to-Many with Brand
+        public ICollection<Brand> Brands { get; set; } = new List<Brand>();
+
         //public ICollection<Supplier> Suppliers { get; set; } = new List<Supplier>();
     }
 }

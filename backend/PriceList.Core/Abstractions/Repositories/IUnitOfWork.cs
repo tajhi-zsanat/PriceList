@@ -13,6 +13,7 @@ namespace PriceList.Core.Abstractions.Repositories
         IProductGroupRepository ProductGroups { get; }
         IProductTypeRepository ProductTypes { get; }
         IBrandRepository Brands { get; }
+        IErrorLogRepository Errors { get; }
 
         Task<int> SaveChangesAsync(CancellationToken ct = default);
 

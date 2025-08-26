@@ -65,13 +65,14 @@ builder.Services.AddSwaggerGen(c =>
 //builder.Services.AddOpenApi();
 
 // ✅ DI: interfaces (Core) → implementations (Infrastructure)
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IProductGroupRepository, ProductGroupRepository>();
 builder.Services.AddScoped<IProductTypeRepository, ProductTypeRepository>();
 builder.Services.AddScoped<IBrandRepository, BrandRepository>();
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IErrorLogRepository, ErrorLogRepository>();
 
 var app = builder.Build();
 
@@ -86,6 +87,8 @@ if (app.Environment.IsDevelopment())
         o.RoutePrefix = "swagger"; // UI at /swagger
     });
 }
+
+app.UseMiddleware<PriceList.Api.Middlewares.ExceptionHandlingMiddleware>();
 
 app.UseHttpsRedirection();
 

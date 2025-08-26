@@ -25,6 +25,29 @@ namespace PriceList.Infrastructure.Configurations
              .WithOne(p => p.Brand)
              .HasForeignKey(p => p.BrandId)
              .OnDelete(DeleteBehavior.NoAction);
+
+            // Brand ↔ ProductType (M2M)
+            b.HasMany(br => br.ProductTypes)
+             .WithMany(pt => pt.Brands)
+             .UsingEntity<Dictionary<string, object>>(
+                "BrandProductType", // join table name
+                right => right
+                    .HasOne<ProductType>()
+                    .WithMany()
+                    .HasForeignKey("ProductTypeId")
+                    .OnDelete(DeleteBehavior.Cascade),
+                left => left
+                    .HasOne<Brand>()
+                    .WithMany()
+                    .HasForeignKey("BrandId")
+                    .OnDelete(DeleteBehavior.Cascade),
+                join =>
+                {
+                    join.ToTable("BrandProductTypes");
+                    join.HasKey("BrandId", "ProductTypeId");
+                    join.HasIndex("ProductTypeId");
+                    join.HasIndex("BrandId");
+                });
         }
     }
 }

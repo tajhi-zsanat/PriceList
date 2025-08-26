@@ -17,10 +17,12 @@ namespace PriceList.Infrastructure.Data
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
         public DbSet<Product> Products => Set<Product>();
+        public DbSet<ProductCustomProperty> ProductCustomProperties => Set<ProductCustomProperty>();
         public DbSet<Category> Categories => Set<Category>();
         public DbSet<ProductGroup> ProductGroups => Set<ProductGroup>();
         public DbSet<ProductType> ProductTypes => Set<ProductType>();
         public DbSet<Brand> Brands => Set<Brand>();
+        public DbSet<ErrorLog> ErrorLog => Set<ErrorLog>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

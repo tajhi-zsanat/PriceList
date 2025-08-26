@@ -18,11 +18,12 @@ namespace PriceList.Core.Entities
         public string? DocumentPath { get; set; }
 
         public int? CategoryId { get; set; }
-
         public Category? Category { get; set; } = null!;
 
-        public int? ProductTypeId { get; set; }
+        public int? ProductGroupId { get; set; }
+        public ProductGroup? ProductGroup { get; set; } = null!;
 
+        public int? ProductTypeId { get; set; }
         public ProductType? ProductType { get; set; }
 
         //public int? SupplierId { get; set; }
@@ -34,14 +35,11 @@ namespace PriceList.Core.Entities
         //public ApplicationUser? User { get; set; } = null!;
 
         public int? BrandId { get; set; }
-
         public Brand? Brand { get; set; } = null!;
 
         public int? UnitId { get; set; }
-
         public Unit? Unit { get; set; } = null!;
 
-        public int? ProductGroupId { get; set; }
-        public ProductGroup? ProductGroup { get; set; } = null!;
+        public ICollection<ProductCustomProperty> CustomProperties { get; set; } = new List<ProductCustomProperty>();
     }
 }

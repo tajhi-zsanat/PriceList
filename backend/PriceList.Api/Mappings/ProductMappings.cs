@@ -8,7 +8,9 @@ namespace PriceList.Api.Mappings
     {
         // ✅ Projection expressions (usable inside IQueryable -> Select)
         public static readonly Expression<Func<Product, ProductListItemDto>> ToListItem =
-            p => new ProductListItemDto(p.Id, p.Model, p.Price);
+            p => new ProductListItemDto(p.Id, p.Model, p.Price, p.CustomProperties
+             .Select(cp => new ProductCustomPropertyItemDto(cp.Key, cp.Value))
+             .ToList());
 
         public static readonly Expression<Func<Product, ProductDetailDto>> ToDetail =
             p => new ProductDetailDto(p.Id, p.Model, p.Model, p.Description, p.Price, p.CreateDateAndTime);

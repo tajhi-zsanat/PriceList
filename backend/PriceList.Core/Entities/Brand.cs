@@ -22,6 +22,8 @@ namespace PriceList.Core.Entities
         public int DisplayOrder { get; set; }
 
         public ICollection<Product> Products { get; set; } = new List<Product>();
-        //public ICollection<Supplier> Suppliers { get; set; } = new List<Supplier>();
+
+        // 🔗 Many-to-Many with ProductType
+        public ICollection<ProductType> ProductTypes { get; set; } = new List<ProductType>();
     }
 }

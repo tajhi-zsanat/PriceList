@@ -21,8 +21,8 @@ namespace PriceList.Infrastructure.Configurations
                 .IsRequired()
                 .HasMaxLength(200);
 
-            b.Property(x => x.Description)
-                .HasMaxLength(1000);
+            //b.Property(x => x.Description)
+            //    .HasMaxLength(1000);
 
             b.Property(x => x.Price)
                 .HasColumnType("bigint");
@@ -30,8 +30,8 @@ namespace PriceList.Infrastructure.Configurations
             b.Property(x => x.Number)
                 .HasDefaultValue(0);
 
-            b.Property(x => x.DocumentPath)
-                .HasMaxLength(500);
+            //b.Property(x => x.DocumentPath)
+            //    .HasMaxLength(500);
 
             // ----------- RELATIONSHIPS -----------
 

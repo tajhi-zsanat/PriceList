@@ -8,6 +8,7 @@ namespace PriceList.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Produces("application/json")]
     public class CategoryController(IUnitOfWork uow) : ControllerBase
     {
         [HttpGet]
@@ -16,7 +17,9 @@ namespace PriceList.Api.Controllers
             var list = await uow.Categories.ListAsync(
                 predicate: null
                 , selector: CategoryMappings.ToListItem
+                , orderBy: q => q.OrderBy(c => c.DisplayOrder).ThenBy(c => c.Name)
                 , ct);
+
             return Ok(list);
         }
     }

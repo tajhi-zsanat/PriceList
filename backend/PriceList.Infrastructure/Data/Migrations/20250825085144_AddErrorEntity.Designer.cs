@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PriceList.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using PriceList.Infrastructure.Data;
 namespace PriceList.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250825085144_AddErrorEntity")]
+    partial class AddErrorEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,23 +24,6 @@ namespace PriceList.Infrastructure.Data.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("BrandProductType", b =>
-                {
-                    b.Property<int>("BrandId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ProductTypeId")
-                        .HasColumnType("int");
-
-                    b.HasKey("BrandId", "ProductTypeId");
-
-                    b.HasIndex("BrandId");
-
-                    b.HasIndex("ProductTypeId");
-
-                    b.ToTable("BrandProductTypes", (string)null);
-                });
 
             modelBuilder.Entity("PriceList.Core.Entities.Brand", b =>
                 {
@@ -117,9 +103,7 @@ namespace PriceList.Infrastructure.Data.Migrations
                         .HasColumnType("varchar(4)");
 
                     b.Property<int>("DisplayOrder")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
+                        .HasColumnType("int");
 
                     b.Property<string>("ImagePath")
                         .HasColumnType("nvarchar(max)");
@@ -143,9 +127,6 @@ namespace PriceList.Infrastructure.Data.Migrations
                         .HasColumnType("varchar(4)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Name")
-                        .IsUnique();
 
                     b.ToTable("Categories", (string)null);
                 });
@@ -233,10 +214,12 @@ namespace PriceList.Infrastructure.Data.Migrations
                         .HasColumnType("varchar(4)");
 
                     b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("DocumentPath")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Model")
                         .IsRequired()
@@ -288,35 +271,6 @@ namespace PriceList.Infrastructure.Data.Migrations
                     b.ToTable("Products", (string)null);
                 });
 
-            modelBuilder.Entity("PriceList.Core.Entities.ProductCustomProperty", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Key")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId", "Key")
-                        .IsUnique();
-
-                    b.ToTable("ProductCustomProperties", (string)null);
-                });
-
             modelBuilder.Entity("PriceList.Core.Entities.ProductGroup", b =>
                 {
                     b.Property<int>("Id")
@@ -342,9 +296,7 @@ namespace PriceList.Infrastructure.Data.Migrations
                         .HasColumnType("varchar(4)");
 
                     b.Property<int>("DisplayOrder")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
+                        .HasColumnType("int");
 
                     b.Property<string>("ImagePath")
                         .HasColumnType("nvarchar(max)");
@@ -369,9 +321,7 @@ namespace PriceList.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CategoryId", "Name")
-                        .IsUnique()
-                        .HasDatabaseName("UX_ProductGroups_CategoryId_Name");
+                    b.HasIndex("CategoryId");
 
                     b.ToTable("ProductGroups", (string)null);
                 });
@@ -473,21 +423,6 @@ namespace PriceList.Infrastructure.Data.Migrations
                     b.ToTable("Unit");
                 });
 
-            modelBuilder.Entity("BrandProductType", b =>
-                {
-                    b.HasOne("PriceList.Core.Entities.Brand", null)
-                        .WithMany()
-                        .HasForeignKey("BrandId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PriceList.Core.Entities.ProductType", null)
-                        .WithMany()
-                        .HasForeignKey("ProductTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("PriceList.Core.Entities.Product", b =>
                 {
                     b.HasOne("PriceList.Core.Entities.Brand", "Brand")
@@ -526,17 +461,6 @@ namespace PriceList.Infrastructure.Data.Migrations
                     b.Navigation("Unit");
                 });
 
-            modelBuilder.Entity("PriceList.Core.Entities.ProductCustomProperty", b =>
-                {
-                    b.HasOne("PriceList.Core.Entities.Product", "Product")
-                        .WithMany("CustomProperties")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-                });
-
             modelBuilder.Entity("PriceList.Core.Entities.ProductGroup", b =>
                 {
                     b.HasOne("PriceList.Core.Entities.Category", "Category")
@@ -564,7 +488,7 @@ namespace PriceList.Infrastructure.Data.Migrations
                     b.HasOne("PriceList.Core.Entities.ProductGroup", "ProductGroup")
                         .WithMany("ProductTypes")
                         .HasForeignKey("ProductGroupId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("ProductGroup");
@@ -582,8 +506,6 @@ namespace PriceList.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("PriceList.Core.Entities.Product", b =>
                 {
-                    b.Navigation("CustomProperties");
-
                     b.Navigation("Images");
                 });
 

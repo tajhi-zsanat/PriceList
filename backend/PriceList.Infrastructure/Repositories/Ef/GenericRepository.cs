@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PriceList.Core.Abstractions.Repositories;
+using PriceList.Core.Common;
 using PriceList.Infrastructure.Data;
 using System;
 using System.Collections.Generic;
@@ -31,10 +32,17 @@ namespace PriceList.Infrastructure.Repositories.Ef
         // ✅ Server-side projection
         public async Task<List<TResult>> ListAsync<TResult>(Expression<Func<T, bool>>? predicate,
                                                             Expression<Func<T, TResult>> selector,
+                                                            Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
                                                             CancellationToken ct = default)
         {
             IQueryable<T> q = Set;
-            if (predicate is not null) q = q.Where(predicate);
+
+            if (predicate is not null)
+                q = q.Where(predicate);
+
+            if (orderBy is not null)
+                q = orderBy(q);
+
             return await q.AsNoTracking().Select(selector).ToListAsync(ct);
         }
 
@@ -57,5 +65,87 @@ namespace PriceList.Infrastructure.Repositories.Ef
 
         public Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null, CancellationToken ct = default)
             => predicate is null ? Set.CountAsync(ct) : Set.CountAsync(predicate, ct);
+
+        public async Task<PaginatedResult<T>> ListPagedAsync(
+            int page,
+            int pageSize,
+            Expression<Func<T, bool>>? predicate = null,
+            Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
+            CancellationToken ct = default,
+            params Expression<Func<T, object>>[] includes)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+
+            IQueryable<T> q = Set;
+
+            // includes (only useful when returning entities)
+            foreach (var inc in includes) q = q.Include(inc);
+
+            // filter
+            if (predicate is not null) q = q.Where(predicate);
+
+            // total before paging
+            var total = await q.CountAsync(ct);
+
+            // sorting (recommended to pass a deterministic orderBy)
+            if (orderBy is not null) q = orderBy(q);
+
+            // page
+            var items = await q.AsNoTracking()
+                               .Skip((page - 1) * pageSize)
+                               .Take(pageSize)
+                               .ToListAsync(ct);
+
+            return new PaginatedResult<T>
+            {
+                Items = items,
+                TotalCount = total,
+                Page = page,
+                PageSize = pageSize
+            };
+        }
+
+        // -----------------------
+        // ✅ Paged (projection/DTO)
+        // -----------------------
+        public async Task<PaginatedResult<TResult>> ListPagedAsync<TResult>(
+            int page,
+            int pageSize,
+            Expression<Func<T, bool>>? predicate,
+            Expression<Func<T, TResult>> selector,
+            Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
+            CancellationToken ct = default,
+            params Expression<Func<T, object>>[] includes)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+
+            IQueryable<T> q = Set;
+
+            // includes allow using navs inside the selector
+            foreach (var inc in includes) q = q.Include(inc);
+
+            if (predicate is not null) q = q.Where(predicate);
+
+            var total = await q.CountAsync(ct);
+
+            if (orderBy is not null) q = orderBy(q);
+
+            // Compose projection with paging (server-side)
+            var items = await q.AsNoTracking()
+                               .Select(selector)
+                               .Skip((page - 1) * pageSize)
+                               .Take(pageSize)
+                               .ToListAsync(ct);
+
+            return new PaginatedResult<TResult>
+            {
+                Items = items,
+                TotalCount = total,
+                Page = page,
+                PageSize = pageSize
+            };
+        }
     }
 }
