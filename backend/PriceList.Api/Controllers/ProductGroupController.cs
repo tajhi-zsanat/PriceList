@@ -5,6 +5,7 @@ using PriceList.Api.Dtos;
 using PriceList.Api.Helpers;
 using PriceList.Api.Mappings;
 using PriceList.Core.Abstractions.Repositories;
+using PriceList.Core.Abstractions.Storage;
 using PriceList.Core.Entities;
 
 namespace PriceList.Api.Controllers
@@ -12,7 +13,7 @@ namespace PriceList.Api.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Produces("application/json")]
-    public class ProductGroupController(IUnitOfWork uow) : ControllerBase
+    public class ProductGroupController(IUnitOfWork uow, IFileStorage storage) : ControllerBase
     {
         [HttpGet("by-category/{categoryId:int}")]
         [ProducesResponseType(typeof(List<ProductGroupListItemDto>), StatusCodes.Status200OK)]
@@ -66,39 +67,59 @@ namespace PriceList.Api.Controllers
         }
 
         [HttpPost]
+        [Consumes("multipart/form-data")]
         [ProducesResponseType(typeof(ProductGroupListItemDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<ActionResult<ProductGroupListItemDto>> Create(
-          [FromBody] GroupInputDto dto,
-          CancellationToken ct = default)
+            [FromForm] GroupCreateForm form,
+            CancellationToken ct = default)
         {
-            var name = dto.Name?.Trim();
+            var name = form.Name?.Trim();
             if (string.IsNullOrWhiteSpace(name))
                 return BadRequest("نام گروه کالا الزامی است.");
 
-            if (dto.CategoryId <= 0)
+            if (form.CategoryId <= 0)
                 return BadRequest("شناسه دسته‌بندی نامعتبر است.");
 
-            var categoryExists = await uow.Categories.AnyAsync(c => c.Id == dto.CategoryId, ct);
+            var categoryExists = await uow.Categories.AnyAsync(c => c.Id == form.CategoryId, ct);
             if (!categoryExists)
                 return NotFound("دسته‌بندی یافت نشد.");
 
             var dupExists = await uow.ProductGroups.AnyAsync(
-                g => g.CategoryId == dto.CategoryId &&
+                g => g.CategoryId == form.CategoryId &&
                      g.Name.ToUpper() == name.ToUpperInvariant(),
                 ct);
-
             if (dupExists)
                 return Conflict("نام گروه کالا تکراری است.");
+
+            string? imagePath = null;
+            if (form.Image is not null && form.Image.Length > 0)
+            {
+                var allowed = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            { ".jpg", ".jpeg", ".png", ".webp", ".svg" };
+                var ext = Path.GetExtension(form.Image.FileName);
+                if (!allowed.Contains(ext))
+                    return BadRequest("فرمت تصویر نامعتبر است.");
+
+                try
+                {
+                    using var s = form.Image.OpenReadStream();
+                    imagePath = await storage.SaveAsync(s, form.Image.FileName, "groups", ct);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    return BadRequest(ex.Message);
+                }
+            }
 
             var entity = new ProductGroup
             {
                 Name = name,
-                DisplayOrder = dto.DisplayOrder,
-                CategoryId = dto.CategoryId,
-                ImagePath = dto.ImagePath
+                DisplayOrder = form.DisplayOrder,
+                CategoryId = form.CategoryId,
+                ImagePath = imagePath
             };
 
             await uow.ProductGroups.AddAsync(entity, ct);
@@ -109,7 +130,11 @@ namespace PriceList.Api.Controllers
             }
             catch (DbUpdateException ex) when (SqlExceptionHelpers.IsUniqueViolation(ex))
             {
-                // Covers race conditions when a unique index exists
+                // Cleanup uploaded file on conflict
+                if (!string.IsNullOrEmpty(imagePath))
+                {
+                    try { await storage.DeleteAsync(imagePath, ct); } catch { /* best-effort */ }
+                }
                 return Conflict("نام گروه کالا تکراری است.");
             }
 
@@ -118,13 +143,14 @@ namespace PriceList.Api.Controllers
         }
 
         [HttpPut("{id:int}")]
+        [Consumes("multipart/form-data")]
         [ProducesResponseType(typeof(ProductGroupListItemDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
-        public async Task<ActionResult<ProductGroupListItemDto>> Update(
+        public async Task<ActionResult<ProductGroupListItemDto>> UpdateWithFile(
              int id,
-             [FromBody] GroupInputDto dto,
+             [FromForm] GroupUpdateForm form,
              CancellationToken ct = default)
         {
             var entity = await uow.ProductGroups.GetByIdAsync(id, ct);
@@ -132,26 +158,26 @@ namespace PriceList.Api.Controllers
             if (entity is null)
                 return NotFound("گروه کالا پیدا نشد.");
 
-            var name = dto.Name?.Trim();
+            var name = form.Name?.Trim();
             if (string.IsNullOrWhiteSpace(name))
                 return BadRequest("نام گروه کالا الزامی است.");
 
-            if (dto.CategoryId <= 0)
+            if (form.CategoryId <= 0)
                 return BadRequest("شناسه دسته‌بندی نامعتبر است.");
 
-            var categoryExists = await uow.Categories.AnyAsync(c => c.Id == dto.CategoryId, ct);
+            var categoryExists = await uow.Categories.AnyAsync(c => c.Id == form.CategoryId, ct);
             if (!categoryExists)
                 return NotFound("دسته‌بندی یافت نشد.");
 
             // Only check duplicates if Category or Name changed
             var nameChanged = !string.Equals(entity.Name, name, StringComparison.Ordinal);
-            var categoryChanged = entity.CategoryId != dto.CategoryId;
+            var categoryChanged = entity.CategoryId != form.CategoryId;
 
             if (nameChanged || categoryChanged)
             {
                 var dup = await uow.ProductGroups.AnyAsync(
                     g => g.Id != id
-                      && g.CategoryId == dto.CategoryId
+                      && g.CategoryId == form.CategoryId
                       && g.Name.ToUpper() == name.ToUpperInvariant(),
                     ct);
 
@@ -159,10 +185,27 @@ namespace PriceList.Api.Controllers
                     return Conflict("نام گروه کالا تکراری است.");
             }
 
+            if (form.Image is not null && form.Image.Length > 0)
+            {
+                // Restrict to image types here (LocalFileStorage also validates)
+                var allowed = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            { ".jpg", ".jpeg", ".png", ".webp", ".svg" };
+                var ext = Path.GetExtension(form.Image.FileName);
+                if (!allowed.Contains(ext)) return BadRequest("فرمت تصویر نامعتبر است.");
+
+                // save new
+                using var s = form.Image.OpenReadStream();
+                var newPath = await storage.SaveAsync(s, form.Image.FileName, "groups", ct);
+
+                // delete old (best effort)
+                try { await storage.DeleteAsync(entity.ImagePath, ct); } catch { }
+
+                entity.ImagePath = newPath;
+            }
+
             entity.Name = name;
-            entity.DisplayOrder = dto.DisplayOrder;
-            entity.ImagePath = dto.ImagePath;
-            entity.CategoryId = dto.CategoryId;
+            entity.DisplayOrder = form.DisplayOrder;
+            entity.CategoryId = form.CategoryId;
 
             try
             {
@@ -196,11 +239,42 @@ namespace PriceList.Api.Controllers
             }
             catch (DbUpdateException ex) when (SqlExceptionHelpers.IsForeignKeyViolation(ex))
             {
-                // if you add this helper similar to IsUniqueViolation
                 return Conflict("امکان حذف گروه کالا به دلیل وابستگی وجود ندارد.");
             }
 
+            try { await storage.DeleteAsync(entity.ImagePath, ct); } catch { }
+
             return NoContent(); // 204 — success, no response body
+        }
+
+        [HttpDelete("{id:int}/image")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteImage(int id, CancellationToken ct = default)
+        {
+            if (id <= 0) return NotFound("شناسه گروه کالا نامعتبر است.");
+
+            var entity = await uow.ProductGroups.GetByIdAsync(id, ct);
+            if (entity is null) return NotFound("شناسه گروه کالا پیدا نشد.");
+
+            if (string.IsNullOrWhiteSpace(entity.ImagePath))
+                return NoContent();
+
+            var path = entity.ImagePath;
+
+            // Clear DB reference first to keep data consistent even if file delete fails.
+            entity.ImagePath = null;
+            await uow.SaveChangesAsync(ct);
+
+            try
+            {
+                await storage.DeleteAsync(path!, ct);
+            }
+            catch (Exception ex)
+            {
+            }
+
+            return NoContent();
         }
     }
 }

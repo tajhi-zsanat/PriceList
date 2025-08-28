@@ -1,0 +1,6 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* optional: pleasant default font */
+:root { font-family: system-ui, "Segoe UI", Roboto, "Vazirmatn", Arial, sans-serif; }

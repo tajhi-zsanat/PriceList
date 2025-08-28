@@ -13,7 +13,7 @@ namespace PriceList.Api.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Produces("application/json")]
-    public class CategoryController(IUnitOfWork uow) : ControllerBase
+    public class CategoryController(IUnitOfWork uow, IFileStorage storage) : ControllerBase
     {
         [HttpGet]
         public async Task<ActionResult<List<CategoryListItemDto>>> GetAll(CancellationToken ct)
@@ -45,9 +45,11 @@ namespace PriceList.Api.Controllers
 
         [HttpPost]
         [Consumes("multipart/form-data")]
+        [ProducesResponseType(typeof(CategoryListItemDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<ActionResult<CategoryListItemDto>> Create(
             [FromForm] CategoryCreateForm form,
-            [FromServices] IFileStorage storage,
             CancellationToken ct = default)
         {
             var name = form.Name?.Trim();
@@ -62,6 +64,12 @@ namespace PriceList.Api.Controllers
             string? imagePath = null;
             if (form.Image is not null && form.Image.Length > 0)
             {
+                var allowed = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            { ".jpg", ".jpeg", ".png", ".webp", ".svg" };
+                var ext = Path.GetExtension(form.Image.FileName);
+                if (!allowed.Contains(ext))
+                    return BadRequest("فرمت تصویر نامعتبر است.");
+
                 try
                 {
                     using var s = form.Image.OpenReadStream();
@@ -100,10 +108,12 @@ namespace PriceList.Api.Controllers
         [HttpPut("{id:int}")]
         [Consumes("multipart/form-data")]
         [ProducesResponseType(typeof(CategoryListItemDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<CategoryListItemDto>> UpdateWithFile(
             int id,
             [FromForm] CategoryUpdateForm form,
-            [FromServices] IFileStorage storage,
             CancellationToken ct = default)
         {
             var entity = await uow.Categories.GetByIdAsync(id, ct);
@@ -121,7 +131,6 @@ namespace PriceList.Api.Controllers
                 if (dup) return Conflict("نام دسته‌بندی تکراری است.");
             }
 
-            // optional image replace
             if (form.Image is not null && form.Image.Length > 0)
             {
                 // Restrict to image types here (LocalFileStorage also validates)
@@ -148,9 +157,10 @@ namespace PriceList.Api.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> Delete(
             int id,
-            [FromServices] IFileStorage storage,
             CancellationToken ct = default)
         {
             var entity = await uow.Categories.GetByIdAsync(id, ct);
@@ -161,7 +171,38 @@ namespace PriceList.Api.Controllers
             await uow.SaveChangesAsync(ct);
 
             // best-effort file delete (don’t fail the request if this throws)
-            try { await storage.DeleteAsync(entity.ImagePath, ct); } catch { /* log if needed */ }
+            try { await storage.DeleteAsync(entity.ImagePath, ct); } catch { }
+
+            return NoContent();
+        }
+
+        [HttpDelete("{id:int}/image")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteImage(int id, CancellationToken ct = default)
+        {
+            if (id <= 0) return NotFound("شناسه دسته‌بندی نامعتبر است.");
+
+            var entity = await uow.Categories.GetByIdAsync(id, ct);
+            if (entity is null) return NotFound("دسته‌بندی پیدا نشد.");
+
+            // If there’s no image, treat as idempotent delete.
+            if (string.IsNullOrWhiteSpace(entity.ImagePath))
+                return NoContent();
+
+            var path = entity.ImagePath;
+
+            // Clear DB reference first to keep data consistent even if file delete fails.
+            entity.ImagePath = null;
+            await uow.SaveChangesAsync(ct);
+
+            try
+            {
+                await storage.DeleteAsync(path!, ct);
+            }
+            catch (Exception ex)
+            {
+            }
 
             return NoContent();
         }
