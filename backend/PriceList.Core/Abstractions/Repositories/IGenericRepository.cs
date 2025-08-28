@@ -12,6 +12,12 @@ namespace PriceList.Core.Abstractions.Repositories
     {
         Task<T?> GetByIdAsync(int id, CancellationToken ct = default);
 
+        // ✅ projection overload returns TResult, not T
+        Task<TResult?> GetByIdAsync<TResult>(
+            int id,
+            Expression<Func<T, TResult>> selector,
+            CancellationToken ct = default);
+
         Task<List<T>> ListAsync(Expression<Func<T, bool>>? predicate = null,
                                 CancellationToken ct = default,
                                 params Expression<Func<T, object>>[] includes);

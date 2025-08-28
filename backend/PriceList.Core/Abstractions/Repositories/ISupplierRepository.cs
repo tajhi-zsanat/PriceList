@@ -2,14 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace PriceList.Core.Abstractions.Repositories
 {
-    public interface IBrandRepository : IGenericRepository<Brand>
+    public interface ISupplierRepository : IGenericRepository<Supplier>
     {
-        Task<Brand?> GetByNameAsync(string name, CancellationToken ct = default);
     }
 }

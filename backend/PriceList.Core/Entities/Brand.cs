@@ -15,15 +15,8 @@ namespace PriceList.Core.Entities
 
         public string? ImagePath { get; set; }
 
-        public string? PhoneNumber { get; set; }
-
-        public string? Email { get; set; }
-
         public int DisplayOrder { get; set; }
 
         public ICollection<Product> Products { get; set; } = new List<Product>();
-
-        // 🔗 Many-to-Many with ProductType
-        public ICollection<ProductType> ProductTypes { get; set; } = new List<ProductType>();
     }
 }

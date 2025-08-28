@@ -8,5 +8,8 @@ namespace PriceList.Api.Mappings
     {
         public static readonly Expression<Func<Brand, BrandListItemDto>> ToListItem =
             p => new BrandListItemDto(p.Id, p.Name, p.ImagePath);
+
+        public static BrandListItemDto ToListItemDto(Brand p)
+             => new BrandListItemDto(p.Id, p.Name, p.ImagePath);
     }
 }

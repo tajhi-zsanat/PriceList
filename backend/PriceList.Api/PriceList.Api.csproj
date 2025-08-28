@@ -22,4 +22,11 @@
     <ProjectReference Include="..\PriceList.Infrastructure\PriceList.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\uploads\brands\" />
+    <Folder Include="wwwroot\uploads\groups\" />
+    <Folder Include="wwwroot\uploads\types\" />
+    <Folder Include="wwwroot\uploads\products\" />
+  </ItemGroup>
+
 </Project>

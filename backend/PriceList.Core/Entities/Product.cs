@@ -17,25 +17,25 @@ namespace PriceList.Core.Entities
         public ICollection<ProductImage> Images { get; set; } = [];
         public string? DocumentPath { get; set; }
 
-        public int? CategoryId { get; set; }
-        public Category? Category { get; set; } = null!;
+        public int CategoryId { get; set; }
+        public Category Category { get; set; } = null!;
 
-        public int? ProductGroupId { get; set; }
-        public ProductGroup? ProductGroup { get; set; } = null!;
+        public int ProductGroupId { get; set; }
+        public ProductGroup ProductGroup { get; set; } = null!;
 
-        public int? ProductTypeId { get; set; }
-        public ProductType? ProductType { get; set; }
+        public int ProductTypeId { get; set; }
+        public ProductType ProductType { get; set; } = null!;
 
-        //public int? SupplierId { get; set; }
+        public int SupplierId { get; set; }
 
-        //public Supplier? Supplier { get; set; } = null!;
+        public Supplier Supplier { get; set; } = null!;
 
         //public string? UserId { get; set; } = null!;
 
         //public ApplicationUser? User { get; set; } = null!;
 
-        public int? BrandId { get; set; }
-        public Brand? Brand { get; set; } = null!;
+        public int BrandId { get; set; }
+        public Brand Brand { get; set; } = null!;
 
         public int? UnitId { get; set; }
         public Unit? Unit { get; set; } = null!;

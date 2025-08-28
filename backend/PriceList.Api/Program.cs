@@ -1,9 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using PriceList.Core.Abstractions.Repositories;
+using PriceList.Core.Abstractions.Storage;
 using PriceList.Infrastructure.Data;
 using PriceList.Infrastructure.Repositories;
 using PriceList.Infrastructure.Repositories.Ef;
+using PriceList.Infrastructure.Services.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -73,6 +75,19 @@ builder.Services.AddScoped<IProductGroupRepository, ProductGroupRepository>();
 builder.Services.AddScoped<IProductTypeRepository, ProductTypeRepository>();
 builder.Services.AddScoped<IBrandRepository, BrandRepository>();
 builder.Services.AddScoped<IErrorLogRepository, ErrorLogRepository>();
+builder.Services.AddScoped<IUnitRepository, UnitRepository>();
+builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
+
+// Decide where files live (under wwwroot/uploads)
+var webRoot = builder.Environment.WebRootPath
+              ?? Path.Combine(builder.Environment.ContentRootPath, "wwwroot");
+var uploadsPhysicalRoot = Path.Combine(webRoot, "uploads");
+builder.Services.Configure<FileStorageOptions>(opt =>
+{
+    opt.PhysicalRoot = uploadsPhysicalRoot; // e.g., .../wwwroot/uploads
+    opt.RequestPath = "/uploads";          // public prefix
+});
+builder.Services.AddSingleton<IFileStorage, LocalFileStorage>();
 
 var app = builder.Build();
 
@@ -95,6 +110,8 @@ app.UseHttpsRedirection();
 app.UseCors(CorsPolicy);
 
 app.UseAuthorization();
+
+app.UseStaticFiles();
 
 app.MapControllers();
 

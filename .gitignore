@@ -4,6 +4,7 @@ obj/
 *.db
 *.db-shm
 *.db-wal
+/wwwroot/uploads/
 
 # Visual Studio
 .vs/

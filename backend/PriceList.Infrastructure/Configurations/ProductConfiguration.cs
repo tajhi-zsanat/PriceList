@@ -30,6 +30,18 @@ namespace PriceList.Infrastructure.Configurations
             b.Property(x => x.Number)
                 .HasDefaultValue(0);
 
+            // Index for uniqueness across multiple columns
+            b.HasIndex(p => new
+            {
+                p.Model,   
+                p.BrandId,
+                p.ProductTypeId,
+                p.ProductGroupId,
+                p.CategoryId,
+                p.SupplierId
+            })
+            .IsUnique();
+
             //b.Property(x => x.DocumentPath)
             //    .HasMaxLength(500);
 
@@ -48,10 +60,10 @@ namespace PriceList.Infrastructure.Configurations
                 .OnDelete(DeleteBehavior.NoAction);
 
             // Product ↔ Supplier (optional, no cascade)
-            //b.HasOne(p => p.Supplier)
-            //    .WithMany(s => s.Products)
-            //    .HasForeignKey(p => p.SupplierId)
-            //    .OnDelete(DeleteBehavior.NoAction);
+            b.HasOne(p => p.Supplier)
+                .WithMany(s => s.Products)
+                .HasForeignKey(p => p.SupplierId)
+                .OnDelete(DeleteBehavior.NoAction);
 
             // Product ↔ User (who created product) (optional, no cascade)
             //b.HasOne(p => p.User)

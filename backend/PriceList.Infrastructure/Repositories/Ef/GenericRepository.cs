@@ -19,6 +19,17 @@ namespace PriceList.Infrastructure.Repositories.Ef
         public Task<T?> GetByIdAsync(int id, CancellationToken ct = default)
             => Set.FindAsync([id], ct).AsTask();
 
+        public async Task<TResult?> GetByIdAsync<TResult>(
+            int id,
+            Expression<Func<T, TResult>> selector,
+            CancellationToken ct = default)
+        {
+            return await Set.AsNoTracking()
+                .Where(e => EF.Property<int>(e, "Id") == id)
+                .Select(selector)                             
+                .FirstOrDefaultAsync(ct);
+        }
+
         public async Task<List<T>> ListAsync(Expression<Func<T, bool>>? predicate = null,
                                              CancellationToken ct = default,
                                              params Expression<Func<T, object>>[] includes)

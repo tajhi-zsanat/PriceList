@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using PriceList.Api.Dtos;
+using PriceList.Api.Helpers;
 using PriceList.Api.Mappings;
 using PriceList.Core.Abstractions.Repositories;
 using PriceList.Core.Common;
@@ -15,7 +17,7 @@ namespace PriceList.Api.Controllers
     [Route("api/[controller]")]
     public class ProductsController(IUnitOfWork uow) : ControllerBase
     {
-        [HttpGet("by-brand")]
+        [HttpGet("by-categories")]
         [ProducesResponseType(typeof(PaginatedResult<ProductListItemDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<PaginatedResult<ProductListItemDto>>> GetByBrand(
@@ -47,34 +49,100 @@ namespace PriceList.Api.Controllers
             return Ok(result);
         }
 
-        [HttpGet("{id:int}")]
-        public async Task<ActionResult<ProductDetailDto>> GetById(int id, CancellationToken ct)
+        [HttpGet("{id:int}", Name = "GetProductById")]
+        [ProducesResponseType(typeof(ProductListItemDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<ProductListItemDto>> GetById(int id, CancellationToken ct = default)
         {
-            var dto = await uow.Products.FirstOrDefaultAsync(p => p.Id == id, ProductMappings.ToDetail, ct);
-            return dto is null ? NotFound() : Ok(dto);
+            var item = (await uow.Products.FirstOrDefaultAsync(
+                predicate: c => c.Id == id,
+                selector: ProductMappings.ToListItem,
+                ct: ct));
+
+            return item is null ? NotFound("کالا یافت نشد.") : Ok(item);
         }
 
         [HttpPost]
-        public async Task<ActionResult<ProductDetailDto>> Create([FromBody] ProductCreateDto dto, CancellationToken ct)
+        [ProducesResponseType(typeof(ProductListItemDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        public async Task<ActionResult<ProductListItemDto>> Create(
+            [FromBody] ProductInputDto dto,
+            CancellationToken ct = default)
         {
-            var entity = dto.ToEntity();
+            var model = dto.Model?.Trim();
+            if (string.IsNullOrWhiteSpace(model))
+                return BadRequest("نام کالا الزامی است.");
+
+            if (dto.CategoryId <= 0) return BadRequest("شناسه دسته‌بندی نامعتبر است.");
+            if (dto.ProductGroupId <= 0) return BadRequest("شناسه گروه کالا نامعتبر است.");
+            if (dto.ProductTypeId <= 0) return BadRequest("شناسه نوع کالا نامعتبر است.");
+            if (dto.BrandId <= 0) return BadRequest("شناسه برند نامعتبر است.");
+            if (dto.UnitId <= 0) return BadRequest("شناسه واحد نامعتبر است.");
+            if (dto.SupplierId <= 0) return BadRequest("شناسه تامین‌کننده نامعتبر است.");
+
+            if (!await uow.Categories.AnyAsync(c => c.Id == dto.CategoryId, ct)) return NotFound("דسته‌بندی یافت نشد.");
+            if (!await uow.ProductGroups.AnyAsync(g => g.Id == dto.ProductGroupId, ct)) return NotFound("گروه کالا یافت نشد.");
+            if (!await uow.ProductTypes.AnyAsync(t => t.Id == dto.ProductTypeId, ct)) return NotFound("نوع کالا یافت نشد.");
+            if (!await uow.Brands.AnyAsync(b => b.Id == dto.BrandId, ct)) return NotFound("برند یافت نشد.");
+            if (!await uow.Units.AnyAsync(u => u.Id == dto.UnitId, ct)) return NotFound("واحد یافت نشد.");
+            if (!await uow.Suppliers.AnyAsync(s => s.Id == dto.SupplierId, ct)) return NotFound("تامین‌کننده یافت نشد.");
+
+            // Composite duplicate check
+            var normalized = model.ToUpperInvariant();
+            var dupExists = await uow.Products.AnyAsync(p =>
+                   p.Model != null && p.Model.ToUpper() == normalized
+                && p.BrandId == dto.BrandId
+                && p.ProductTypeId == dto.ProductTypeId
+                && p.ProductGroupId == dto.ProductGroupId
+                && p.CategoryId == dto.CategoryId
+                && p.SupplierId == dto.SupplierId,
+                ct);
+
+            if (dupExists)
+                return Conflict("کالایی با همین مدل، برند، نوع، گروه، دسته‌بندی و تامین‌کننده قبلاً ثبت شده است.");
+
+            var customProps = (dto.CustomProperties ?? []).Take(3).ToList();
+
+            var entity = new Product
+            {
+                Model = model,
+                Description = string.IsNullOrWhiteSpace(dto.Description) ? null : dto.Description.Trim(),
+                Price = dto.Price,
+                Number = dto.Number,
+                DocumentPath = string.IsNullOrWhiteSpace(dto.DocumentPath) ? null : dto.DocumentPath,
+                CategoryId = dto.CategoryId,
+                ProductGroupId = dto.ProductGroupId,
+                ProductTypeId = dto.ProductTypeId,
+                BrandId = dto.BrandId,
+                UnitId = dto.UnitId,
+                SupplierId = dto.SupplierId,
+
+                Images = (dto.ImagePaths ?? [])
+                         .Where(p => !string.IsNullOrWhiteSpace(p))
+                         .Select(p => new ProductImage { ImagePath = p! })
+                         .ToList(),
+
+                CustomProperties = customProps
+                    .Where(cp => !string.IsNullOrWhiteSpace(cp.Key))
+                    .Select(cp => new ProductCustomProperty { Key = cp.Key.Trim(), Value = cp.Value?.Trim() ?? "" })
+                    .ToList()
+            };
+
             await uow.Products.AddAsync(entity, ct);
-            await uow.SaveChangesAsync(ct);
 
-            // Convert entity to detail DTO (in-memory here; you can requery with projection if needed)
-            var result = new ProductDetailDto(entity.Id, entity.Model, entity.Model, entity.Description, entity.Price, entity.CreateDateAndTime);
+            try
+            {
+                await uow.SaveChangesAsync(ct);
+            }
+            catch (DbUpdateException ex) when (SqlExceptionHelpers.IsUniqueViolation(ex))
+            {
+                return Conflict("کالایی با همین ترکیب مشخصات از قبل وجود دارد.");
+            }
+
+            var result = ProductMappings.ToListItemDto(entity);
             return CreatedAtAction(nameof(GetById), new { id = entity.Id }, result);
-        }
-
-        [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] ProductUpdateDto dto, CancellationToken ct)
-        {
-            var entity = await uow.Products.GetByIdAsync(id, ct);
-            if (entity is null) return NotFound();
-            entity.Apply(dto);
-            uow.Products.Update(entity);
-            await uow.SaveChangesAsync(ct);
-            return NoContent();
         }
     }
 }
