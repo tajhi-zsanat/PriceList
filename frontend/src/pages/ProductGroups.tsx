@@ -11,7 +11,7 @@ export default function ProductGroups() {
   const { categoryId } = useParams();
   const loc = useLocation() as { state?: { categoryName?: string } };
   const categoryName = loc.state?.categoryName;
-
+  
   const [data, setData] = useState<ProductGroupListItemDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
@@ -46,27 +46,25 @@ export default function ProductGroups() {
               هیچ گروهی برای این دسته‌بندی پیدا نشد.
             </div>
           ) : (
-            <ul className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+            <ul className="card-grid">
               {data.map(g => (
                 <li
                   key={g.id}
-                  className="bg-white rounded-2xl border border-gray-200 shadow-sm 
-                  transition-transform duration-200 ease-in-out hover:shadow-md hover:border-gray-400 hover:-translate-y-1"
+                  className="card-item"
                 >
                   <Link
                     to={`/categories/${categoryId}/groups/${g.id}/types`}
                     state={{ categoryName, groupName: g.name }}
-                    className="flex flex-col items-center justify-center gap-3 p-4 h-[190px]"
+                    className="card-link"
                   >
-                    <div className="flex items-center justify-center w-full h-28 overflow-hidden">
+                    <div className="card-media">
                       <img
                         src={g.imagePath ? imgUrl(g.imagePath) : noImage}
                         alt={g.imagePath ? g.name : "no image"}
-                        className="max-w-full max-h-full object-contain"
                         loading="lazy"
                       />
                     </div>
-                    <div className="text-center text-gray-800">{g.name}</div>
+                    <div className="card-title">{g.name}</div>
                   </Link>
                 </li>
               ))}

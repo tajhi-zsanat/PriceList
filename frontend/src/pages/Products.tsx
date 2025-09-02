@@ -53,8 +53,6 @@ export default function ProductsBySupplier() {
 
   // 2) Ensure the current supplier's first page is loaded
   useEffect(() => {
-    debugger;
-
     if (!filtersOk) return;
     if (loadingPage) return;
     if (!suppliers.length) return;
@@ -81,6 +79,7 @@ export default function ProductsBySupplier() {
         },
       })
       .then((r) => {
+        debugger;
         const d = r.data;
         setSections((prev) => [
           ...prev,
@@ -207,9 +206,9 @@ export default function ProductsBySupplier() {
                 <div className="text-sm text-gray-600 line-clamp-2 mt-1">
                   {p.description ?? ""}
                 </div>
-                {p.imagePath && (
+                {p.images && (
                   <img
-                    src={imgUrl(p.imagePath)}
+                    src={imgUrl(p.images[0])}
                     alt={p.model ?? String(p.id)}
                     className="mt-2 rounded-xl w-full h-40 object-contain bg-gray-50"
                     loading="lazy"
@@ -219,7 +218,7 @@ export default function ProductsBySupplier() {
                 )}
                 <div className="mt-3 font-bold">
                   {p.price != null
-                    ? p.price.toLocaleString("fa-IR") + " تومان"
+                    ? p.price.toLocaleString("fa-IR") + " ریال"
                     : "—"}
                 </div>
               </article>

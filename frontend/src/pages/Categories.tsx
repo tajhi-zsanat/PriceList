@@ -22,6 +22,7 @@ export default function Categories() {
   return (
     <>
       <Breadcrumbs />
+      
       <div className="mt-6 mx-4 sm:mx-16 p-8 rounded-xl bg-white">
         <h1 className="text-xl mb-4">همه دسته‌ها</h1>
         {loading && <div>
@@ -39,28 +40,26 @@ export default function Categories() {
               هیچ دسته‌ای ثبت نشده است.
             </div>
           ) : (
-            <ul className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+            <ul className="card-grid">
               {data.map(c => (
                 <li
                   key={c.id}
-                  className="bg-white rounded-2xl border border-gray-200 shadow-sm 
-          transition-transform duration-200 ease-in-out hover:shadow-md hover:border-gray-400 hover:-translate-y-1"
+                  className="card-item"
                 >
                   <Link
                     to={`/categories/${c.id}/groups`}
                     state={{ categoryName: c.name }}
-                    className="flex flex-col items-center justify-center gap-3 p-4 h-[190px]"
+                    className="card-link"
                     title={`مشاهده گروه‌های ${c.name}`}
                   >
-                    <div className="flex items-center justify-center w-full h-28 overflow-hidden">
+                    <div className="card-media">
                       <img
                         src={c.imagePath ? imgUrl(c.imagePath) : noImage}
                         alt={c.imagePath ? c.name : "no image"}
-                        className="max-w-full max-h-full object-contain"
                         loading="lazy"
                       />
                     </div>
-                    <div className="text-center text-gray-800">{c.name}</div>
+                    <div className="card-title">{c.name}</div>
                   </Link>
                 </li>
               ))}

@@ -32,12 +32,20 @@ export interface PaginatedResult<T> {
   hasNext: boolean;
 }
 
+export interface ProductCustomPropertyItemDto {
+  key: string;
+  value: string;
+}
+
 export interface ProductListItemDto {
   id: number;
   model?: string | null;
   description?: string | null;
-  imagePath?: string | null;
+  documentPath?: string | null;
   price?: number | null;
+  number?: number | null;
+  images: string[];
+  customProperties: ProductCustomPropertyItemDto[];
 }
 
 export interface SupplierSummaryDto {

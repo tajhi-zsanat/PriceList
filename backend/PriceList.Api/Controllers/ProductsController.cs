@@ -58,7 +58,7 @@ namespace PriceList.Api.Controllers
             [FromQuery] int groupId,
             [FromQuery] int typeId,
             [FromQuery] int skip = 0,       // optional: for paging the supplier list itself
-            [FromQuery] int take = 50,      // optional
+            [FromQuery] int take = 20,      // optional
             CancellationToken ct = default)
         {
             if (brandId <= 0) return BadRequest("شناسه برند کالا نامعتبر است.");

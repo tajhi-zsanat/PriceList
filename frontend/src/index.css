@@ -30,8 +30,93 @@
     font-style: normal;
 }
 
-/* optional: pleasant default font */
 :root {
     font-family: 'IRANSansWeb', sans-serif;
     font-size: 14px;
 }
+
+/* Categories */
+/* ===== Card Grid (responsive) ===== */
+.card-grid {
+  --card-gap: 1.5rem;       
+  --card-height: 190px;      
+  --card-radius: 1rem;      
+  --card-border: #e5e7eb;    
+  --card-border-hover: #9ca3af;
+  --card-text: #1f2937;    
+  --card-bg: #fff;
+
+  display: grid;
+  gap: var(--card-gap);
+  grid-template-columns: repeat(1, 1fr);
+}
+
+@media (min-width: 640px) {
+  .card-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1024px) {
+  .card-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (min-width: 1280px) {
+  .card-grid { grid-template-columns: repeat(6, 1fr); }
+}
+
+/* ===== Card Item ===== */
+.card-item {
+  background: var(--card-bg);
+  border-radius: var(--card-radius);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+}
+.card-item:hover {
+  border-color: var(--card-border-hover);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.10);
+  transform: translateY(-4px);
+}
+
+/* ===== Clickable area ===== */
+.card-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .75rem;          /* title/image spacing */
+  padding: 1rem;
+  height: var(--card-height);
+  text-decoration: none;
+  color: inherit;
+}
+
+/* ===== Image wrapper ===== */
+.card-media {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 7rem;     
+  overflow: hidden;
+}
+.card-media img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ===== Title/Text ===== */
+.card-title {
+  text-align: center;
+  color: var(--card-text);
+  font-size: 0.95rem;
+  line-height: 1.35;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  width: 100%;
+}
+
+/* ===== Compact / Tall variants (optional) ===== */
+.card--compact { --card-height: 160px; }
+.card--tall    { --card-height: 220px; }

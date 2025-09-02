@@ -28,6 +28,7 @@ export default function ProductTypes() {
   return (
     <>
       <Breadcrumbs />
+
       <div className="mt-6 mx-4 sm:mx-16 p-8 rounded-xl bg-white">
         <h1 className="text-xl mb-4">
           نوع‌های {groupName ? `«${groupName}»` : `گروه ${groupId}`}
@@ -48,25 +49,23 @@ export default function ProductTypes() {
             </div>
           ) :
             (
-              <ul className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+              <ul className="card-grid">
                 {data.map(t => (
-                  <li key={t.id} className="bg-white rounded-2xl border border-gray-200 shadow-sm 
-                transition-transform duration-200 ease-in-out hover:shadow-md hover:border-gray-400 hover:-translate-y-1"
+                  <li key={t.id} className="card-item"
                   >
                     <Link
                       to={`/categories/${categoryId}/groups/${groupId}/types/${t.id}/brands`}
                       state={{ categoryName, groupName, typeName: t.name }}
-                      className="flex flex-col items-center justify-center gap-3 p-4 h-[190px]"
+                      className="card-link"
                     >
-                      <div className="flex items-center justify-center w-full h-28 overflow-hidden">
+                      <div className="card-media">
                         <img
                           src={t.imagePath ? imgUrl(t.imagePath) : noImage}
                           alt={t.imagePath ? t.name : "no image"}
-                          className="max-w-full max-h-full object-contain"
                           loading="lazy"
                         />
                       </div>
-                      <div className="text-center text-gray-800">{t.name}</div>
+                      <div className="card-title">{t.name}</div>
                     </Link>
                   </li>
                 ))}
