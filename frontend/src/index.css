@@ -2,5 +2,36 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+    font-family: 'VazirFarsiDigits';
+    src: url('./assets/fonts/IRANSansWeb_Bold.woff2') format('woff2');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'IRANSansWeb';
+    src: url('./assets/fonts/IRANSansWeb_Light.woff2') format('woff2');
+    font-weight: 300;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'IRANSansWeb';
+    src: url('./assets/fonts/IRANSansWeb.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'IRANSansWeb';
+    src: url('./assets/fonts/IRANSansWeb_Medium.woff2') format('woff2');
+    font-weight: 500;
+    font-style: normal;
+}
+
 /* optional: pleasant default font */
-:root { font-family: system-ui, "Segoe UI", Roboto, "Vazirmatn", Arial, sans-serif; }
+:root {
+    font-family: 'IRANSansWeb', sans-serif;
+    font-size: 14px;
+}

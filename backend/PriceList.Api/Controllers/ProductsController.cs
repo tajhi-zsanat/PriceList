@@ -40,11 +40,108 @@ namespace PriceList.Api.Controllers
                     (p.CategoryId == categoryId) &&
                     (p.ProductGroupId == groupId) &&
                     (p.ProductTypeId == typeId),
-                orderBy: q => q.OrderBy(p => p.Model),                  
-                selector: ProductMappings.ToListItem,               
+                orderBy: q => q.OrderBy(p => p.Model),
+                selector: ProductMappings.ToListItem,
                 page: page,
                 pageSize: pageSize,
                 ct: ct);
+
+            return Ok(result);
+        }
+
+        [HttpGet("by-categories/suppliers-summary")]
+        [ProducesResponseType(typeof(List<SupplierSummaryDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<List<SupplierSummaryDto>>> GetSuppliersSummary(
+            [FromQuery] int brandId,
+            [FromQuery] int categoryId,
+            [FromQuery] int groupId,
+            [FromQuery] int typeId,
+            [FromQuery] int skip = 0,       // optional: for paging the supplier list itself
+            [FromQuery] int take = 50,      // optional
+            CancellationToken ct = default)
+        {
+            if (brandId <= 0) return BadRequest("شناسه برند کالا نامعتبر است.");
+            if (categoryId <= 0) return BadRequest("شناسه دسته‌بندی نامعتبر است.");
+            if (groupId <= 0) return BadRequest("شناسه گروه کالا نامعتبر است.");
+            if (typeId <= 0) return BadRequest("شناسه نوع کالا نامعتبر است.");
+
+            // Query: group by Supplier and count
+            var query = uow.Products.Query() // assume Query() exposes IQueryable<Product>
+                .Where(p =>
+                    p.BrandId == brandId &&
+                    p.CategoryId == categoryId &&
+                    p.ProductGroupId == groupId &&
+                    p.ProductTypeId == typeId);
+
+            var summaries = await query
+                .GroupBy(p => new { p.SupplierId, p.Supplier.Name })
+                .Select(g => new SupplierSummaryDto
+                {
+                    SupplierId = g.Key.SupplierId,
+                    SupplierName = g.Key.Name,
+                    ProductCount = g.Count()
+                })
+                .OrderByDescending(x => x.ProductCount)
+                .ThenBy(x => x.SupplierName)
+                .Skip(skip)
+                .Take(take)
+                .ToListAsync(ct);
+
+            return Ok(summaries);
+        }
+
+        [HttpGet("by-categories/by-supplier")]
+        [ProducesResponseType(typeof(SupplierProductsPageDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<SupplierProductsPageDto>> GetProductsBySupplier(
+            [FromQuery] int brandId,
+            [FromQuery] int categoryId,
+            [FromQuery] int groupId,
+            [FromQuery] int typeId,
+            [FromQuery] int supplierId,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20,
+            CancellationToken ct = default)
+        {
+            if (brandId <= 0) return BadRequest("شناسه برند کالا نامعتبر است.");
+            if (categoryId <= 0) return BadRequest("شناسه دسته‌بندی نامعتبر است.");
+            if (groupId <= 0) return BadRequest("شناسه گروه کالا نامعتبر است.");
+            if (typeId <= 0) return BadRequest("شناسه نوع کالا نامعتبر است.");
+            if (supplierId <= 0) return BadRequest("شناسه تامین‌کننده نامعتبر است.");
+
+            var baseQuery = uow.Products.Query()
+                .Where(p =>
+                    p.BrandId == brandId &&
+                    p.CategoryId == categoryId &&
+                    p.ProductGroupId == groupId &&
+                    p.ProductTypeId == typeId &&
+                    p.SupplierId == supplierId);
+
+            var totalCount = await baseQuery.CountAsync(ct);
+
+            var items = await baseQuery
+                .OrderBy(p => p.Model) // or any product ordering you prefer
+                .Select(ProductMappings.ToListItem)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(ct);
+
+            // Fetch supplier name once (avoid null name on empty)
+            var supplierName = await uow.Suppliers.Query()
+                .Where(s => s.Id == supplierId)
+                .Select(s => s.Name)
+                .FirstOrDefaultAsync(ct) ?? "—";
+
+            var result = new SupplierProductsPageDto
+            {
+                SupplierId = supplierId,
+                SupplierName = supplierName,
+                Items = items,
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = totalCount
+            };
 
             return Ok(result);
         }

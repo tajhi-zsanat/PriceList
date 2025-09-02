@@ -12,6 +12,8 @@ namespace PriceList.Core.Abstractions.Repositories
     {
         Task<T?> GetByIdAsync(int id, CancellationToken ct = default);
 
+        IQueryable<T> Query(); // ✅ NEW
+
         // ✅ projection overload returns TResult, not T
         Task<TResult?> GetByIdAsync<TResult>(
             int id,

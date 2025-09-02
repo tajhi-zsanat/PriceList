@@ -20,7 +20,7 @@ namespace PriceList.Api.Controllers
         public async Task<ActionResult<List<BrandListItemDto>>> GetByCategories(
             [FromQuery] int categoryId,
             [FromQuery] int groupId,
-            [FromQuery] int typeId,         // <-- FromQuery, not FromRoute
+            [FromQuery] int typeId,         
             CancellationToken ct = default)
         {
             if (categoryId <= 0) return BadRequest("شناسه دسته بندی نامعتبر است.");

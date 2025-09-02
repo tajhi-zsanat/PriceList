@@ -1,0 +1,30 @@
+.header-login {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid #1B1B1E;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.header-login:hover {
+    background: #1B1B1E;
+    color: white;
+}
+
+.header-login-img {
+    transition: filter 0.3s ease;
+}
+
+.header-login:hover .header-logn-img {
+    filter: brightness(0) invert(1);
+}
+
+.container-navabr {
+    box-shadow: 0px 0px 15px 0px #0000001A;
+}
+
+.container-navabr a {
+    font-weight: bold
+}

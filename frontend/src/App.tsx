@@ -1,20 +1,24 @@
-import { Link, Route, Routes } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Categories from "./pages/Categories";
+import ProductGroups from "./pages/ProductGroups";
+import ProductTypes from "./pages/ProductTypes";
+import Brands from "./pages/Brands";
+import Products from "./pages/Products";
+import Header from "./Header";
 
 export default function App() {
   return (
-    <div className="min-h-screen">
-      <header className="bg-white border-b sticky top-0 z-10">
-        <nav className="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
-          <Link className="font-bold" to="/">خانه</Link>
-          <Link to="/categories">دسته‌بندی‌ها</Link>
-        </nav>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-4 py-6">
+    <div className="flex flex-col min-h-screen">
+      <Header />
+      <main className="flex-1 bg-[#F5F5F5]">
         <Routes>
-          <Route path="/" element={<div>به PriceList خوش آمدید</div>} />
+          <Route path="/" element={<Navigate to="/categories" replace />} />
           <Route path="/categories" element={<Categories />} />
+          <Route path="/categories/:categoryId/groups" element={<ProductGroups />} />
+          <Route path="/categories/:categoryId/groups/:groupId/types" element={<ProductTypes />} />
+          <Route path="/categories/:categoryId/groups/:groupId/types/:typeId/brands" element={<Brands />} />
+          <Route path="/categories/:categoryId/groups/:groupId/types/:typeId/brands/:brandId/products" element={<Products />} />
+          <Route path="*" element={<div className="p-6">یافت نشد</div>} />
         </Routes>
       </main>
     </div>

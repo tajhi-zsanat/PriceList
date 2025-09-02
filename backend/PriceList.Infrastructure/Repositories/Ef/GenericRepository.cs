@@ -16,6 +16,8 @@ namespace PriceList.Infrastructure.Repositories.Ef
         protected readonly AppDbContext Db = db;
         protected DbSet<T> Set => Db.Set<T>();
 
+        public IQueryable<T> Query() => Set.AsNoTracking();
+
         public Task<T?> GetByIdAsync(int id, CancellationToken ct = default)
             => Set.FindAsync([id], ct).AsTask();
 

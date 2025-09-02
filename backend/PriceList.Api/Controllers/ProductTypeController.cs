@@ -17,7 +17,7 @@ namespace PriceList.Api.Controllers
         [HttpGet("by-group/{groupId:int}")]
         [ProducesResponseType(typeof(List<ProductTypeListItemDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<List<ProductTypeListItemDto>>> GetByCategory(int groupId, CancellationToken ct)
+        public async Task<ActionResult<List<ProductTypeListItemDto>>> GetByGroup(int groupId, CancellationToken ct)
         {
             if (groupId <= 0) return BadRequest("شناسه گروه کالا نامعتبر است.");
 
