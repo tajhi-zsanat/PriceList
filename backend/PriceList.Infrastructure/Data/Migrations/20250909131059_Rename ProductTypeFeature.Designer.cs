@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PriceList.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using PriceList.Infrastructure.Data;
 namespace PriceList.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250909131059_Rename ProductTypeFeature")]
+    partial class RenameProductTypeFeature
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -179,7 +182,7 @@ namespace PriceList.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ErrorLog", (string)null);
+                    b.ToTable("ErrorLog");
                 });
 
             modelBuilder.Entity("PriceList.Core.Entities.Product", b =>
@@ -427,7 +430,7 @@ namespace PriceList.Infrastructure.Data.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductImage", (string)null);
+                    b.ToTable("ProductImage");
                 });
 
             modelBuilder.Entity("PriceList.Core.Entities.ProductType", b =>
@@ -523,7 +526,7 @@ namespace PriceList.Infrastructure.Data.Migrations
 
                     b.HasIndex("ProductFeatureId");
 
-                    b.ToTable("ProductTypeFeatures", (string)null);
+                    b.ToTable("ProductTypeFeature", (string)null);
                 });
 
             modelBuilder.Entity("PriceList.Core.Entities.Supplier", b =>
@@ -615,6 +618,21 @@ namespace PriceList.Infrastructure.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("Units", (string)null);
+                });
+
+            modelBuilder.Entity("ProductFeatureProductType", b =>
+                {
+                    b.Property<int>("ProductFeaturesId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProductTypesId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ProductFeaturesId", "ProductTypesId");
+
+                    b.HasIndex("ProductTypesId");
+
+                    b.ToTable("ProductTypeFeatures", (string)null);
                 });
 
             modelBuilder.Entity("PriceList.Core.Entities.Product", b =>
@@ -728,6 +746,21 @@ namespace PriceList.Infrastructure.Data.Migrations
                     b.Navigation("ProductFeature");
 
                     b.Navigation("ProductType");
+                });
+
+            modelBuilder.Entity("ProductFeatureProductType", b =>
+                {
+                    b.HasOne("PriceList.Core.Entities.ProductFeature", null)
+                        .WithMany()
+                        .HasForeignKey("ProductFeaturesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PriceList.Core.Entities.ProductType", null)
+                        .WithMany()
+                        .HasForeignKey("ProductTypesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("PriceList.Core.Entities.Brand", b =>

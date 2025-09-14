@@ -20,7 +20,8 @@ namespace PriceList.Api.Controllers
         {
             var list = await uow.Categories.ListAsync(
                 predicate: null
-                , selector: CategoryMappings.ToListItem
+                , selector: CategoryMappings.ToListItem,
+                asNoTracking: true
                 , orderBy: q => q
                     .OrderBy(c => c.DisplayOrder == 0)
                     .ThenBy(c => c.DisplayOrder)

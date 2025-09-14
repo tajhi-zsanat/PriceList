@@ -47,38 +47,3 @@ export interface ProductListItemDto {
   images: string[];
   customProperties: ProductCustomPropertyItemDto[];
 }
-
-export interface SupplierSummaryDto {
-  supplierId: number;
-  supplierName: string;
-  productCount: number;
-}
-
-export interface SupplierProductsPageDto {
-  supplierId: number;
-  supplierName: string;
-  items: ProductListItemDto[];
-  page: number;
-  pageSize: number;
-  totalCount: number;
-  totalPages: number;
-  hasPrevious: boolean;
-  hasNext: boolean;
-}
-
-// local React state helpers
-export type LocState = {
-  categoryName?: string;
-  groupName?: string;
-  typeName?: string;
-  brandName?: string;
-};
-
-export type SupplierSection = {
-  supplierId: number;
-  supplierName: string;
-  items: ProductListItemDto[];
-  page: number;        // current loaded page
-  hasNext: boolean;    // more pages for this supplier?
-  totalCount: number;  // optional, for UI
-};

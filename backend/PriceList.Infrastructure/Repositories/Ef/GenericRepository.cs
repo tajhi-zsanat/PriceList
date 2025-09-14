@@ -28,23 +28,26 @@ namespace PriceList.Infrastructure.Repositories.Ef
         {
             return await Set.AsNoTracking()
                 .Where(e => EF.Property<int>(e, "Id") == id)
-                .Select(selector)                             
+                .Select(selector)
                 .FirstOrDefaultAsync(ct);
         }
 
         public async Task<List<T>> ListAsync(Expression<Func<T, bool>>? predicate = null,
-                                             CancellationToken ct = default,
-                                             params Expression<Func<T, object>>[] includes)
+              bool asNoTracking = true,
+              CancellationToken ct = default,
+              params Expression<Func<T, object>>[] includes)
         {
             IQueryable<T> q = Set;
             foreach (var inc in includes) q = q.Include(inc);
             if (predicate is not null) q = q.Where(predicate);
-            return await q.AsNoTracking().ToListAsync(ct);
+            if (asNoTracking) q = q.AsNoTracking();
+            return await q.ToListAsync(ct);
         }
 
         // ✅ Server-side projection
         public async Task<List<TResult>> ListAsync<TResult>(Expression<Func<T, bool>>? predicate,
                                                             Expression<Func<T, TResult>> selector,
+                                                            bool asNoTracking = true,
                                                             Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
                                                             CancellationToken ct = default)
         {
@@ -56,7 +59,10 @@ namespace PriceList.Infrastructure.Repositories.Ef
             if (orderBy is not null)
                 q = orderBy(q);
 
-            return await q.AsNoTracking().Select(selector).ToListAsync(ct);
+            if (asNoTracking)
+                q = q.AsNoTracking();
+
+            return await q.Select(selector).ToListAsync(ct);
         }
 
         public async Task<TResult?> FirstOrDefaultAsync<TResult>(Expression<Func<T, bool>> predicate,
@@ -69,6 +75,9 @@ namespace PriceList.Infrastructure.Repositories.Ef
 
         public Task AddRangeAsync(IEnumerable<T> entities, CancellationToken ct = default)
             => Set.AddRangeAsync(entities, ct);
+
+        public void RemoveRange(IEnumerable<T> entities)
+                => Set.RemoveRange(entities);
 
         public void Update(T entity) => Set.Update(entity);
         public void Remove(T entity) => Set.Remove(entity);

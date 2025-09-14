@@ -12,7 +12,7 @@ namespace PriceList.Core.Abstractions.Repositories
     {
         Task<T?> GetByIdAsync(int id, CancellationToken ct = default);
 
-        IQueryable<T> Query(); // ✅ NEW
+        IQueryable<T> Query();
 
         // ✅ projection overload returns TResult, not T
         Task<TResult?> GetByIdAsync<TResult>(
@@ -20,13 +20,16 @@ namespace PriceList.Core.Abstractions.Repositories
             Expression<Func<T, TResult>> selector,
             CancellationToken ct = default);
 
-        Task<List<T>> ListAsync(Expression<Func<T, bool>>? predicate = null,
-                                CancellationToken ct = default,
-                                params Expression<Func<T, object>>[] includes);
+        Task<List<T>> ListAsync(
+            Expression<Func<T, bool>>? predicate = null,
+            bool asNoTracking = true,
+            CancellationToken ct = default,
+            params Expression<Func<T, object>>[] includes);
 
         // ✅ New: project to a DTO/result type on the DB side
         Task<List<TResult>> ListAsync<TResult>(Expression<Func<T, bool>>? predicate,
                                                Expression<Func<T, TResult>> selector,
+                                               bool asNoTracking = true,
                                                Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
                                                CancellationToken ct = default);
 
@@ -37,6 +40,7 @@ namespace PriceList.Core.Abstractions.Repositories
 
         Task<T> AddAsync(T entity, CancellationToken ct = default);
         Task AddRangeAsync(IEnumerable<T> entities, CancellationToken ct = default);
+        void RemoveRange(IEnumerable<T> entities);
         void Update(T entity);
         void Remove(T entity);
 

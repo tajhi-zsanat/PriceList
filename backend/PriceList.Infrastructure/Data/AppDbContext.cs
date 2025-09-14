@@ -21,8 +21,10 @@ namespace PriceList.Infrastructure.Data
         public DbSet<Category> Categories => Set<Category>();
         public DbSet<ProductGroup> ProductGroups => Set<ProductGroup>();
         public DbSet<ProductType> ProductTypes => Set<ProductType>();
+        public DbSet<ProductFeature> ProductFeatures => Set<ProductFeature>();
         public DbSet<Brand> Brands => Set<Brand>();
         public DbSet<Supplier> Suppliers => Set<Supplier>();
+        public DbSet<ProductTypeFeature> ProductTypeFeature => Set<ProductTypeFeature>();
         public DbSet<Unit> Units => Set<Unit>();
         public DbSet<ErrorLog> ErrorLog => Set<ErrorLog>();
 

@@ -1,0 +1,99 @@
+.button-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  padding: 0.5rem 1rem;
+  border: 1px solid #1F78AE;   /* blue border */
+  border-radius: 8px;
+  background-color: #fff;      /* white background */
+  color: #1F78AE;              /* blue text */
+
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.5;
+
+  cursor: pointer;
+  transition: background-color 0.3s ease,
+              color 0.3s ease,
+              transform 0.2s ease,
+              filter 0.3s ease;
+}
+
+.button-outline img {
+  transition: filter 0.3s ease;
+}
+
+.button-outline:hover {
+  background-color: #1F78AE;  /* blue background */
+  color: #fff;                /* white text */
+}
+
+.button-outline:hover img {
+  filter: brightness(0) invert(1); /* make white */
+}
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

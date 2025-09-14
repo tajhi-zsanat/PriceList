@@ -1,239 +1,285 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
-import api from "../lib/api";
-import { imgUrl } from "../lib/helpers";
 import Breadcrumbs from "../components/Breadcrumbs";
-import type { LocState, SupplierSection, SupplierSummaryDto, SupplierProductsPageDto } from "../types";
+import "./Products.css";
+import api from "../lib/api";
+import type { PaginatedResult, ProductListItemDto } from "../types";
+import time from '../assets/img/ion_time-outline.png';
+import warning from '../assets/img/warning.png';
+import pdf from '../assets/img/pdf.png';
+import print from '../assets/img/print.png';
+import search from '../assets/img/search.png';
+import expand from '../assets/img/flowbite_expand-outline.png';
 
 export default function ProductsBySupplier() {
   const { categoryId, groupId, typeId, brandId } = useParams();
-  const loc = useLocation() as { state?: LocState };
-  const { brandName } = loc.state || {};
 
-  const [loadingList, setLoadingList] = useState(false);
-  const [listError, setListError] = useState<string | null>(null);
+  const loc = useLocation() as {
+    state?: { categoryName?: string; groupName?: string; typeName?: string; brandName?: string };
+  };
+  const { categoryName, groupName, typeName, brandName } = loc.state || {};
 
-  const [suppliers, setSuppliers] = useState<SupplierSummaryDto[]>([]);
-  const [supplierIndex, setSupplierIndex] = useState(0);
+  const [items, setItems] = useState<ProductListItemDto[]>([]);
+  const [page, setPage] = useState(1);
+  const pageSize = 12;
 
-  // per-supplier sections that we render on the page
-  const [sections, setSections] = useState<SupplierSection[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingInitial, setLoadingInitial] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
-  // prevent duplicate loads
-  const [loadingPage, setLoadingPage] = useState(false);
+  const loaderRef = useRef<HTMLDivElement | null>(null);
 
-  const pageSize = 20;
-
-  // A single sentinel at the very bottom triggers loading next page or next supplier
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
-
-  const filtersOk = useMemo(
-    () => !!(categoryId && groupId && typeId && brandId),
-    [categoryId, groupId, typeId, brandId]
-  );
-
-  // 1) Load ranked suppliers
+  // Reset when route params change
   useEffect(() => {
-    if (!filtersOk) return;
+    setItems([]);
+    setPage(1);
+    setHasMore(true);
+    setTotalCount(0);
+    setErr(null);
+  }, [categoryId, groupId, typeId, brandId]);
 
-    setLoadingList(true);
-    setListError(null);
-    setSuppliers([]);
-    setSections([]);
-    setSupplierIndex(0);
-
-    api
-      .get<SupplierSummaryDto[]>("/api/Products/by-categories/suppliers-summary", {
-        params: { brandId, categoryId, groupId, typeId, skip: 0, take: 20 }, // take as many as you want
-      })
-      .then((r) => setSuppliers(r.data))
-      .catch((e) => setListError(e?.response?.data ?? e.message))
-      .finally(() => setLoadingList(false));
-  }, [filtersOk, brandId, categoryId, groupId, typeId]);
-
-  // 2) Ensure the current supplier's first page is loaded
+  // Fetch page
   useEffect(() => {
-    if (!filtersOk) return;
-    if (loadingPage) return;
-    if (!suppliers.length) return;
+    if (!categoryId || !groupId || !typeId || !brandId) return;
+    if (!hasMore) return;
 
-    const current = suppliers[supplierIndex];
-    if (!current) return; // no more suppliers
+    const controller = new AbortController();
 
-    // If we already created a section for this supplier, do nothing here.
-    const already = sections.find((s) => s.supplierId === current.supplierId);
-    if (already) return;
+    // set the right loading flag
+    if (page === 1) setLoadingInitial(true);
+    else setLoadingMore(true);
 
-    // Load page 1 for this supplier
-    setLoadingPage(true);
-    api
-      .get<SupplierProductsPageDto>("/api/Products/by-categories/by-supplier", {
+    api.get<PaginatedResult<ProductListItemDto>>(
+      "/api/Products/by-categories",
+      {
         params: {
-          brandId,
-          categoryId,
-          groupId,
-          typeId,
-          supplierId: current.supplierId,
-          page: 1,
+          brandId: Number(brandId),
+          categoryId: Number(categoryId),
+          groupId: Number(groupId),
+          typeId: Number(typeId),
+          page,
           pageSize,
         },
-      })
-      .then((r) => {
-        debugger;
-        const d = r.data;
-        setSections((prev) => [
-          ...prev,
-          {
-            supplierId: d.supplierId,
-            supplierName: d.supplierName,
-            items: d.items,
-            page: d.page,
-            hasNext: d.hasNext,
-            totalCount: d.totalCount,
-          },
-        ]);
-      })
-      .catch((e) => setListError(e?.response?.data ?? e.message))
-      .finally(() => setLoadingPage(false));
-  }, [filtersOk, suppliers, supplierIndex, sections, loadingPage, brandId, categoryId, groupId, typeId]);
-
-  // 3) IntersectionObserver to auto-load more for current supplier, or move to next supplier
-  useEffect(() => {
-    if (!filtersOk) return;
-    if (!sentinelRef.current) return;
-
-    const el = sentinelRef.current;
-    const obs = new IntersectionObserver((entries) => {
-      const entry = entries[0];
-      if (!entry.isIntersecting) return;
-
-      // Who is the current supplier?
-      const sup = suppliers[supplierIndex];
-      if (!sup) return; // no more suppliers
-
-      // Find its section
-      const sec = sections.find((s) => s.supplierId === sup.supplierId);
-      if (!sec) return; // not yet created
-
-      // If current supplier has more pages, load the next one
-      if (sec.hasNext && !loadingPage) {
-        setLoadingPage(true);
-        api
-          .get<SupplierProductsPageDto>("/api/Products/by-categories/by-supplier", {
-            params: {
-              brandId,
-              categoryId,
-              groupId,
-              typeId,
-              supplierId: sec.supplierId,
-              page: sec.page + 1,
-              pageSize,
-            },
-          })
-          .then((r) => {
-            const d = r.data;
-            setSections((prev) =>
-              prev.map((x) =>
-                x.supplierId === sec.supplierId
-                  ? {
-                    ...x,
-                    items: [...x.items, ...d.items],
-                    page: d.page,
-                    hasNext: d.hasNext,
-                    totalCount: d.totalCount,
-                  }
-                  : x
-              )
-            );
-          })
-          .catch((e) => setListError(e?.response?.data ?? e.message))
-          .finally(() => setLoadingPage(false));
-        return;
+        signal: controller.signal,
       }
-
-      // If no more pages for current supplier, move to next supplier
-      if (!sec.hasNext) {
-        // Only advance if next supplier exists
-        if (supplierIndex + 1 < suppliers.length) {
-          setSupplierIndex((i) => i + 1);
+    )
+      .then((res) => {
+        const p = res.data;
+        setItems((prev) => {
+          // append with de-dup (by id)
+          const merged = [...prev, ...p.items];
+          const seen = new Set<number>();
+          return merged.filter((x) => {
+            const id = x.id;
+            if (seen.has(id)) return false;
+            seen.add(id);
+            return true;
+          });
+        });
+        setTotalCount(p.totalCount);
+        setHasMore(p.hasNext);
+      })
+      .catch((e: any) => {
+        if (e?.name !== "CanceledError") {
+          setErr(e?.response?.data ?? e.message ?? "خطا در دریافت داده‌ها");
         }
-      }
-    }, { rootMargin: "400px 0px 400px 0px" }); // prefetch earlier
+      })
+      .finally(() => {
+        if (page === 1) setLoadingInitial(false);
+        else setLoadingMore(false);
+      });
 
-    obs.observe(el);
+    return () => controller.abort();
+  }, [categoryId, groupId, typeId, brandId, page, hasMore]);
+
+  // IntersectionObserver for infinite scroll
+  useEffect(() => {
+    const node = loaderRef.current;
+    if (!node) return;
+
+    const obs = new IntersectionObserver(
+      (entries) => {
+        const first = entries[0];
+        // only load next page if not currently loading and still more
+        const isLoading = loadingInitial || loadingMore;
+        if (first.isIntersecting && !isLoading && hasMore) {
+          setPage((p) => p + 1);
+        }
+      },
+      {
+        root: null,
+        rootMargin: "300px", // start earlier for smoother loading
+        threshold: 0,
+      }
+    );
+
+    obs.observe(node);
     return () => obs.disconnect();
-  }, [
-    filtersOk,
-    suppliers,
-    supplierIndex,
-    sections,
-    loadingPage,
-    brandId,
-    categoryId,
-    groupId,
-    typeId,
-  ]);
+  }, [loadingInitial, loadingMore, hasMore]);
+
+  // Simple skeletons for initial load (optional)
+  const renderSkeletons = (count = pageSize) => (
+    <ul className="product-grid">
+      {Array.from({ length: count }).map((_, i) => (
+        <li key={`s-${i}`} className="product-card skeleton">
+          <div className="skeleton-img" />
+          <div className="skeleton-line w-3/4" />
+          <div className="skeleton-line w-1/2" />
+          <div className="skeleton-line w-1/3" />
+        </li>
+      ))}
+    </ul>
+  );
 
   return (
-    <div className="p-6 space-y-4">
+    <div className="px-16 pt-8">
       <Breadcrumbs />
-      <h1 className="text-2xl font-bold">
-        محصولات {brandName ? `«${brandName}»` : `برند ${brandId}`}
-      </h1>
 
-      {loadingList && <div>در حال بارگذاری تأمین‌کنندگان…</div>}
-      {listError && <div className="text-red-600">خطا: {listError}</div>}
+      <div className="border border-[#CFD8DC] rounded-xl">
 
-      {/* Sections per supplier */}
-      {!loadingList && !listError && sections.length === 0 && (
-        <div className="text-gray-500">موردی یافت نشد.</div>
-      )}
+        {/* Error */}
+        {err && <div className="text-red-600 mb-3">خطا: {err}</div>}
 
-      {sections.map((sec) => (
-        <section key={sec.supplierId} className="space-y-3">
-          <div className="flex items-baseline gap-2">
-            <h2 className="text-xl font-semibold">{sec.supplierName}</h2>
-            <span className="text-sm text-gray-500">
-              {sec.totalCount.toLocaleString("fa-IR")} کالا
-            </span>
+        <div className="">
+          <div className="p-8">
+            <p className="mb-2 text-xl font-[400]">
+              لیست قیمت محصولات {brandName} <span className="text-sm text-[#636363]">({totalCount} محصول)</span>
+            </p>
+
+            <div className="flex items-center gap-4 mb-8">
+              <div className="flex items-center gap-2">
+                <img src={time} alt="time" />
+                <p className="text-[#636363]">آخرین بروز رسانی 22 تیر 1404</p>
+              </div>
+              <div className="bg-[#636363] w-[1px] h-4"></div>
+              <div className="flex items-center gap-2">
+                <img src={warning} alt="time" />
+                <p className="text-[#636363]">کد تامین کننده : <span>45</span></p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4 mb-4">
+              <button className="button-outline">
+                <img src={pdf} alt="pdf" />
+                <span>خروجی PDF</span>
+              </button>
+              <button className="button-outline">
+                <img src={print} alt="print" />
+                <span>چاپ PDF</span>
+              </button>
+            </div>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {sec.items.map((p) => (
-              <article key={p.id} className="bg-white p-4 rounded-2xl shadow">
-                <div className="text-xs text-gray-500 mb-1">کد: {p.id}</div>
-                <div className="font-semibold">{p.model ?? "—"}</div>
-                <div className="text-sm text-gray-600 line-clamp-2 mt-1">
-                  {p.description ?? ""}
-                </div>
-                {p.images && (
-                  <img
-                    src={imgUrl(p.images[0])}
-                    alt={p.model ?? String(p.id)}
-                    className="mt-2 rounded-xl w-full h-40 object-contain bg-gray-50"
-                    loading="lazy"
-                    decoding="async"
-                    draggable={false}
-                  />
-                )}
-                <div className="mt-3 font-bold">
-                  {p.price != null
-                    ? p.price.toLocaleString("fa-IR") + " ریال"
-                    : "—"}
-                </div>
-              </article>
-            ))}
+          <div className="flex items-center justify-between bg-[#ECEFF1] p-4">
+            <ul className="flex items-center gap-3">
+              <li className="bg-white rounded-lg py-2 px-8">
+                زانو
+              </li>
+              <li className="bg-white rounded-lg py-2 px-8">
+                سه راهی
+              </li>
+              <li className="bg-white rounded-lg py-2 px-8">
+                لوله
+              </li>
+            </ul>
+            <div className="flex items-center gap-3">
+              <div className="relative w-64">
+                <input
+                  type="text"
+                  placeholder="جستجو"
+                  className="w-full border border-gray-300 rounded-lg py-2 pr-10 pl-3 focus:outline-none focus:border-blue-500"
+                />
+                <img
+                  src={search}
+                  alt="search"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"
+                />
+              </div>
+              <div>
+                <img src={expand} alt="expand" />
+              </div>
+            </div>
+
           </div>
-        </section>
-      ))}
 
-      {/* Global sentinel at the very bottom */}
-      <div ref={sentinelRef} className="h-10" />
+          {/* Initial loading skeleton */}
+          {loadingInitial && renderSkeletons(8)}
 
-      {/* Small loading indicator while fetching next page/next supplier */}
-      {loadingPage && (
-        <div className="text-center text-sm text-gray-500">در حال بارگذاری…</div>
-      )}
+          {/* Empty (no error, no loading, no items) */}
+          {!loadingInitial && items.length === 0 && !err && (
+            <div className="text-gray-600">موردی یافت نشد.</div>
+          )}
+
+          {/* Items */}
+          {!loadingInitial && items.length > 0 && (
+            <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-sm mx-8">
+              <table className="min-w-full divide-y divide-gray-200 text-sm text-right">
+                <thead className="bg-gray-100 text-gray-700 font-medium">
+                  <tr>
+                    <th className="px-4 py-2">ردیف</th>
+                    <th className="px-4 py-2">عکس</th>
+                    <th className="px-4 py-2">فایل</th>
+                    <th className="px-4 py-2">شرح کالا</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {items.map((p, i) => {
+                    const cover = p.images?.[0];
+                    return (
+                      <tr key={p.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-2">{i + 1}</td>
+                        <td className="px-4 py-2">
+                          {cover ? (
+                            <img
+                              src={cover}
+                              alt={p.model ?? "product"}
+                              loading="lazy"
+                              decoding="async"
+                              className="h-12 w-12 object-cover rounded-md border"
+                            />
+                          ) : (
+                            <span className="text-gray-400">بدون تصویر</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-2">{p.model ?? "—"}</td>
+                        <td className="px-4 py-2">{p.description ?? "—"}</td>
+                        <td className="px-4 py-2">
+                          {p.price != null ? p.price.toLocaleString() : "—"} ریال
+                        </td>
+                        <td className="px-4 py-2">
+                          {p.customProperties?.length > 0 ? (
+                            <ul className="list-disc pr-5 space-y-1 text-gray-600">
+                              {p.customProperties.slice(0, 3).map((cp, idx) => (
+                                <li key={idx}>
+                                  <span className="font-medium">{cp.key}:</span>{" "}
+                                  {cp.value}
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <span className="text-gray-400">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+        </div>
+
+        {/* Sentinel area */}
+        <div ref={loaderRef} className="sentinel">
+          {loadingMore && <div className="spinner" aria-label="Loading more…" />}
+          {!hasMore && items.length > 0 && (
+            <div className="end-of-list">همه‌ی موارد بارگذاری شد</div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

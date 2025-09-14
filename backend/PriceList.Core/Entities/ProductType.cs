@@ -23,6 +23,10 @@ namespace PriceList.Core.Entities
 
         public ICollection<Product> Products { get; set; } = new List<Product>();
 
+        //public ICollection<ProductFeature> ProductFeatures { get; set; } = new List<ProductFeature>();
+
+        public ICollection<ProductTypeFeature> ProductTypeFeatures { get; set; } = new List<ProductTypeFeature>();
+
         //public ICollection<Supplier> Suppliers { get; set; } = new List<Supplier>();
     }
 }

@@ -29,7 +29,7 @@ namespace PriceList.Infrastructure.Configurations
             b.HasOne(pt => pt.ProductGroup)
              .WithMany(pg => pg.ProductTypes)
              .HasForeignKey(pt => pt.ProductGroupId)
-             .OnDelete(DeleteBehavior.Restrict); 
+             .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

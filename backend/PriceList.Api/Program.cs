@@ -2,6 +2,7 @@
 using Microsoft.OpenApi.Models;
 using PriceList.Core.Abstractions.Repositories;
 using PriceList.Core.Abstractions.Storage;
+using PriceList.Core.Entities;
 using PriceList.Infrastructure.Data;
 using PriceList.Infrastructure.Repositories;
 using PriceList.Infrastructure.Repositories.Ef;
@@ -77,6 +78,8 @@ builder.Services.AddScoped<IBrandRepository, BrandRepository>();
 builder.Services.AddScoped<IErrorLogRepository, ErrorLogRepository>();
 builder.Services.AddScoped<IUnitRepository, UnitRepository>();
 builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
+builder.Services.AddScoped<IProductFeatureRepository, ProductFeatureRepository>();
+builder.Services.AddScoped<IProductTypeFeaturesRepository, ProductTypeFeaturesRepository>();
 
 // Decide where files live (under wwwroot/uploads)
 var webRoot = builder.Environment.WebRootPath

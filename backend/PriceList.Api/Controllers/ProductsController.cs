@@ -20,33 +20,63 @@ namespace PriceList.Api.Controllers
         [HttpGet("by-categories")]
         [ProducesResponseType(typeof(PaginatedResult<ProductListItemDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<PaginatedResult<ProductListItemDto>>> GetByBrand(
-            [FromQuery] int brandId,
-            [FromQuery] int categoryId,
-            [FromQuery] int groupId,
-            [FromQuery] int typeId,
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 20,
-            CancellationToken ct = default)
+        public async Task<ActionResult<PaginatedResult<ProductListItemDto>>> GetByCategories(
+             [FromQuery] int brandId,
+             [FromQuery] int categoryId,
+             [FromQuery] int groupId,
+             [FromQuery] int typeId,
+             [FromQuery] int page = 1,
+             [FromQuery] int pageSize = 10,
+             CancellationToken ct = default)
         {
-            if (brandId <= 0) return BadRequest("شناسه برند کالا نامعتبر است.");
-            if (categoryId <= 0) return BadRequest("شناسه دسته‌بندی نامعتبر است.");
-            if (groupId <= 0) return BadRequest("شناسه گروه کالا نامعتبر است.");
-            if (typeId <= 0) return BadRequest("شناسه نوع کالا نامعتبر است.");
+            try
+            {
+                if (brandId <= 0) return BadRequest("شناسه برند کالا نامعتبر است.");
+                if (categoryId <= 0) return BadRequest("شناسه دسته‌بندی نامعتبر است.");
+                if (groupId <= 0) return BadRequest("شناسه گروه کالا نامعتبر است.");
+                if (typeId <= 0) return BadRequest("شناسه نوع کالا نامعتبر است.");
+                if (page < 1) page = 1;
+                if (pageSize < 1 || pageSize > 200) pageSize = 10;
 
-            var result = await uow.Products.ListPagedAsync(
-                predicate: p =>
-                    p.BrandId == brandId &&
-                    (p.CategoryId == categoryId) &&
-                    (p.ProductGroupId == groupId) &&
-                    (p.ProductTypeId == typeId),
-                orderBy: q => q.OrderBy(p => p.Model),
-                selector: ProductMappings.ToListItem,
-                page: page,
-                pageSize: pageSize,
-                ct: ct);
+                ct.ThrowIfCancellationRequested();
 
-            return Ok(result);
+                var baseQuery = uow.Products.Query()
+                    .Where(p =>
+                        p.BrandId == brandId &&
+                        p.CategoryId == categoryId &&
+                        p.ProductGroupId == groupId &&
+                        p.ProductTypeId == typeId);
+
+                // 1) Get SupplierId with the most products within the filtered set
+                var topSupplierId = await baseQuery
+                    .GroupBy(p => p.SupplierId)
+                    .OrderByDescending(g => g.Count())
+                    .Select(g => g.Key)
+                    .FirstOrDefaultAsync(ct);
+
+
+                // 2) Page only that supplier’s products
+                var result = await uow.Products.ListPagedAsync(
+                    predicate: p =>
+                        p.BrandId == brandId &&
+                        p.CategoryId == categoryId &&
+                        p.ProductGroupId == groupId &&
+                        p.ProductTypeId == typeId &&
+                        p.SupplierId == topSupplierId,
+                    orderBy: q => q.OrderBy(p => p.Model),
+                    selector: ProductMappings.ToListItem,
+                    page: page,
+                    pageSize: pageSize,
+                    ct: ct);
+
+                return Ok(result);
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                // Client canceled (navigated away / request aborted) → not an error
+                return new StatusCodeResult(499); // "Client Closed Request" (optional)
+                                                  // Or: return NoContent(); or just let the framework end the response.
+            }
         }
 
         [HttpGet("by-categories/suppliers-summary")]

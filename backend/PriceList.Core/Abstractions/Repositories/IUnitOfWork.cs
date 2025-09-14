@@ -16,6 +16,8 @@ namespace PriceList.Core.Abstractions.Repositories
         IErrorLogRepository Errors { get; }
         IUnitRepository Units { get; }
         ISupplierRepository Suppliers { get; }
+        IProductFeatureRepository Features { get; }
+        IProductTypeFeaturesRepository ProductTypeFeatures { get; }
 
         Task<int> SaveChangesAsync(CancellationToken ct = default);
 

@@ -50,6 +50,7 @@ namespace PriceList.Api.Controllers
             var list = await uow.Brands.ListAsync(
                 predicate: null,
                 selector: BrandMappings.ToListItem,
+                asNoTracking: true,
                 orderBy: q => q
                     .OrderBy(c => c.DisplayOrder == 0)
                     .ThenBy(c => c.DisplayOrder)
