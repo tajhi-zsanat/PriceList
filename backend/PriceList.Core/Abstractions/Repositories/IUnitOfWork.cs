@@ -18,6 +18,9 @@ namespace PriceList.Core.Abstractions.Repositories
         ISupplierRepository Suppliers { get; }
         IProductFeatureRepository Features { get; }
         IProductTypeFeaturesRepository ProductTypeFeatures { get; }
+        IProductProductFeatureRepository ProductProductFeatures { get; }
+        IProductImageRepository ProductImageRepository { get; }
+        IProductHeaderRepository ProductHeader { get; }
 
         Task<int> SaveChangesAsync(CancellationToken ct = default);
 

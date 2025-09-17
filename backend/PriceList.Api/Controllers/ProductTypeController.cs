@@ -304,5 +304,35 @@ namespace PriceList.Api.Controllers
 
             return NoContent(); // 204 — success, no response body
         }
+
+        [HttpDelete("{id:int}/image")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteImage(int id, CancellationToken ct = default)
+        {
+            if (id <= 0) return NotFound("شناسه نوع کالا نامعتبر است.");
+
+            var entity = await uow.ProductTypes.GetByIdAsync(id, ct);
+            if (entity is null) return NotFound("شناسه نوع کالا پیدا نشد.");
+
+            if (string.IsNullOrWhiteSpace(entity.ImagePath))
+                return NoContent();
+
+            var path = entity.ImagePath;
+
+            // Clear DB reference first to keep data consistent even if file delete fails.
+            entity.ImagePath = null;
+            await uow.SaveChangesAsync(ct);
+
+            try
+            {
+                await storage.DeleteAsync(path!, ct);
+            }
+            catch (Exception ex)
+            {
+            }
+
+            return NoContent();
+        }
     }
 }

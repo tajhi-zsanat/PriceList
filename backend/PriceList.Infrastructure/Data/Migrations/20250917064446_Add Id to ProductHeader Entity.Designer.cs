@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PriceList.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using PriceList.Infrastructure.Data;
 namespace PriceList.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250917064446_Add Id to ProductHeader Entity")]
+    partial class AddIdtoProductHeaderEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -281,6 +284,11 @@ namespace PriceList.Infrastructure.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
@@ -289,14 +297,9 @@ namespace PriceList.Infrastructure.Data.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
-                    b.Property<int>("productHeaderId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("productHeaderId");
-
-                    b.HasIndex("ProductId", "productHeaderId")
+                    b.HasIndex("ProductId", "Key")
                         .IsUnique();
 
                     b.ToTable("ProductCustomProperties", (string)null);
@@ -689,9 +692,6 @@ namespace PriceList.Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("ProductId")
-                        .HasColumnType("int");
-
                     b.Property<int>("ProductTypeId")
                         .HasColumnType("int");
 
@@ -709,8 +709,6 @@ namespace PriceList.Infrastructure.Data.Migrations
                         .HasColumnType("varchar(4)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
 
                     b.HasIndex("ProductTypeId");
 
@@ -778,15 +776,7 @@ namespace PriceList.Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("PriceList.Core.Entities.productHeader", "productHeader")
-                        .WithMany("CustomProperties")
-                        .HasForeignKey("productHeaderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Product");
-
-                    b.Navigation("productHeader");
                 });
 
             modelBuilder.Entity("PriceList.Core.Entities.ProductGroup", b =>
@@ -868,10 +858,6 @@ namespace PriceList.Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("PriceList.Core.Entities.Product", null)
-                        .WithMany("productHeaders")
-                        .HasForeignKey("ProductId");
-
                     b.HasOne("PriceList.Core.Entities.ProductType", "ProductType")
                         .WithMany("productHeaders")
                         .HasForeignKey("ProductTypeId")
@@ -902,8 +888,6 @@ namespace PriceList.Infrastructure.Data.Migrations
                     b.Navigation("Images");
 
                     b.Navigation("ProductFeatures");
-
-                    b.Navigation("productHeaders");
                 });
 
             modelBuilder.Entity("PriceList.Core.Entities.ProductFeature", b =>
@@ -937,11 +921,6 @@ namespace PriceList.Infrastructure.Data.Migrations
             modelBuilder.Entity("PriceList.Core.Entities.Unit", b =>
                 {
                     b.Navigation("Products");
-                });
-
-            modelBuilder.Entity("PriceList.Core.Entities.productHeader", b =>
-                {
-                    b.Navigation("CustomProperties");
                 });
 #pragma warning restore 612, 618
         }

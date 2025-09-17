@@ -24,6 +24,9 @@ namespace PriceList.Infrastructure.Repositories.Ef
         public ISupplierRepository Suppliers { get; }
         public IProductFeatureRepository Features { get; }
         public IProductTypeFeaturesRepository ProductTypeFeatures { get; }
+        public IProductProductFeatureRepository ProductProductFeatures { get; }
+        public IProductImageRepository ProductImageRepository { get; }
+        public IProductHeaderRepository ProductHeader { get; }
 
         public UnitOfWork(
             AppDbContext db,
@@ -36,7 +39,10 @@ namespace PriceList.Infrastructure.Repositories.Ef
             IUnitRepository units,
             ISupplierRepository suppliers,
             IProductFeatureRepository features,
-            IProductTypeFeaturesRepository productTypeFeatures)
+            IProductTypeFeaturesRepository productTypeFeatures,
+            IProductProductFeatureRepository productProductFeatures,
+            IProductImageRepository productImageRepository,
+            IProductHeaderRepository productHeader)
         {
             _db = db;
             Products = products;
@@ -49,6 +55,9 @@ namespace PriceList.Infrastructure.Repositories.Ef
             Suppliers = suppliers;
             Features = features;
             ProductTypeFeatures = productTypeFeatures;
+            ProductProductFeatures = productProductFeatures;
+            ProductImageRepository = productImageRepository;
+            ProductHeader = productHeader;
         }
 
         public Task<int> SaveChangesAsync(CancellationToken ct = default) => _db.SaveChangesAsync(ct);

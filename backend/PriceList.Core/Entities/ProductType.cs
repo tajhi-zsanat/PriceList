@@ -27,6 +27,8 @@ namespace PriceList.Core.Entities
 
         public ICollection<ProductTypeFeature> ProductTypeFeatures { get; set; } = new List<ProductTypeFeature>();
 
+        public ICollection<productHeader> productHeaders { get; set; } = new List<productHeader>();
+
         //public ICollection<Supplier> Suppliers { get; set; } = new List<Supplier>();
     }
 }

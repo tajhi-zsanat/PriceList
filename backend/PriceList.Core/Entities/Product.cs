@@ -41,5 +41,8 @@ namespace PriceList.Core.Entities
         public Unit? Unit { get; set; } = null!;
 
         public ICollection<ProductCustomProperty> CustomProperties { get; set; } = new List<ProductCustomProperty>();
+        public ICollection<productHeader> productHeaders { get; set; } = new List<productHeader>();
+
+        public ICollection<ProductProductFeature> ProductFeatures { get; set; } = new List<ProductProductFeature>();
     }
 }

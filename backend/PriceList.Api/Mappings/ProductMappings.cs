@@ -15,8 +15,8 @@ namespace PriceList.Api.Mappings
                 p.DocumentPath,
                 p.Price,
                 p.Number,
-                p.Images.Select(ip => ip.ImagePath).ToList(),
-                p.CustomProperties.Select(cp => new ProductCustomPropertyItemDto(cp.Key, cp.Value)).ToList()
+                p.Images.Select(ip => ip.ImagePath).ToList()
+                //p.CustomProperties.Select(cp => new ProductCustomPropertyItemDto(cp.Key, cp.Value)).ToList()
     );
 
         public static ProductListItemDto ToListItemDto(Product p)
@@ -28,10 +28,10 @@ namespace PriceList.Api.Mappings
                 p.DocumentPath,
                 p.Price,
                 p.Number,
-                p.Images?.Select(i => i.ImagePath).ToList() ?? new List<string>(),
-                p.CustomProperties?
-                 .Select(cp => new ProductCustomPropertyItemDto(cp.Key, cp.Value))
-                 .ToList() ?? new List<ProductCustomPropertyItemDto>()
+                p.Images?.Select(i => i.ImagePath).ToList() ?? new List<string>()
+                //p.CustomProperties?
+                // .Select(cp => new ProductCustomPropertyItemDto(cp.pr, cp.Value))
+                // .ToList() ?? new List<ProductCustomPropertyItemDto>()
             );
         }
     }

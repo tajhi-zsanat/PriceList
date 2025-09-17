@@ -17,10 +17,6 @@ namespace PriceList.Infrastructure.Configurations
 
             b.HasKey(x => x.Id);
 
-            b.Property(x => x.Key)
-                .HasMaxLength(64)
-                .IsRequired();
-
             b.Property(x => x.Value)
                 .HasMaxLength(256)
                 .IsRequired();
@@ -30,8 +26,13 @@ namespace PriceList.Infrastructure.Configurations
                 .HasForeignKey(x => x.ProductId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            b.HasOne(x => x.productHeader)
+                .WithMany(p => p.CustomProperties)
+                .HasForeignKey(x => x.productHeaderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             // unique per product/key
-            b.HasIndex(x => new { x.ProductId, x.Key }).IsUnique();
+            b.HasIndex(x => new { x.ProductId, x.productHeaderId }).IsUnique();
         }
     }
 }

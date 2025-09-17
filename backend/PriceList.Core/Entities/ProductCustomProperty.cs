@@ -13,7 +13,9 @@ namespace PriceList.Core.Entities
         public int ProductId { get; set; }
         public Product Product { get; set; } = null!;
 
-        public string Key { get; set; } = null!;    // e.g. "Condition"
-        public string Value { get; set; } = null!;  // e.g. "New"
+        public int productHeaderId { get; set; }
+        public productHeader productHeader { get; set; } = null!;
+
+        public string Value { get; set; } = null!; 
     }
 }

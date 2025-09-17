@@ -1,12 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using PriceList.Core.Abstractions.Repositories;
+using PriceList.Core.Abstractions.Storage;
 
 namespace PriceList.Api.Controllers
 {
-    public class ProductFeatureController : Controller
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ProductFeatureController(IUnitOfWork uow) : ControllerBase
     {
-        public IActionResult Index()
-        {
-            return View();
-        }
+
     }
 }

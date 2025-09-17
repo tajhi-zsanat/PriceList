@@ -80,6 +80,9 @@ builder.Services.AddScoped<IUnitRepository, UnitRepository>();
 builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
 builder.Services.AddScoped<IProductFeatureRepository, ProductFeatureRepository>();
 builder.Services.AddScoped<IProductTypeFeaturesRepository, ProductTypeFeaturesRepository>();
+builder.Services.AddScoped<IProductProductFeatureRepository, ProductProductFeatureRepository>();
+builder.Services.AddScoped<IProductImageRepository, ProductImageRepository>();
+builder.Services.AddScoped<IProductHeaderRepository, ProductHeaderRepository>();
 
 // Decide where files live (under wwwroot/uploads)
 var webRoot = builder.Environment.WebRootPath
