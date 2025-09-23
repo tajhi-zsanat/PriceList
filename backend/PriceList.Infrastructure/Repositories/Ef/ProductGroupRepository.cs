@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using PriceList.Core.Abstractions.Repositories;
 using PriceList.Core.Entities;
 using PriceList.Infrastructure.Data;
@@ -11,8 +12,13 @@ using System.Threading.Tasks;
 
 namespace PriceList.Infrastructure.Repositories.Ef
 {
-    public class ProductGroupRepository(AppDbContext db) : GenericRepository<ProductGroup>(db), IProductGroupRepository
+    public class ProductGroupRepository : GenericRepository<ProductGroup>, IProductGroupRepository
     {
+        public ProductGroupRepository(AppDbContext db, ILogger<ProductGroup> logger)
+        : base(db, logger)
+        {
+        }
+
         public Task<List<ProductGroup>> GetByCategoryIdAsync(int categoryId, CancellationToken ct = default)
         => Set.Where(pg => pg.CategoryId == categoryId)
               .AsNoTracking()

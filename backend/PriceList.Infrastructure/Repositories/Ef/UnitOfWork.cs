@@ -22,11 +22,12 @@ namespace PriceList.Infrastructure.Repositories.Ef
         public IErrorLogRepository Errors { get; }
         public IUnitRepository Units { get; }
         public ISupplierRepository Suppliers { get; }
-        public IProductFeatureRepository Features { get; }
+        public IFeatureRepository Features { get; }
+        public IColorFeatureRepository ColorFeatures { get; }
         public IProductTypeFeaturesRepository ProductTypeFeatures { get; }
-        public IProductProductFeatureRepository ProductProductFeatures { get; }
+        public IProductFeatureRepository ProductFeatures { get; }
         public IProductImageRepository ProductImageRepository { get; }
-        public IProductHeaderRepository ProductHeader { get; }
+        public IHeaderRepository Header { get; }
 
         public UnitOfWork(
             AppDbContext db,
@@ -38,11 +39,12 @@ namespace PriceList.Infrastructure.Repositories.Ef
             IErrorLogRepository errors,
             IUnitRepository units,
             ISupplierRepository suppliers,
-            IProductFeatureRepository features,
+            IFeatureRepository features,
             IProductTypeFeaturesRepository productTypeFeatures,
-            IProductProductFeatureRepository productProductFeatures,
+            IProductFeatureRepository productFeatures,
             IProductImageRepository productImageRepository,
-            IProductHeaderRepository productHeader)
+            IHeaderRepository productHeader,
+            IColorFeatureRepository colorFeatures)
         {
             _db = db;
             Products = products;
@@ -55,9 +57,10 @@ namespace PriceList.Infrastructure.Repositories.Ef
             Suppliers = suppliers;
             Features = features;
             ProductTypeFeatures = productTypeFeatures;
-            ProductProductFeatures = productProductFeatures;
+            ProductFeatures = productFeatures;
             ProductImageRepository = productImageRepository;
-            ProductHeader = productHeader;
+            Header = productHeader;
+            ColorFeatures = colorFeatures;
         }
 
         public Task<int> SaveChangesAsync(CancellationToken ct = default) => _db.SaveChangesAsync(ct);

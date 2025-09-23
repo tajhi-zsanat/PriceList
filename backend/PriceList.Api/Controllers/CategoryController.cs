@@ -2,10 +2,13 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PriceList.Api.Dtos;
+using PriceList.Api.Dtos.Category;
 using PriceList.Api.Helpers;
 using PriceList.Api.Mappings;
 using PriceList.Core.Abstractions.Repositories;
 using PriceList.Core.Abstractions.Storage;
+using PriceList.Core.Application.Dtos.Category;
+using PriceList.Core.Application.Mappings;
 using PriceList.Core.Entities;
 
 namespace PriceList.Api.Controllers
@@ -102,7 +105,7 @@ namespace PriceList.Api.Controllers
                 return Conflict("نام دسته‌بندی تکراری است.");
             }
 
-            var result = CategoryMappings.ToListItemDto(entity);
+            var result = CategoryApiMappers.ToListItemDto(entity);
             return CreatedAtAction(nameof(GetById), new { id = entity.Id }, result);
         }
 
@@ -154,7 +157,7 @@ namespace PriceList.Api.Controllers
             entity.DisplayOrder = form.DisplayOrder;
 
             await uow.SaveChangesAsync(ct);
-            return Ok(CategoryMappings.ToListItemDto(entity));
+            return Ok(CategoryApiMappers.ToListItemDto(entity));
         }
 
         [HttpDelete("{id:int}")]

@@ -12,7 +12,7 @@ namespace PriceList.Core.Entities
         public int ProductTypeId { get; set; }
         public ProductType ProductType { get; set; } = null!;
 
-        public int ProductFeatureId { get; set; }
-        public ProductFeature ProductFeature { get; set; } = null!;
+        public int FeatureId { get; set; }
+        public Feature Feature { get; set; } = null!;
     }
 }

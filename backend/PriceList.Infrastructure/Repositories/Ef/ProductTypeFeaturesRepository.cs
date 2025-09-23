@@ -1,4 +1,5 @@
-﻿using PriceList.Core.Abstractions.Repositories;
+﻿using Microsoft.Extensions.Logging;
+using PriceList.Core.Abstractions.Repositories;
 using PriceList.Core.Entities;
 using PriceList.Infrastructure.Data;
 using System;
@@ -9,7 +10,11 @@ using System.Threading.Tasks;
 
 namespace PriceList.Infrastructure.Repositories.Ef
 {
-    public class ProductTypeFeaturesRepository(AppDbContext db) : GenericRepository<ProductTypeFeature>(db), IProductTypeFeaturesRepository
+    public class ProductTypeFeaturesRepository : GenericRepository<ProductTypeFeature>, IProductTypeFeaturesRepository
     {
+        public ProductTypeFeaturesRepository(AppDbContext db, ILogger<ProductTypeFeature> logger)
+        : base(db, logger)
+        {
+        }
     }
 }

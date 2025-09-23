@@ -1,11 +1,18 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using PriceList.Api.Dtos;
+using PriceList.Api.Dtos.Product;
+using PriceList.Api.Dtos.Supplier;
 using PriceList.Api.Helpers;
 using PriceList.Api.Mappings;
 using PriceList.Core.Abstractions.Repositories;
 using PriceList.Core.Abstractions.Storage;
+using PriceList.Core.Application.Dtos.Product;
+using PriceList.Core.Application.Dtos.ProductFeature;
+using PriceList.Core.Application.Dtos.Supplier;
+using PriceList.Core.Application.Mappings;
 using PriceList.Core.Common;
 using PriceList.Core.Entities;
 using PriceList.Infrastructure.Repositories;
@@ -19,48 +26,61 @@ namespace PriceList.Api.Controllers
     [Route("api/[controller]")]
     public class ProductsController(IUnitOfWork uow, IFileStorage storage) : ControllerBase
     {
+        /// <summary>
+        /// Infinite-scroll: groups products by exact feature-set and returns a sliced page across groups.
+        /// </summary>
         [HttpGet("by-categories")]
-        [ProducesResponseType(typeof(PaginatedResult<ProductListItemDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProductsWithHeaders), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<PaginatedResult<ProductListItemDto>>> GetByCategories(
-             [FromQuery] int brandId,
-             [FromQuery] int categoryId,
-             [FromQuery] int groupId,
-             [FromQuery] int typeId,
-             [FromQuery] int page = 1,
-             [FromQuery] int pageSize = 10,
-             CancellationToken ct = default)
+        public async Task<ActionResult<ProductsWithHeaders>> GetByCategories(
+            [FromQuery] int brandId,
+            [FromQuery] int categoryId,
+            [FromQuery] int groupId,
+            [FromQuery] int typeId,
+            // scroll parameters
+            [FromQuery] int skip = 0,
+            [FromQuery] int take = 20,
+            // optional
+            [FromQuery] string? search = null,
+            CancellationToken ct = default)
         {
-            try
-            {
-                //if (brandId <= 0) return BadRequest("شناسه برند کالا نامعتبر است.");
-                //if (categoryId <= 0) return BadRequest("شناسه دسته‌بندی نامعتبر است.");
-                //if (groupId <= 0) return BadRequest("شناسه گروه کالا نامعتبر است.");
-                //if (typeId <= 0) return BadRequest("شناسه نوع کالا نامعتبر است.");
-                //if (page < 1) page = 1;
-                //if (pageSize < 1 || pageSize > 200) pageSize = 10;
 
-                var headers = await uow.ProductHeader.ListAsync(
-                    predicate: (ph => ph.BrandId == brandId && ph.ProductTypeId == typeId),
-                    selector: HeaderProductsMapping.ToListItem,
-                    asNoTracking: true,
-                    ct: ct
-                    );
+            // Basic normalization / guardrails
+            if (skip < 0) skip = 0;
+            if (take < 1) take = 20;
 
-                if(headers is not null)
-                {
+            // You can relax these if needed; keeping them to avoid bad queries.
+            if (brandId <= 0) return BadRequest("شناسه برند کالا نامعتبر است.");
+            if (categoryId <= 0) return BadRequest("شناسه دسته‌بندی نامعتبر است.");
+            if (groupId <= 0) return BadRequest("شناسه گروه کالا نامعتبر است.");
+            if (typeId <= 0) return BadRequest("شناسه نوع کالا نامعتبر است.");
 
-                }
+            var headers = await uow.Header.ListAsync(
+                predicate: (ph => ph.BrandId == brandId && ph.ProductTypeId == typeId),
+                selector: ProductHeaderMappings.ToListItem,
+                asNoTracking: true,
+                ct: ct
+                );
 
-                return NotFound();
-                //return Ok(result);
-            }
-            catch (OperationCanceledException) when (ct.IsCancellationRequested)
-            {
-                // Client canceled (navigated away / request aborted) → not an error
-                return new StatusCodeResult(499); // "Client Closed Request" (optional)
-                                                  // Or: return NoContent(); or just let the framework end the response.
-            }
+            // Example: pick a default/top supplier based on your business rule.
+            var supplierId = await uow.Products.GetTopSupplierAsync(ct);
+
+            var products = await uow.Features.ListFeaturesWithProductsScrollAsync(
+                skip: skip,
+                take: take,
+                categoryId: categoryId,
+                groupId: groupId,
+                typeId: typeId,
+                brandId: brandId,
+                supplierId: supplierId,
+                productSearch: search,
+                ct: ct
+            );
+
+            var result = new ProductsWithHeaders(headers, products);
+
+            // For infinite scroll, 200 with an empty Items array is fine; don't return 404.
+            return Ok(result);
         }
 
         [HttpGet("by-categories/suppliers-summary")]
@@ -89,75 +109,19 @@ namespace PriceList.Api.Controllers
                     p.ProductTypeId == typeId);
 
             var summaries = await query
-                .GroupBy(p => new { p.SupplierId, p.Supplier.Name })
-                .Select(g => new SupplierSummaryDto
-                {
-                    SupplierId = g.Key.SupplierId,
-                    SupplierName = g.Key.Name,
-                    ProductCount = g.Count()
-                })
-                .OrderByDescending(x => x.ProductCount)
-                .ThenBy(x => x.SupplierName)
-                .Skip(skip)
-                .Take(take)
-                .ToListAsync(ct);
+            .GroupBy(p => new { p.SupplierId, SupplierName = p.Supplier.Name })
+            .Select(g => new SupplierSummaryDto(
+                g.Key.SupplierId,
+                g.Key.SupplierName,
+                g.Count()
+            ))
+            .OrderByDescending(x => x.ProductCount)
+            .ThenBy(x => x.SupplierName)
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync(ct);
 
             return Ok(summaries);
-        }
-
-        [HttpGet("by-categories/by-supplier")]
-        [ProducesResponseType(typeof(SupplierProductsPageDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<SupplierProductsPageDto>> GetProductsBySupplier(
-            [FromQuery] int brandId,
-            [FromQuery] int categoryId,
-            [FromQuery] int groupId,
-            [FromQuery] int typeId,
-            [FromQuery] int supplierId,
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 20,
-            CancellationToken ct = default)
-        {
-            if (brandId <= 0) return BadRequest("شناسه برند کالا نامعتبر است.");
-            if (categoryId <= 0) return BadRequest("شناسه دسته‌بندی نامعتبر است.");
-            if (groupId <= 0) return BadRequest("شناسه گروه کالا نامعتبر است.");
-            if (typeId <= 0) return BadRequest("شناسه نوع کالا نامعتبر است.");
-            if (supplierId <= 0) return BadRequest("شناسه تامین‌کننده نامعتبر است.");
-
-            var baseQuery = uow.Products.Query()
-                .Where(p =>
-                    p.BrandId == brandId &&
-                    p.CategoryId == categoryId &&
-                    p.ProductGroupId == groupId &&
-                    p.ProductTypeId == typeId &&
-                    p.SupplierId == supplierId);
-
-            var totalCount = await baseQuery.CountAsync(ct);
-
-            var items = await baseQuery
-                .OrderBy(p => p.Model) // or any product ordering you prefer
-                .Select(ProductMappings.ToListItem)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync(ct);
-
-            // Fetch supplier name once (avoid null name on empty)
-            var supplierName = await uow.Suppliers.Query()
-                .Where(s => s.Id == supplierId)
-                .Select(s => s.Name)
-                .FirstOrDefaultAsync(ct) ?? "—";
-
-            var result = new SupplierProductsPageDto
-            {
-                SupplierId = supplierId,
-                SupplierName = supplierName,
-                Items = items,
-                Page = page,
-                PageSize = pageSize,
-                TotalCount = totalCount
-            };
-
-            return Ok(result);
         }
 
         [HttpGet("{id:int}", Name = "GetProductById")]
@@ -279,7 +243,7 @@ namespace PriceList.Api.Controllers
                 await uow.SaveChangesAsync(ct);
             }
 
-            var result = ProductMappings.ToListItemDto(entity);
+            var result = ProductApiMappers.ToListItemDto(entity);
             return CreatedAtAction(nameof(GetById), new { id = entity.Id }, result);
         }
     }

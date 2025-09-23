@@ -2,10 +2,13 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PriceList.Api.Dtos;
+using PriceList.Api.Dtos.ProductGroup;
 using PriceList.Api.Helpers;
 using PriceList.Api.Mappings;
 using PriceList.Core.Abstractions.Repositories;
 using PriceList.Core.Abstractions.Storage;
+using PriceList.Core.Application.Dtos.ProductGroup;
+using PriceList.Core.Application.Mappings;
 using PriceList.Core.Entities;
 
 namespace PriceList.Api.Controllers
@@ -139,7 +142,7 @@ namespace PriceList.Api.Controllers
                 return Conflict("نام گروه کالا تکراری است.");
             }
 
-            var result = ProductGroupMappings.ToListItemDto(entity);
+            var result = ProductGroupApiMappers.ToListItemDto(entity);
             return CreatedAtAction(nameof(GetById), new { id = entity.Id }, result);
         }
 
@@ -219,7 +222,7 @@ namespace PriceList.Api.Controllers
                 return Conflict("نام گروه کالا تکراری است.");
             }
 
-            var result = ProductGroupMappings.ToListItemDto(entity);
+            var result = ProductGroupApiMappers.ToListItemDto(entity);
             return Ok(result); // or NoContent() if you prefer a lighter response
         }
 

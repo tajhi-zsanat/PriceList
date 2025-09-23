@@ -1,4 +1,5 @@
-﻿using PriceList.Core.Abstractions.Repositories;
+﻿using Microsoft.Extensions.Logging;
+using PriceList.Core.Abstractions.Repositories;
 using PriceList.Core.Entities;
 using PriceList.Infrastructure.Data;
 using System;
@@ -9,7 +10,11 @@ using System.Threading.Tasks;
 
 namespace PriceList.Infrastructure.Repositories.Ef
 {
-    public class UnitRepository(AppDbContext db) : GenericRepository<Unit>(db), IUnitRepository
+    public class UnitRepository : GenericRepository<Unit>, IUnitRepository
     {
+        public UnitRepository(AppDbContext db, ILogger<Unit> logger)
+        : base(db, logger)
+        {
+        }
     }
 }

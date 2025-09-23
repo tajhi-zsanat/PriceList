@@ -13,14 +13,17 @@ namespace PriceList.Infrastructure.Configurations
     {
         public void Configure(EntityTypeBuilder<ProductFeature> b)
         {
-            b.ToTable("ProductFeatures");
-            b.HasKey(x => x.Id);
+            b.ToTable("ProductFeatures"); 
 
-            b.Property(x => x.Name)
-             .IsRequired()
-             .HasMaxLength(200);
+            b.HasKey(pf => new { pf.ProductId, pf.FeatureId });
 
-            b.HasIndex(x => x.Name).IsUnique();
+            b.HasOne(pf => pf.Product)
+            .WithMany(p => p.ProductFeatures)
+            .HasForeignKey(pf => pf.ProductId);
+
+            b.HasOne(pf => pf.Feature)
+            .WithMany(p => p.ProductFeatures)
+            .HasForeignKey(pf => pf.FeatureId);
         }
     }
 }

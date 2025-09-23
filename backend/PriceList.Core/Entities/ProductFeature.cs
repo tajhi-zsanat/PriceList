@@ -9,14 +9,10 @@ namespace PriceList.Core.Entities
 {
     public class ProductFeature : ShamsiAuditableEntity
     {
-        public int Id { get; set; }
+        public int ProductId { get; set; }
+        public Product Product { get; set; } = null!;
 
-        public string Name { get; set; } = null!;
-
-        //public ICollection<ProductType> ProductTypes { get; set; } = new List<ProductType>();
-
-        public ICollection<ProductTypeFeature> ProductTypeFeatures { get; set; } = new List<ProductTypeFeature>();
-
-        public ICollection<ProductProductFeature> ProductProducts { get; set; } = new List<ProductProductFeature>();
+        public int FeatureId { get; set; }
+        public Feature Feature { get; set; } = null!;
     }
 }

@@ -16,11 +16,12 @@ namespace PriceList.Core.Abstractions.Repositories
         IErrorLogRepository Errors { get; }
         IUnitRepository Units { get; }
         ISupplierRepository Suppliers { get; }
-        IProductFeatureRepository Features { get; }
+        IFeatureRepository Features { get; }
+        IColorFeatureRepository ColorFeatures { get; }
         IProductTypeFeaturesRepository ProductTypeFeatures { get; }
-        IProductProductFeatureRepository ProductProductFeatures { get; }
+        IProductFeatureRepository ProductFeatures { get; }
         IProductImageRepository ProductImageRepository { get; }
-        IProductHeaderRepository ProductHeader { get; }
+        IHeaderRepository Header { get; }
 
         Task<int> SaveChangesAsync(CancellationToken ct = default);
 

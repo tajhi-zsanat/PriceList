@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 
 namespace PriceList.Infrastructure.Configurations
 {
-    internal class ProductCustomPropertyConfiguration : IEntityTypeConfiguration<ProductCustomProperty>
+    internal class ProductproductHeaderConfiguration : IEntityTypeConfiguration<ProductHeader>
     {
-        public void Configure(EntityTypeBuilder<ProductCustomProperty> b)
+        public void Configure(EntityTypeBuilder<ProductHeader> b)
         {
-            b.ToTable("ProductCustomProperties");
+            b.ToTable("ProductHeaders");
 
             b.HasKey(x => x.Id);
 
@@ -22,12 +22,12 @@ namespace PriceList.Infrastructure.Configurations
                 .IsRequired();
 
             b.HasOne(x => x.Product)
-                .WithMany(p => p.CustomProperties)
+                .WithMany(p => p.ProductHeaders)
                 .HasForeignKey(x => x.ProductId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            b.HasOne(x => x.productHeader)
-                .WithMany(p => p.CustomProperties)
+            b.HasOne(x => x.Header)
+                .WithMany(p => p.ProductHeaders)
                 .HasForeignKey(x => x.productHeaderId)
                 .OnDelete(DeleteBehavior.Cascade);
 

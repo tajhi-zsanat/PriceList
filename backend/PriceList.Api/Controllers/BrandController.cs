@@ -2,9 +2,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PriceList.Api.Dtos;
+using PriceList.Api.Dtos.Brand;
 using PriceList.Api.Helpers;
 using PriceList.Api.Mappings;
 using PriceList.Core.Abstractions.Repositories;
+using PriceList.Core.Application.Dtos.Brand;
+using PriceList.Core.Application.Mappings;
 using PriceList.Core.Entities;
 
 namespace PriceList.Api.Controllers
@@ -111,7 +114,7 @@ namespace PriceList.Api.Controllers
                 return Conflict("نام دسته‌بندی تکراری است.");
             }
 
-            var result = BrandMappings.ToListItemDto(entity);
+            var result = BrandApiMappers.ToListItemDto(entity);
             return CreatedAtAction(nameof(GetById), new { id = entity.Id }, result);
         }
 
@@ -161,7 +164,7 @@ namespace PriceList.Api.Controllers
                 return Conflict("نام دسته‌بندی تکراری است.");
             }
 
-            var result = BrandMappings.ToListItemDto(entity);
+            var result = BrandApiMappers.ToListItemDto(entity);
             return Ok(result); 
         }
 

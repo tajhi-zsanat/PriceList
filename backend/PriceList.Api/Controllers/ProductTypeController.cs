@@ -2,10 +2,13 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PriceList.Api.Dtos;
+using PriceList.Api.Dtos.ProductType;
 using PriceList.Api.Helpers;
 using PriceList.Api.Mappings;
 using PriceList.Core.Abstractions.Repositories;
 using PriceList.Core.Abstractions.Storage;
+using PriceList.Core.Application.Dtos.ProductType;
+using PriceList.Core.Application.Mappings;
 using PriceList.Core.Entities;
 
 namespace PriceList.Api.Controllers
@@ -141,7 +144,7 @@ namespace PriceList.Api.Controllers
 
             var currentIds = await uow.ProductTypeFeatures.ListAsync(
                  predicate: x => x.ProductTypeId == id,
-                 selector: x => x.ProductFeatureId,
+                 selector: x => x.FeatureId,
                  asNoTracking: false,
                  ct: default
               );
@@ -154,7 +157,7 @@ namespace PriceList.Api.Controllers
                 var newLinks = toAdd.Select(fid => new ProductTypeFeature
                 {
                     ProductTypeId = id,
-                    ProductFeatureId = fid
+                    FeatureId = fid
                 });
                 await uow.ProductTypeFeatures.AddRangeAsync(newLinks, ct);
             }
@@ -163,7 +166,7 @@ namespace PriceList.Api.Controllers
             {
                 // remove by query to avoid tracking issues
                 var removeLinks = await uow.ProductTypeFeatures.ListAsync(
-                    predicate: x => x.ProductTypeId == id && toRemove.Contains(x.ProductFeatureId)
+                    predicate: x => x.ProductTypeId == id && toRemove.Contains(x.FeatureId)
                     );
 
                 uow.ProductTypeFeatures.RemoveRange(removeLinks);
@@ -183,7 +186,7 @@ namespace PriceList.Api.Controllers
                 return Conflict("نام گروه کالا تکراری است.");
             }
 
-            var result = ProductTypeMappings.ToListItemDto(entity);
+            var result = ProductTypeApiMappers.ToListItemDto(entity);
             return Ok(result);
         }
 
@@ -261,7 +264,7 @@ namespace PriceList.Api.Controllers
                 ImagePath = imagePath,
                 ProductTypeFeatures = featureIds.Select(fid => new ProductTypeFeature
                 {
-                    ProductFeatureId = fid
+                    FeatureId = fid
                 }).ToList()
             };
 
@@ -277,7 +280,7 @@ namespace PriceList.Api.Controllers
                 return Conflict("نام گروه کالا تکراری است.");
             }
 
-            var result = ProductTypeMappings.ToListItemDto(entity);
+            var result = ProductTypeApiMappers.ToListItemDto(entity);
             return CreatedAtAction(nameof(GetById), new { id = entity.Id }, result);
         }
 

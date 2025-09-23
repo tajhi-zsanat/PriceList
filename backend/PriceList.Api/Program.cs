@@ -14,7 +14,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 // EF Core
 builder.Services.AddDbContext<AppDbContext>(o =>
-    o.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    o.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+    .EnableDetailedErrors()
+    .LogTo(Console.WriteLine, LogLevel.Information));
 
 // CORS (allow React dev server localhost:5173)
 const string CorsPolicy = "FrontendPolicy";
@@ -78,11 +80,12 @@ builder.Services.AddScoped<IBrandRepository, BrandRepository>();
 builder.Services.AddScoped<IErrorLogRepository, ErrorLogRepository>();
 builder.Services.AddScoped<IUnitRepository, UnitRepository>();
 builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
-builder.Services.AddScoped<IProductFeatureRepository, ProductFeatureRepository>();
+builder.Services.AddScoped<IFeatureRepository, FeatureRepository>();
 builder.Services.AddScoped<IProductTypeFeaturesRepository, ProductTypeFeaturesRepository>();
-builder.Services.AddScoped<IProductProductFeatureRepository, ProductProductFeatureRepository>();
+builder.Services.AddScoped<IProductFeatureRepository, ProductFeatureRepository>();
 builder.Services.AddScoped<IProductImageRepository, ProductImageRepository>();
-builder.Services.AddScoped<IProductHeaderRepository, ProductHeaderRepository>();
+builder.Services.AddScoped<IHeaderRepository, HeaderRepository>();
+builder.Services.AddScoped<IColorFeatureRepository, ColorFeatureRepository>();
 
 // Decide where files live (under wwwroot/uploads)
 var webRoot = builder.Environment.WebRootPath

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using PriceList.Core.Abstractions.Repositories;
 using PriceList.Core.Common;
 using PriceList.Infrastructure.Data;
@@ -11,10 +12,17 @@ using System.Threading.Tasks;
 
 namespace PriceList.Infrastructure.Repositories.Ef
 {
-    public class GenericRepository<T>(AppDbContext db) : IGenericRepository<T> where T : class
+    public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
-        protected readonly AppDbContext Db = db;
-        protected DbSet<T> Set => Db.Set<T>();
+        protected readonly AppDbContext _db;
+        protected readonly ILogger<T> _logger;
+
+        public GenericRepository(AppDbContext db, ILogger<T> logger)
+        {
+            _db = db;
+            _logger = logger;
+        }
+        protected DbSet<T> Set => _db.Set<T>();
 
         public IQueryable<T> Query() => Set.AsNoTracking();
 

@@ -7,18 +7,16 @@ using System.Threading.Tasks;
 
 namespace PriceList.Core.Entities
 {
-    public class productHeader : ShamsiAuditableEntity
+    public class ProductHeader : ShamsiAuditableEntity
     {
         public int Id { get; set; }
 
-        public int BrandId { get; set; }
-        public Brand Brand { get; set; } = null!;
+        public int ProductId { get; set; }
+        public Product Product { get; set; } = null!;
 
-        public int ProductTypeId { get; set; }
-        public ProductType ProductType { get; set; } = null!;
+        public int productHeaderId { get; set; }
+        public Header Header { get; set; } = null!;
 
-        public required string Key { get; set; }
-
-        public ICollection<ProductCustomProperty> CustomProperties { get; set; } = new List<ProductCustomProperty>();
+        public string Value { get; set; } = null!; 
     }
 }
