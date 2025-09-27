@@ -10,7 +10,6 @@ namespace PriceList.Core.Entities
     public class Product : ShamsiAuditableEntity
     {
         public int Id { get; set; }
-        public string Model { get; set; } = null!;
         public string? Description { get; set; }
         public long Price { get; set; }
         public int Number { get; set; }

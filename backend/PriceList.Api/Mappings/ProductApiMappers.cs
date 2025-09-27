@@ -9,7 +9,6 @@ namespace PriceList.Api.Mappings
         public static ProductListItemDto ToListItemDto(Product p) =>
             new(
                 p.Id,
-                p.Model,
                 p.Description,
                 p.DocumentPath,
                 p.Price,

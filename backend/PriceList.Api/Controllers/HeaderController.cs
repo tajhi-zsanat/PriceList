@@ -8,14 +8,38 @@ using PriceList.Api.Helpers;
 using PriceList.Api.Mappings;
 using PriceList.Core.Abstractions.Repositories;
 using PriceList.Core.Abstractions.Storage;
+using PriceList.Core.Application.Dtos.Header;
+using PriceList.Core.Application.Dtos.ProductGroup;
+using PriceList.Core.Application.Mappings;
 using PriceList.Core.Entities;
 
 namespace PriceList.Api.Controllers
 {
     [Route("api/[controller]")]
+    [Produces("application/json")]
     [ApiController]
     public class HeaderController(IUnitOfWork uow) : ControllerBase
     {
+        [HttpGet("by-categories")]
+        [ProducesResponseType(typeof(List<HeaderListItemDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<List<HeaderListItemDto>>> GetByCategory(
+            [FromQuery] int brandId,
+            [FromQuery] int typeId,
+            CancellationToken ct = default)
+        {
+            if (typeId <= 0) return BadRequest("شناسه دسته‌بندی نامعتبر است.");
+
+            var headers = await uow.Header.ListAsync(
+                predicate: (ph => ph.BrandId == brandId && ph.ProductTypeId == typeId),
+                selector: ProductHeaderMappings.ToListItem,
+                asNoTracking: true,
+                ct: ct
+                );
+
+            return Ok(headers);
+        }
+
         [HttpPost]
         [Consumes("application/json")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -51,16 +75,19 @@ namespace PriceList.Api.Controllers
 
             // 1) remove duplicates inside the same request
             var uniqueInPayload = cleaned
-                .GroupBy(x => (x.BrandId, x.TypeId))
+                .GroupBy(x => (x.BrandId, x.TypeId, x.Name.Trim()))
                 .Select(g => g.First())
                 .ToList();
 
             // 2) fetch existing pairs in one round-trip
             var brandIds = uniqueInPayload.Select(x => x.BrandId).Distinct().ToList();
             var typeIds = uniqueInPayload.Select(x => x.TypeId).Distinct().ToList();
+            var Names = uniqueInPayload.Select(x => x.Name).Distinct().ToList();
 
             var existingPairs = await uow.Header
-                .ListAsync(predicate: (ph => brandIds.Contains(ph.BrandId) && typeIds.Contains(ph.ProductTypeId)),
+                .ListAsync(predicate: (ph => brandIds.Contains(ph.BrandId) &&
+                typeIds.Contains(ph.ProductTypeId) &&
+                Names.Contains(ph.Key)),
                 selector: (ph => new { ph.BrandId, ph.ProductTypeId }),
                 asNoTracking: true,
                 ct: ct

@@ -8,12 +8,11 @@ namespace PriceList.Core.Application.Dtos.Product
 {
     public sealed record ProductListItemDto(
         int Id,
-        string? Model,
         string? Description,
         string? DocumentPath,
         long Price,
         int Number,
         IReadOnlyList<string> ProductImages,
-        IReadOnlyList<ProductHeaderItemDto> ProductproductHeaders
+        IReadOnlyList<ProductHeaderItemDto> ProductHeaders
     );
 }

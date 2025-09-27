@@ -13,7 +13,7 @@ namespace PriceList.Core.Entities
 
         // Normalized key: "1|2|7"
         public required string FeatureIDs { get; set; }
-
+        public required string FeatureName { get; set; }
         public int BrandId { get; set; }
         public int SupplierId { get; set; }
         public int DisplayOrder { get; set; }

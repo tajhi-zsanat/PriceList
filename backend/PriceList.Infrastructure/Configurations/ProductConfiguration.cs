@@ -17,10 +17,6 @@ namespace PriceList.Infrastructure.Configurations
 
             b.HasKey(x => x.Id);
 
-            b.Property(x => x.Model)
-                .IsRequired()
-                .HasMaxLength(200);
-
             //b.Property(x => x.Description)
             //    .HasMaxLength(1000);
 
@@ -33,14 +29,12 @@ namespace PriceList.Infrastructure.Configurations
             // Index for uniqueness across multiple columns
             b.HasIndex(p => new
             {
-                p.Model,   
                 p.BrandId,
                 p.ProductTypeId,
                 p.ProductGroupId,
                 p.CategoryId,
                 p.SupplierId
-            })
-            .IsUnique();
+            });
 
             //b.Property(x => x.DocumentPath)
             //    .HasMaxLength(500);

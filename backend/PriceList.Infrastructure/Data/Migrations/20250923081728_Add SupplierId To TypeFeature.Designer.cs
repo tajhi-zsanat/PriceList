@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PriceList.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using PriceList.Infrastructure.Data;
 namespace PriceList.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250923081728_Add SupplierId To TypeFeature")]
+    partial class AddSupplierIdToTypeFeature
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -380,6 +383,11 @@ namespace PriceList.Infrastructure.Data.Migrations
                     b.Property<string>("DocumentPath")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Model")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<int>("Number")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
@@ -415,6 +423,8 @@ namespace PriceList.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("BrandId");
+
                     b.HasIndex("CategoryId");
 
                     b.HasIndex("ProductGroupId");
@@ -425,7 +435,8 @@ namespace PriceList.Infrastructure.Data.Migrations
 
                     b.HasIndex("UnitId");
 
-                    b.HasIndex("BrandId", "ProductTypeId", "ProductGroupId", "CategoryId", "SupplierId");
+                    b.HasIndex("Model", "BrandId", "ProductTypeId", "ProductGroupId", "CategoryId", "SupplierId")
+                        .IsUnique();
 
                     b.ToTable("Products", (string)null);
                 });

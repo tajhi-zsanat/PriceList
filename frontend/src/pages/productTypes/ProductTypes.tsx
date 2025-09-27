@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
-import api from "../lib/api";
-import { imgUrl } from "../lib/helpers";
-import type { ProductTypeListItemDto } from "../types";
-import Breadcrumbs from "../components/Breadcrumbs";
-import noImage from '../assets/img/no-image.png';
-import loadingImage from '../assets/img/loading.gif';
+import api from "../../lib/api";
+import { imgUrl } from "../../lib/helpers";
+import type { ProductTypeListItemDto } from "../../types";
+import Breadcrumbs from "../../components/Breadcrumbs";
+import noImage from '../../assets/img/no-image.png';
+import loadingImage from '../../assets/img/loading.gif';
 
 export default function ProductTypes() {
   const { categoryId, groupId } = useParams();
@@ -26,13 +26,10 @@ export default function ProductTypes() {
   }, [groupId]);
 
   return (
-    <>
+    <div className="flex-1 bg-[#F5F5F5]">
       <Breadcrumbs />
 
       <div className="mt-6 mx-4 sm:mx-16 p-8 rounded-xl bg-white">
-        <h1 className="text-xl mb-4">
-          نوع‌های {groupName ? `«${groupName}»` : `گروه ${groupId}`}
-        </h1>
         {loading && <div>
           <img
             className=""
@@ -54,7 +51,7 @@ export default function ProductTypes() {
                   <li key={t.id} className="card-item"
                   >
                     <Link
-                      to={`/categories/${categoryId}/groups/${groupId}/types/${t.id}/brands`}
+                      to={`/category/${categoryId}/groups/${groupId}/types/${t.id}/brands`}
                       state={{ categoryName, groupName, typeName: t.name }}
                       className="card-link"
                     >
@@ -73,6 +70,6 @@ export default function ProductTypes() {
             )
         )}
       </div>
-    </>
+    </div>
   );
 }

@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import api from "../lib/api";
-import { imgUrl } from "../lib/helpers";
-import type { CategoryListItemDto } from "../types";
-import Breadcrumbs from "../components/Breadcrumbs";
-import noImage from '../assets/img/no-image.png';
-import loadingImage from '../assets/img/loading.gif';
+import api from "../../lib/api";
+import { imgUrl } from "../../lib/helpers";
+import type { CategoryListItemDto } from "../../types";
+import Breadcrumbs from "../../components/Breadcrumbs";
+import noImage from '../../assets/img/no-image.png';
+import loadingImage from '../../assets/img/loading.gif';
 
-export default function Categories() {
+export default function Category() {
   const [data, setData] = useState<CategoryListItemDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
@@ -20,11 +20,9 @@ export default function Categories() {
   }, []);
 
   return (
-    <>
+    <div className="flex-1 bg-[#F5F5F5]">
       <Breadcrumbs />
-      
       <div className="mt-6 mx-4 sm:mx-16 p-8 rounded-xl bg-white">
-        <h1 className="text-xl mb-4">همه دسته‌ها</h1>
         {loading && <div>
           <img
             className=""
@@ -47,7 +45,7 @@ export default function Categories() {
                   className="card-item"
                 >
                   <Link
-                    to={`/categories/${c.id}/groups`}
+                    to={`/Category/${c.id}/groups`}
                     state={{ categoryName: c.name }}
                     className="card-link"
                     title={`مشاهده گروه‌های ${c.name}`}
@@ -67,6 +65,6 @@ export default function Categories() {
           )
         )}
       </div>
-    </>
+    </div>
   );
 }

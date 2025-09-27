@@ -25,16 +25,18 @@ namespace PriceList.Infrastructure.Repositories.Ef
         {
             IQueryable<Product> q = _db.Products.AsNoTracking();
             if (!string.IsNullOrWhiteSpace(term))
-                q = q.Where(p => p.Model.Contains(term) ||
-                                 (p.Model != null && p.Model.Contains(term)) ||
-                                 (p.Description != null && p.Description.Contains(term)));
+                q = q.Where(p => (p.Description != null && p.Description.Contains(term)));
             return q.OrderByDescending(p => p.Id).ToListAsync(ct);
         }
 
-        public async Task<int> GetTopSupplierAsync(CancellationToken ct = default)
+        public async Task<int> GetTopSupplierAsync(int categoryId, int groupId, int typeId, int brandId, CancellationToken ct = default)
         {
             var supplierId = await _db.Products
                 .AsNoTracking()
+                .Where(p => (p.CategoryId == categoryId) &&
+                (p.ProductGroupId == groupId) &&
+                (p.ProductTypeId == typeId) &&
+                (p.BrandId == brandId))
                 .GroupBy(p => p.SupplierId)
                 .Select(g => new
                 {

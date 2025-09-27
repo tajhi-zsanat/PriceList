@@ -9,7 +9,6 @@ using PriceList.Core.Entities;
 using PriceList.Infrastructure.Data;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +18,7 @@ namespace PriceList.Infrastructure.Repositories.Ef
     public class FeatureRepository : GenericRepository<Feature>, IFeatureRepository
     {
         public FeatureRepository(AppDbContext db, ILogger<Feature> logger)
-        : base(db, logger)
+            : base(db, logger)
         {
         }
 
@@ -29,19 +28,18 @@ namespace PriceList.Infrastructure.Repositories.Ef
         /// can lazy-load with IntersectionObserver or similar.
         /// </summary>
         public async Task<ScrollResult<ProductFeatureWithProductsDto>> ListFeaturesWithProductsScrollAsync(
-         int skip,
-         int take,
-         int? categoryId = null,
-         int? groupId = null,
-         int? typeId = null,
-         int? brandId = null,
-         int? supplierId = null,
-         string? productSearch = null,
-         CancellationToken ct = default)
+            int skip,
+            int take,
+            int? categoryId = null,
+            int? groupId = null,
+            int? typeId = null,
+            int? brandId = null,
+            int? supplierId = null,
+            string? productSearch = null,
+            CancellationToken ct = default)
         {
             // 0) Base filter
-            var filtered = _db.Products
-                .AsNoTracking()
+            IQueryable<Product> filtered = _db.Products.AsNoTracking()
                 .Where(p => !categoryId.HasValue || p.CategoryId == categoryId.Value)
                 .Where(p => !groupId.HasValue || p.ProductGroupId == groupId.Value)
                 .Where(p => !typeId.HasValue || p.ProductTypeId == typeId.Value)
@@ -50,132 +48,170 @@ namespace PriceList.Infrastructure.Repositories.Ef
 
             if (!string.IsNullOrWhiteSpace(productSearch))
             {
-                var term = productSearch.Trim();
+                var term = $"%{productSearch.Trim()}%";
                 filtered = filtered.Where(p =>
-                    (p.Model != null && p.Model.Contains(term)) ||
-                    (p.Description != null && p.Description.Contains(term)));
+                    (p.Description != null && EF.Functions.Like(p.Description, term)));
             }
 
             var totalCount = await filtered.CountAsync(ct);
+            if (totalCount == 0)
+            {
+                return new ScrollResult<ProductFeatureWithProductsDto>
+                {
+                    Items = Array.Empty<ProductFeatureWithProductsDto>(),
+                    Skip = skip,
+                    Take = take,
+                    ReturnedCount = 0,
+                    TotalProductCount = 0,
+                    TotalCount = 0
+                };
+            }
 
-            var pageIds = await filtered
+            // 1) Candidate product IDs
+            var allProductIds = await filtered
                 .OrderBy(p => p.Id)
                 .Select(p => p.Id)
                 .ToListAsync(ct);
 
-            if (pageIds.Count == 0)
+            if (allProductIds.Count == 0)
             {
                 return new ScrollResult<ProductFeatureWithProductsDto>
                 {
-                    Items = System.Array.Empty<ProductFeatureWithProductsDto>(),
+                    Items = Array.Empty<ProductFeatureWithProductsDto>(),
                     Skip = skip,
                     Take = take,
                     ReturnedCount = 0,
-                    TotalCount = totalCount
+                    TotalProductCount = 0,
+                    TotalCount = 0
                 };
             }
 
-            var productswithFeature = await _db.ProductFeatures
-                .Where(cf => pageIds.Contains(cf.ProductId))
-                .Select(cf => cf.ProductId)
-                .Distinct()
-                .ToListAsync();
+            var allProductIdSet = new HashSet<int>(allProductIds);
 
-            var productsWithoutFeature = pageIds.Except(productswithFeature).ToList();
-
-            var containers = new Dictionary<string, List<int>>();
-
-            var groupProductWithFeature = await _db.ProductFeatures
-                .Where(pf => pageIds.Contains(pf.ProductId))
+            // 2) Product → FeatureKey
+            var prodToKey = await _db.ProductFeatures
+                .Where(pf => allProductIdSet.Contains(pf.ProductId))
                 .GroupBy(pf => pf.ProductId)
                 .Select(g => new
                 {
                     ProductId = g.Key,
-                    FeatureIds = FeatureKeyHelper.Build(g.Select(p => p.FeatureId)),
-                }).ToListAsync();
+                    FeatureKey = FeatureKeyHelper.Build(g.Select(x => x.FeatureId))
+                })
+                .ToListAsync(ct);
 
-            var ProductsIDs = new List<int>();
+            var productsWithFeatureIds = new HashSet<int>(prodToKey.Select(x => x.ProductId));
+            var productsWithoutFeature = allProductIds.Where(id => !productsWithFeatureIds.Contains(id));
 
-            foreach (var groupProduct in groupProductWithFeature)
+            // 3) Buckets: FeatureKey → productId list
+            var buckets = new Dictionary<string, List<int>>(StringComparer.Ordinal);
+            foreach (var r in prodToKey)
             {
-                if (containers.Keys.Contains(groupProduct.FeatureIds))
+                if (!buckets.TryGetValue(r.FeatureKey, out var list))
                 {
-                    containers[groupProduct.FeatureIds].Add(groupProduct.ProductId);
-                    ProductsIDs.Add(groupProduct.ProductId);
+                    list = new List<int>();
+                    buckets[r.FeatureKey] = list;
                 }
-                else
-                {
-                    containers.Add(groupProduct.FeatureIds, []);
-                    containers[groupProduct.FeatureIds].Add(groupProduct.ProductId);
-                    ProductsIDs.Add(groupProduct.ProductId);
-                }
+                list.Add(r.ProductId);
+            }
+            const string OthersKey = "__OTHERS__";
+            buckets[OthersKey] = productsWithoutFeature.ToList();
+
+            // 4) ColorFeatures mapping
+            var colorRows = await _db.ColorFeatures
+                .Where(cf => (!brandId.HasValue || cf.BrandId == brandId.Value)
+                          && (!supplierId.HasValue || cf.SupplierId == supplierId.Value))
+                .OrderBy(cf => cf.DisplayOrder)
+                .Select(cf => new { cf.FeatureIDs, cf.FeatureName, cf.Color })
+                .ToListAsync(ct);
+
+            var keyToTitle = new Dictionary<string, string>(StringComparer.Ordinal);
+            var keyToColor = new Dictionary<string, string?>(StringComparer.Ordinal);
+
+            foreach (var r in colorRows)
+            {
+                if (!keyToTitle.ContainsKey(r.FeatureIDs))
+                    keyToTitle[r.FeatureIDs] = r.FeatureName;
+
+                if (!keyToColor.ContainsKey(r.FeatureIDs))
+                    keyToColor[r.FeatureIDs] = r.Color;
             }
 
-            containers.Add("Others", productsWithoutFeature);
+            // Order: configured keys → remaining keys → Others
+            var orderedKeys = new List<string>();
+            foreach (var kr in colorRows)
+                if (buckets.ContainsKey(kr.FeatureIDs))
+                    orderedKeys.Add(kr.FeatureIDs);
 
-            foreach (var product in productsWithoutFeature)
+            foreach (var k in buckets.Keys)
+                if (k != OthersKey && !orderedKeys.Contains(k))
+                    orderedKeys.Add(k);
+
+            if (buckets[OthersKey].Count > 0)
+                orderedKeys.Add(OthersKey);
+
+            var totalGroupCount = orderedKeys.Count;
+
+            // 5) Page by groups
+            var pagedKeys = orderedKeys.Skip(skip).Take(take).ToList();
+            if (pagedKeys.Count == 0)
             {
-                ProductsIDs.Add(product);
+                return new ScrollResult<ProductFeatureWithProductsDto>
+                {
+                    Items = Array.Empty<ProductFeatureWithProductsDto>(),
+                    Skip = skip,
+                    Take = take,
+                    ReturnedCount = 0,
+                    TotalCount = totalGroupCount,
+                    TotalProductCount = totalCount
+                };
             }
 
-            var products = await _db.Products
-                .Where(p => ProductsIDs.Contains(p.Id))
+            // 6) Load products for selected groups
+            var selectedIds = new HashSet<int>(pagedKeys.SelectMany(k => buckets[k]));
+            var products = await _db.Products.AsNoTracking()
+                .Where(p => selectedIds.Contains(p.Id))
                 .Select(ProductMappings.ToListItem)
-                .Skip(skip)
-                .Take(take)
-                .ToListAsync();
+                .ToListAsync(ct);
 
-            var result1 = new List<ProductFeatureWithProductsDto>();
+            var productById = products.ToDictionary(x => x.Id);
 
-            var colorDict = new Dictionary<string, string>();
-            var colorIDs = new List<int>();
-
-            colorIDs = groupProductWithFeature
-           .SelectMany(gp => gp.FeatureIds.Split('|'))   // flatten all parts
-           .Select(int.Parse)                            // convert each part to int
-           .ToList();
-
-            foreach (var kvp in containers)
+            // 7) Build result items
+            var items = new List<ProductFeatureWithProductsDto>(pagedKeys.Count);
+            foreach (var key in pagedKeys)
             {
-                result1.Add(new ProductFeatureWithProductsDto
+                var title =
+                    key == OthersKey
+                        ? "سایر محصولات"
+                        : (keyToTitle.TryGetValue(key, out var nm) ? nm : key);
+
+                var ids = buckets[key];
+                var groupProducts = new List<ProductListItemDto>(ids.Count);
+                foreach (var id in ids)
+                    if (productById.TryGetValue(id, out var dto))
+                        groupProducts.Add(dto);
+
+                string? featureColor = null;
+                if (key != OthersKey && keyToColor.TryGetValue(key, out var c))
+                    featureColor = c;
+
+                items.Add(new ProductFeatureWithProductsDto
                 {
-                    Title = kvp.Key,
-                    Products = products.Where(p => kvp.Value.Contains(p.Id)).ToList(),
+                    FeaturesIDs = key,
+                    Title = title,
+                    FeatureColor = featureColor,
+                    Products = groupProducts
                 });
             }
 
-            var colorFeature = await _db.ColorFeatures
-                .Where(cf => cf.BrandId == brandId && cf.SupplierId == supplierId)
-                .OrderBy(cf => cf.DisplayOrder)
-                .Select(x => new { color = x.Color, featureIDs = x.FeatureIDs })
-                .ToListAsync();
-
-            var result2 = new List<ProductFeatureWithProductsDto>();
-
-
-            foreach (var cf in colorFeature)
-            {
-                foreach (var r1 in result1)
-                {
-                    if (cf.featureIDs == r1.Title && r1.Products.Any())
-                    {
-                        result2.Add(r1);
-                    }
-                }
-            }
-
-            //throw new NullReferenceException();
-
-            // 10) Return scroll page
             return new ScrollResult<ProductFeatureWithProductsDto>
             {
-                Items = result2,
+                Items = items,
                 Skip = skip,
                 Take = take,
-                ReturnedCount = 900000,
-                TotalCount = totalCount
+                ReturnedCount = items.Count,
+                TotalCount = totalGroupCount,
+                TotalProductCount = totalCount
             };
         }
-
     }
 }

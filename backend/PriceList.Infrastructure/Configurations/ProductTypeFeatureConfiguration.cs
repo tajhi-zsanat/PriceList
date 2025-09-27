@@ -14,7 +14,7 @@ namespace PriceList.Infrastructure.Configurations
         public void Configure(EntityTypeBuilder<ProductTypeFeature> b)
         {
             b.ToTable("ProductTypeFeatures"); // plural is conventional (optional)
-            b.HasKey(x => new { x.ProductTypeId, x.FeatureId });
+            b.HasKey(x => new { x.ProductTypeId, x.FeatureId, x.SupplierId });
 
             b.HasOne(x => x.ProductType)
              .WithMany(t => t.ProductTypeFeatures) // <- must match property name
@@ -24,6 +24,11 @@ namespace PriceList.Infrastructure.Configurations
             b.HasOne(x => x.Feature)
              .WithMany(f => f.ProductTypeFeatures) // <- must match property name
              .HasForeignKey(x => x.FeatureId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasOne(x => x.Supplier)
+             .WithMany(f => f.ProductTypeFeatures) 
+             .HasForeignKey(x => x.SupplierId)
              .OnDelete(DeleteBehavior.Cascade);
         }
     }

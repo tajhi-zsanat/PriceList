@@ -25,6 +25,8 @@ namespace PriceList.Core.Common
         /// <summary>Total items in the full result (optional to compute/send).</summary>
         public int? TotalCount { get; init; }
 
+        public int? TotalProductCount { get; init; }
+
         /// <summary>Whether there are more items after this slice.</summary>
         public bool HasMore => !TotalCount.HasValue || (Skip + ReturnedCount) < TotalCount.Value;
     }

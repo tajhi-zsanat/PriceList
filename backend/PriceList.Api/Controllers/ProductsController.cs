@@ -30,9 +30,9 @@ namespace PriceList.Api.Controllers
         /// Infinite-scroll: groups products by exact feature-set and returns a sliced page across groups.
         /// </summary>
         [HttpGet("by-categories")]
-        [ProducesResponseType(typeof(ProductsWithHeaders), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ScrollResult<ProductFeatureWithProductsDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<ProductsWithHeaders>> GetByCategories(
+        public async Task<ActionResult<ScrollResult<ProductFeatureWithProductsDto>>> GetByCategories(
             [FromQuery] int brandId,
             [FromQuery] int categoryId,
             [FromQuery] int groupId,
@@ -55,15 +55,8 @@ namespace PriceList.Api.Controllers
             if (groupId <= 0) return BadRequest("شناسه گروه کالا نامعتبر است.");
             if (typeId <= 0) return BadRequest("شناسه نوع کالا نامعتبر است.");
 
-            var headers = await uow.Header.ListAsync(
-                predicate: (ph => ph.BrandId == brandId && ph.ProductTypeId == typeId),
-                selector: ProductHeaderMappings.ToListItem,
-                asNoTracking: true,
-                ct: ct
-                );
-
             // Example: pick a default/top supplier based on your business rule.
-            var supplierId = await uow.Products.GetTopSupplierAsync(ct);
+            var supplierId = await uow.Products.GetTopSupplierAsync(categoryId, groupId, typeId, brandId, ct);
 
             var products = await uow.Features.ListFeaturesWithProductsScrollAsync(
                 skip: skip,
@@ -75,12 +68,10 @@ namespace PriceList.Api.Controllers
                 supplierId: supplierId,
                 productSearch: search,
                 ct: ct
-            );
-
-            var result = new ProductsWithHeaders(headers, products);
+             );
 
             // For infinite scroll, 200 with an empty Items array is fine; don't return 404.
-            return Ok(result);
+            return Ok(products);
         }
 
         [HttpGet("by-categories/suppliers-summary")]
@@ -168,8 +159,7 @@ namespace PriceList.Api.Controllers
             // Composite duplicate check
             var normalized = model.ToUpperInvariant();
             var dupExists = await uow.Products.AnyAsync(p =>
-                   p.Model != null && p.Model.Trim().ToUpper() == normalized
-                && p.BrandId == form.BrandId
+                p.BrandId == form.BrandId
                 && p.ProductTypeId == form.ProductTypeId
                 && p.ProductGroupId == form.ProductGroupId
                 && p.CategoryId == form.CategoryId
@@ -180,7 +170,6 @@ namespace PriceList.Api.Controllers
 
             var entity = new Product
             {
-                Model = model,
                 Description = string.IsNullOrWhiteSpace(form.Description) ? null : form.Description.Trim(),
                 Price = form.Price,
                 Number = form.Number,

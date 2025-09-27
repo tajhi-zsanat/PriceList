@@ -15,14 +15,14 @@ export default function Breadcrumbs() {
   const s = loc.state || {};
 
   return (
-    <nav className="text-sm text-gray-600 flex flex-wrap gap-x-2 gap-y-1 sm:mx-16 mt-4">
-      <Link to="/categories" state={{ categoryName: s.categoryName }}>
+    <nav className="text-sm text-gray-600 flex flex-wrap gap-x-2 gap-y-1 sm:mx-16 pt-4">
+      <Link to="/Category" state={{ categoryName: s.categoryName }}>
         دسته‌بندی‌ها
       </Link>
       {categoryId && (
         <>
           <span>/</span>
-          <Link to={`/categories/${categoryId}/groups`} state={{ categoryName: s.categoryName }}>
+          <Link to={`/Category/${categoryId}/groups`} state={{ categoryName: s.categoryName }}>
             {s.categoryName ?? `دسته ${categoryId}`}
           </Link>
         </>
@@ -31,7 +31,7 @@ export default function Breadcrumbs() {
         <>
           <span>/</span>
           <Link
-            to={`/categories/${categoryId}/groups/${groupId}/types`}
+            to={`/Category/${categoryId}/groups/${groupId}/types`}
             state={{ categoryName: s.categoryName, groupName: s.groupName }}
           >
             {s.groupName ?? `گروه ${groupId}`}
@@ -42,7 +42,7 @@ export default function Breadcrumbs() {
         <>
           <span>/</span>
           <Link
-            to={`/categories/${categoryId}/groups/${groupId}/types/${typeId}/brands`}
+            to={`/Category/${categoryId}/groups/${groupId}/types/${typeId}/brands`}
             state={{ categoryName: s.categoryName, groupName: s.groupName, typeName: s.typeName }}
           >
             {s.typeName ?? `نوع ${typeId}`}

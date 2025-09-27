@@ -11,7 +11,6 @@ namespace PriceList.Core.Application.Mappings
         public static readonly Expression<Func<Product, ProductListItemDto>> ToListItem =
                 p => new ProductListItemDto(
                 p.Id,
-                p.Model,
                 p.Description,
                 p.DocumentPath,
                 p.Price,
@@ -24,7 +23,6 @@ namespace PriceList.Core.Application.Mappings
         public static ProductListItemDto ToMini(Product p) =>
         new ProductListItemDto(
                 p.Id,
-                p.Model,
                 p.Description,
                 p.DocumentPath,
                 p.Price,

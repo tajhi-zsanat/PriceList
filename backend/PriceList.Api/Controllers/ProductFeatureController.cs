@@ -89,15 +89,23 @@ namespace PriceList.Api.Controllers
             if (toInsert.Count > 0)
                 await uow.ProductFeatures.AddRangeAsync(toInsert, ct);
 
-            var isExistFeatureColor = await uow.ColorFeatures.GetByFeaturesAsync(string.Join(",", featureIds), dto.BrandId, dto.SupplierId, ct);
+            var isExistFeatureColor = await uow.ColorFeatures.GetByFeaturesAsync(FeatureKeyHelper.Build(featureIds), dto.BrandId, dto.SupplierId, ct);
 
             if (!isExistFeatureColor)
             {
+                var featuresName = await uow.Features.ListAsync(
+                    predicate: (f => featureIds.Contains(f.Id)),
+                    selector: (f => f.Name),
+                    asNoTracking: true,
+                    ct: ct
+                    );
+
                 var colorFeature = new ColorFeature
                 {
                     FeatureIDs = FeatureKeyHelper.Build(featureIds),
                     // If you want the chosen color recorded:
                     Color = dto.FeatureColor,
+                    FeatureName = string.Join(" - ", featuresName),
                     BrandId = dto.BrandId,
                     SupplierId = dto.SupplierId,
                 };

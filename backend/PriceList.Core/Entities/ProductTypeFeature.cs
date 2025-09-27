@@ -14,5 +14,8 @@ namespace PriceList.Core.Entities
 
         public int FeatureId { get; set; }
         public Feature Feature { get; set; } = null!;
+
+        public int SupplierId { get; set; }
+        public Supplier Supplier { get; set; } = null!;
     }
 }
