@@ -21,5 +21,7 @@ namespace PriceList.Core.Entities
         public ICollection<Product> Products { get; set; } = new List<Product>();
 
         public ICollection<ProductTypeFeature> ProductTypeFeatures { get; set; } = new List<ProductTypeFeature>();
+
+        public ICollection<Form> Forms { get; set; } = [];
     }
 }

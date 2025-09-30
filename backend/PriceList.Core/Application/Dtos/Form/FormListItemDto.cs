@@ -1,0 +1,17 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace PriceList.Core.Application.Dtos.Form;
+
+public sealed record FormListItemDto(int Id,
+    string? FormTitle,
+    int ProductCount,
+    string CategoryName,
+    string GroupdName,
+    string TypeName,
+    string BrandName,
+    string UpdatedDate
+    );

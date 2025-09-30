@@ -19,10 +19,11 @@ namespace PriceList.Api.Controllers
     public class CategoryController(IUnitOfWork uow, IFileStorage storage) : ControllerBase
     {
         [HttpGet]
-        public async Task<ActionResult<List<CategoryListItemDto>>> GetAll(CancellationToken ct)
+        public async Task<ActionResult<List<CategoryListItemDto>>> GetAll(CancellationToken ct,
+            [FromQuery(Name = "q")] string? search)
         {
             var list = await uow.Categories.ListAsync(
-                predicate: null
+                predicate: search == null ? null : p => EF.Functions.Like(p.Name, $"%{search}%")
                 , selector: CategoryMappings.ToListItem,
                 asNoTracking: true
                 , orderBy: q => q

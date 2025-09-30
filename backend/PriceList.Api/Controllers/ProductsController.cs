@@ -8,6 +8,7 @@ using PriceList.Api.Dtos.Supplier;
 using PriceList.Api.Helpers;
 using PriceList.Api.Mappings;
 using PriceList.Core.Abstractions.Repositories;
+using PriceList.Core.Abstractions.Services;
 using PriceList.Core.Abstractions.Storage;
 using PriceList.Core.Application.Dtos.Product;
 using PriceList.Core.Application.Dtos.ProductFeature;
@@ -55,23 +56,32 @@ namespace PriceList.Api.Controllers
             if (groupId <= 0) return BadRequest("شناسه گروه کالا نامعتبر است.");
             if (typeId <= 0) return BadRequest("شناسه نوع کالا نامعتبر است.");
 
-            // Example: pick a default/top supplier based on your business rule.
-            var supplierId = await uow.Products.GetTopSupplierAsync(categoryId, groupId, typeId, brandId, ct);
+            try
+            {
+                // Example: pick a default/top supplier based on your business rule.
+                var supplierId = await uow.Products.GetTopSupplierAsync(categoryId, groupId, typeId, brandId, ct);
 
-            var products = await uow.Features.ListFeaturesWithProductsScrollAsync(
-                skip: skip,
-                take: take,
-                categoryId: categoryId,
-                groupId: groupId,
-                typeId: typeId,
-                brandId: brandId,
-                supplierId: supplierId,
-                productSearch: search,
-                ct: ct
-             );
+                var products = await uow.Features.ListFeaturesWithProductsScrollAsync(
+                    skip: skip,
+                    take: take,
+                    categoryId: categoryId,
+                    groupId: groupId,
+                    typeId: typeId,
+                    brandId: brandId,
+                    supplierId: supplierId,
+                    productSearch: search,
+                    ct: ct
+                 );
 
-            // For infinite scroll, 200 with an empty Items array is fine; don't return 404.
-            return Ok(products);
+                // For infinite scroll, 200 with an empty Items array is fine; don't return 404.
+                return Ok(products);
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                // Request was cancelled by the client → return 499 or just end silently
+                HttpContext.Response.StatusCode = 499; // Client Closed Request (non-standard)
+                return new EmptyResult();
+            }
         }
 
         [HttpGet("by-categories/suppliers-summary")]
@@ -113,6 +123,14 @@ namespace PriceList.Api.Controllers
             .ToListAsync(ct);
 
             return Ok(summaries);
+        }
+
+        [HttpGet("{id:int}/pdf")]
+        public async Task<IActionResult> GetPdf(int id, [FromServices] IProductPdfService pdfs, CancellationToken ct)
+        {
+            var bytes = await pdfs.GenerateAsync(id, ct);
+            Response.Headers.Add("Access-Control-Expose-Headers", "Content-Disposition");
+            return File(bytes, "application/pdf", $"product-{id}.pdf");
         }
 
         [HttpGet("{id:int}", Name = "GetProductById")]
@@ -157,7 +175,6 @@ namespace PriceList.Api.Controllers
             if (!await uow.Suppliers.AnyAsync(s => s.Id == form.SupplierId, ct)) return NotFound("تامین‌کننده یافت نشد.");
 
             // Composite duplicate check
-            var normalized = model.ToUpperInvariant();
             var dupExists = await uow.Products.AnyAsync(p =>
                 p.BrandId == form.BrandId
                 && p.ProductTypeId == form.ProductTypeId

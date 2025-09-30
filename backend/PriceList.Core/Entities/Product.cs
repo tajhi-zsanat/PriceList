@@ -26,7 +26,6 @@ namespace PriceList.Core.Entities
         public ProductType ProductType { get; set; } = null!;
 
         public int SupplierId { get; set; }
-
         public Supplier Supplier { get; set; } = null!;
 
         //public string? UserId { get; set; } = null!;
@@ -35,6 +34,9 @@ namespace PriceList.Core.Entities
 
         public int BrandId { get; set; }
         public Brand Brand { get; set; } = null!;
+
+        public int FormId { get; set; }
+        public Form Form { get; set; } = null!;
 
         public int? UnitId { get; set; }
         public Unit? Unit { get; set; } = null!;

@@ -18,17 +18,19 @@ namespace PriceList.Api.Controllers
     [Produces("application/json")]
     public class ProductGroupController(IUnitOfWork uow, IFileStorage storage) : ControllerBase
     {
-        [HttpGet("by-category/{categoryId:int}")]
+        [HttpGet("by-category")]
         [ProducesResponseType(typeof(List<ProductGroupListItemDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<List<ProductGroupListItemDto>>> GetByCategory(
-            [FromRoute] int categoryId,
+            [FromQuery] int categoryId,
+            [FromQuery(Name = "q")] string? search,
             CancellationToken ct = default)
         {
             if (categoryId <= 0) return BadRequest("شناسه دسته‌بندی نامعتبر است.");
 
             var list = await uow.ProductGroups.GetByCategoryIdAsync(
                 categoryId,
+                predicate: search == null ? null : pg => EF.Functions.Like(pg.Name, $"%{search}%"),
                 selector: ProductGroupMappings.ToListItem,
                 orderBy: q => q
                     .OrderBy(c => c.DisplayOrder == 0)

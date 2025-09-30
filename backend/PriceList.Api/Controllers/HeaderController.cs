@@ -30,14 +30,23 @@ namespace PriceList.Api.Controllers
         {
             if (typeId <= 0) return BadRequest("شناسه دسته‌بندی نامعتبر است.");
 
-            var headers = await uow.Header.ListAsync(
+            try
+            {
+                var headers = await uow.Header.ListAsync(
                 predicate: (ph => ph.BrandId == brandId && ph.ProductTypeId == typeId),
                 selector: ProductHeaderMappings.ToListItem,
                 asNoTracking: true,
                 ct: ct
                 );
 
-            return Ok(headers);
+                return Ok(headers);
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                // Request was cancelled by the client → return 499 or just end silently
+                HttpContext.Response.StatusCode = 499; // Client Closed Request (non-standard)
+                return new EmptyResult();
+            }
         }
 
         [HttpPost]

@@ -1,12 +1,16 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using PriceList.Core.Abstractions.Repositories;
+using PriceList.Core.Abstractions.Services;
 using PriceList.Core.Abstractions.Storage;
 using PriceList.Core.Entities;
 using PriceList.Infrastructure.Data;
 using PriceList.Infrastructure.Repositories;
 using PriceList.Infrastructure.Repositories.Ef;
+using PriceList.Infrastructure.Services;
 using PriceList.Infrastructure.Services.Storage;
+using QuestPDF.Drawing;
+using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -69,6 +73,12 @@ builder.Services.AddSwaggerGen(c =>
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 //builder.Services.AddOpenApi();
 
+QuestPDF.Settings.License = LicenseType.Community;
+FontManager.RegisterFont(File.OpenRead("Fonts/Vazir-FD-WOL.ttf"));       // Regular
+FontManager.RegisterFont(File.OpenRead("Fonts/Vazir-Bold-FD-WOL.ttf")); // Bold
+FontManager.RegisterFont(File.OpenRead("Fonts/Vazir-Medium-FD-WOL.ttf")); // Medium
+FontManager.RegisterFont(File.OpenRead("Fonts/Vazir-Light-FD-WOL.ttf")); // Light
+FontManager.RegisterFont(File.OpenRead("Fonts/Vazir-Thin-FD-WOL.ttf"));  // Thin
 // ✅ DI: interfaces (Core) → implementations (Infrastructure)
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
@@ -86,6 +96,8 @@ builder.Services.AddScoped<IProductFeatureRepository, ProductFeatureRepository>(
 builder.Services.AddScoped<IProductImageRepository, ProductImageRepository>();
 builder.Services.AddScoped<IHeaderRepository, HeaderRepository>();
 builder.Services.AddScoped<IColorFeatureRepository, ColorFeatureRepository>();
+builder.Services.AddScoped<IProductPdfService, ProductPdfService>();
+builder.Services.AddScoped<IFormRepository, FormRepository>();
 
 // Decide where files live (under wwwroot/uploads)
 var webRoot = builder.Environment.WebRootPath

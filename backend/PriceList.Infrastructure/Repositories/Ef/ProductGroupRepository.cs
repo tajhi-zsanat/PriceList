@@ -26,11 +26,15 @@ namespace PriceList.Infrastructure.Repositories.Ef
 
         public Task<List<TResult>> GetByCategoryIdAsync<TResult>(
              int categoryId,
+             Expression<Func<ProductGroup, bool>>? predicate,
              Expression<Func<ProductGroup, TResult>> selector,
              Func<IQueryable<ProductGroup>, IOrderedQueryable<ProductGroup>>? orderBy = null,
              CancellationToken ct = default)
         {
             IQueryable<ProductGroup> q = Set.Where(pg => pg.CategoryId == categoryId);
+
+            if (predicate is not null)
+                q = q.Where(predicate);
 
             if (orderBy is not null)
                 q = orderBy(q);

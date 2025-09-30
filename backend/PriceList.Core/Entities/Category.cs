@@ -16,5 +16,6 @@ namespace PriceList.Core.Entities
         public string? ImagePath { get; set; }
 
         public ICollection<Product> Products { get; set; } = [];
+        public ICollection<Form> Forms { get; set; } = [];
     }
 }

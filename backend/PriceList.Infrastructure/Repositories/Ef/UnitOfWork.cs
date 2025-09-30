@@ -28,6 +28,7 @@ namespace PriceList.Infrastructure.Repositories.Ef
         public IProductFeatureRepository ProductFeatures { get; }
         public IProductImageRepository ProductImageRepository { get; }
         public IHeaderRepository Header { get; }
+        public IFormRepository Form { get; }
 
         public UnitOfWork(
             AppDbContext db,
@@ -44,7 +45,8 @@ namespace PriceList.Infrastructure.Repositories.Ef
             IProductFeatureRepository productFeatures,
             IProductImageRepository productImageRepository,
             IHeaderRepository productHeader,
-            IColorFeatureRepository colorFeatures)
+            IColorFeatureRepository colorFeatures,
+            IFormRepository form)
         {
             _db = db;
             Products = products;
@@ -61,6 +63,7 @@ namespace PriceList.Infrastructure.Repositories.Ef
             ProductImageRepository = productImageRepository;
             Header = productHeader;
             ColorFeatures = colorFeatures;
+            Form = form;
         }
 
         public Task<int> SaveChangesAsync(CancellationToken ct = default) => _db.SaveChangesAsync(ct);

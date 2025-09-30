@@ -18,7 +18,7 @@ namespace PriceList.Api.Controllers
     [Produces("application/json")]
     public class ProductTypeController(IUnitOfWork uow, IFileStorage storage) : ControllerBase
     {
-        [HttpGet("by-group/{groupId:int}")]
+        [HttpGet("by-group")]
         [ProducesResponseType(typeof(List<ProductTypeListItemDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<List<ProductTypeListItemDto>>> GetByGroup(int groupId, CancellationToken ct)

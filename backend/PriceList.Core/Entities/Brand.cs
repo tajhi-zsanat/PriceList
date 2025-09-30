@@ -19,5 +19,7 @@ namespace PriceList.Core.Entities
 
         public ICollection<Product> Products { get; set; } = new List<Product>();
         public ICollection<Header> productHeaders { get; set; } = new List<Header>();
+
+        public ICollection<Form> Forms { get; set; } = [];
     }
 }

@@ -30,11 +30,11 @@
 
 :root {
   font-family: 'IRANSansWeb', sans-serif;
-  font-size: 14px;
 }
 
 body{
   direction: rtl;
+  font-size: 14px;
 }
 /* Category */
 /* ===== Card Grid (responsive) ===== */
@@ -51,6 +51,107 @@ body{
   gap: var(--card-gap);
   grid-template-columns: repeat(1, 1fr);
 }
+
+.button-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  padding: 0.5rem 1rem;
+  border: 1px solid #1F78AE;   /* blue border */
+  border-radius: 8px;
+  background-color: #fff;      /* white background */
+  color: #1F78AE;              /* blue text */
+
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.5;
+
+  cursor: pointer;
+  transition: background-color 0.3s ease,
+              color 0.3s ease,
+              transform 0.2s ease,
+              filter 0.3s ease;
+}
+
+.button-outline img {
+  transition: filter 0.3s ease;
+}
+
+.button-outline:hover {
+  background-color: #1F78AE;  /* blue background */
+  color: #fff;                /* white text */
+}
+
+.button-outline:hover img {
+  filter: brightness(0) invert(1); /* make white */
+}
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 @media (min-width: 640px) {
   .card-grid {
@@ -249,5 +350,23 @@ body{
   }
   body {
     @apply bg-background text-foreground;
+  }
+   h1 {
+    @apply text-4xl font-bold tracking-tight;
+  }
+  h2 {
+    @apply text-3xl font-semibold tracking-tight;
+  }
+  h3 {
+    @apply text-2xl font-semibold;
+  }
+  h4 {
+    @apply text-xl font-medium;
+  }
+  h5 {
+    @apply text-lg font-medium;
+  }
+  h6 {
+    @apply text-base font-medium uppercase tracking-wide;
   }
 }

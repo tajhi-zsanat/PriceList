@@ -7,6 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="Fonts\Vazir-Bold-FD-WOL.ttf" />
+    <Content Include="Fonts\Vazir-FD-WOL.ttf" />
+    <Content Include="Fonts\Vazir-Light-FD-WOL.ttf" />
+    <Content Include="Fonts\Vazir-Medium-FD-WOL.ttf" />
+    <Content Include="Fonts\Vazir-Thin-FD-WOL.ttf" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Cors" Version="2.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.6" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.8">
@@ -23,6 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Dtos\Form\" />
     <Folder Include="wwwroot\uploads\brands\" />
     <Folder Include="wwwroot\uploads\groups\" />
     <Folder Include="wwwroot\uploads\types\" />

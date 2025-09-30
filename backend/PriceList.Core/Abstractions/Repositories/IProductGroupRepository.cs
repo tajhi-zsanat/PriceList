@@ -15,6 +15,7 @@ namespace PriceList.Core.Abstractions.Repositories
         // generic projection to DTO
         Task<List<TResult>> GetByCategoryIdAsync<TResult>(
             int categoryId,
+            Expression<Func<ProductGroup, bool>>? predicate,
             Expression<Func<ProductGroup, TResult>> selector,
             Func<IQueryable<ProductGroup>, IOrderedQueryable<ProductGroup>>? orderBy = null,
             CancellationToken ct = default);
