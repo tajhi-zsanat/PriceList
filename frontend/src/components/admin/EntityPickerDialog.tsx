@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import type { BaseItem, EntityPickerDialogProps } from "@/types";
+import { DialogDescription } from "@radix-ui/react-dialog";
 
 export default function EntityPickerDialog<TItem extends BaseItem>({
     open,
@@ -59,6 +60,9 @@ export default function EntityPickerDialog<TItem extends BaseItem>({
             <DialogContent dir="rtl" className="sm:max-w-[520px]">
                 <DialogHeader className="text-start">
                     <DialogTitle className="border-b border-b-[#CFD8DC] pb-4">{title}</DialogTitle>
+                    <DialogDescription className="text-sm text-muted-foreground mt-1">
+                        لطفاً آیتم مورد نظر خود را جستجو و انتخاب کنید.
+                    </DialogDescription>
                 </DialogHeader>
 
                 <div className="grid gap-2 mb-3">

@@ -109,6 +109,17 @@ export type InfiniteSentinelProps = {
   threshold?: number
 };
 
+export type AdminHeaderProps = {
+  onFormCreated?: () => void;
+};
+
+export type FormsContextType = {
+  data: FormListItemDto[];
+  loading: boolean;
+  error: string | null;
+  reload: () => Promise<void> | void;
+};
+
 export type FormListItemDto = {
   id: number;
   formTitle: string;
@@ -120,13 +131,22 @@ export type FormListItemDto = {
   updatedDate: string;
 };
 
+export type FormCreateDto = {
+  title: string;
+  columns: number;
+  categoryId?: number;
+  groupId?: number;
+  typeId?: number;
+  brandId?: number;
+  rows?: number;
+  displayOrder?: number;
+};
+
 export type CreateFormModalProps = {
-  /** Use when you want to control it from outside (optional) */
   open?: boolean;
   onOpenChange?: (v: boolean) => void;
-  /** Trigger element (button/div/etc.) */
   trigger: React.ReactNode;
-  onSubmit?: (data: { title: string; columns: number }) => void;
+  onCreated?: () => void; // parent decides what happens after creation
 };
 
 export type Item = { id: number; name: string };

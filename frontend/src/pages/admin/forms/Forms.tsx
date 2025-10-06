@@ -1,34 +1,15 @@
-import { useEffect, useState } from "react";
-import type { FormListItemDto } from "@/types";
-import api from "@/lib/api";
+
 import ActionBar from "./ActionBar";
 import FilterBar from "./FilterBar";
 import FormsTable from "./FormsTable";
 import EmptyState from "./EmptyState";
 import Loading from "./Loading";
 import ErrorBanner from "./ErrorBanner";
+import type { FormsContextType } from "@/types";
+import { useOutletContext } from "react-router-dom";
 
 export default function Forms() {
-  const [data, setData] = useState<FormListItemDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    setLoading(true);
-    setError(null);
-
-    api.get<FormListItemDto[]>("/api/Form", { signal: controller.signal })
-      .then(r => setData(r.data ?? []))
-      .catch(err => {
-        if (err?.code !== "ERR_CANCELED") {
-          setError(err?.response?.data ?? err.message);
-        }
-      })
-      .finally(() => setLoading(false));
-
-    return () => controller.abort();
-  }, []);
+  const { data, loading, error } = useOutletContext<FormsContextType>();
 
   return (
     <section className="w-full mt-4" role="region" aria-label="فرم‌ها">

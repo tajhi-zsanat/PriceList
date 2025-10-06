@@ -6,13 +6,12 @@ import bell from "@/assets/img/bell.png";
 import avator from "@/assets/img/admin/Avatar-Placeholder.png";
 import plus from "@/assets/img/admin/tabler_plus.png";
 import CreateFormModal from "@/components/admin/CreateFormModal";
+import { useState } from "react";
+import type { AdminHeaderProps } from "@/types";
 
-export default function AdminHeader() {
-    const handleCreate = (data: { title: string; columns: number }) => {
-        // TODO: call your API here
-        // await axios.post('/api/forms', { formTitle: data.title, columnCount: data.columns, ... })
-        console.log("create form payload", data);
-    };
+export default function AdminHeader({ onFormCreated }: AdminHeaderProps) {
+    const [modalOpen, setModalOpen] = useState(false);
+
     return (
         <header>
             <Link className="flex justify-end items-center gap-1 text-[#1F78AE] underline decoration-[#1F78AE]" to='/'>
@@ -53,7 +52,9 @@ export default function AdminHeader() {
                         <li className="cursor-pointer text-base">تعرفه‌ها</li>
                     </ul>
                     <CreateFormModal
-                        onSubmit={handleCreate}
+                        open={modalOpen}
+                        onOpenChange={setModalOpen}
+                        onCreated={onFormCreated}
                         trigger={
                             <button className="button-outline">
                                 <img src={plus} alt="plus" />

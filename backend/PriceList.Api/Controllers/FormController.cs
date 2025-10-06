@@ -39,7 +39,7 @@ namespace PriceList.Api.Controllers
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested)
             {
-                HttpContext.Response.StatusCode = 499; 
+                HttpContext.Response.StatusCode = 499;
                 return new EmptyResult();
             }
         }
@@ -59,7 +59,7 @@ namespace PriceList.Api.Controllers
             if (dto.BrandId <= 0 || dto.CategoryId <= 0 || dto.GroupId <= 0 || dto.TypeId <= 0)
                 return BadRequest("شناسه نامعتبر می‌باشد.");
 
-            if (dto.ColumnCount < 6 || dto.ColumnCount > 9)
+            if (dto.Columns < 6 || dto.Columns > 9)
                 return BadRequest("حداقل تعداد ستون برای جدول 6 و حداکثر 9 می باشد.");
 
             var brand = await uow.Brands.GetByIdAsync(dto.BrandId, ct);
@@ -82,9 +82,9 @@ namespace PriceList.Api.Controllers
             if (formExists)
                 return BadRequest("فرم قبلا! ایجاد شده است.");
 
-            if (!string.IsNullOrEmpty(dto.FormTitle))
+            if (!string.IsNullOrEmpty(dto.Title))
             {
-                var existingTitle = await uow.Form.AnyAsync(f => f.FormTitle == dto.FormTitle && f.SupplierId == 1);
+                var existingTitle = await uow.Form.AnyAsync(f => f.FormTitle == dto.Title && f.SupplierId == 1);
 
                 if (existingTitle)
                     return BadRequest("عنوان فرم تکراری می باشد.");
@@ -97,9 +97,9 @@ namespace PriceList.Api.Controllers
                 ProductTypeId = dto.TypeId,
                 ProductGroupId = dto.GroupId,
                 SupplierId = 1,
-                FormTitle = dto.FormTitle,
-                ColumnCount = dto.ColumnCount,
-                RowCount = dto.RowCount,
+                FormTitle = dto.Title,
+                ColumnCount = dto.Columns,
+                RowCount = dto.Rows,
                 DisplayOrder = dto.DisplayOrder
             };
 

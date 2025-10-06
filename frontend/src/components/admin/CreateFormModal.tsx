@@ -1,5 +1,5 @@
 // components/admin/CreateFormModal.tsx
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
   DialogFooter, DialogTrigger, DialogClose
@@ -7,37 +7,95 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import type { CreateFormModalProps, Item, LoadItemsFn } from "@/types";
+import type { CreateFormModalProps, FormCreateDto, Item, LoadItemsFn } from "@/types";
 import api from "@/lib/api";
 import EntityPickerDialog from "@/components/admin/EntityPickerDialog";
+import { toast } from "sonner";
 
-export default function CreateFormModal({ open, onOpenChange, trigger, onSubmit }: CreateFormModalProps) {
+export default function CreateFormModal({ open, onOpenChange, trigger, onCreated = () => { } }: CreateFormModalProps) {
   const [title, setTitle] = useState("");
   const [columns, setColumns] = useState<number>(6);
   const [rows, setRows] = useState<number>(0);
+  const [displayOrder, setDisplayOrder] = useState<number>(0);
 
   const [openCategory, setOpenCategory] = useState(false);
   const [openGroup, setOpenGroup] = useState(false);
   const [openType, setOpenType] = useState(false);
+  const [openBrand, setOpenBrand] = useState(false);
 
   const [selectedCategory, setSelectedCategory] = useState<Item | null>(null);
   const [selectedGroup, setSelectedGroup] = useState<Item | null>(null);
   const [selectedType, setSelectedType] = useState<Item | null>(null);
+  const [selectedBrand, setSelectedBrand] = useState<Item | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      setTitle("");
+      setColumns(6);
+      setRows(0);
+      setDisplayOrder(0);
+
+      setSelectedCategory(null);
+      setSelectedGroup(null);
+      setSelectedType(null);
+      setSelectedBrand(null);
+
+      setError(null);
+      setLoading(false);
+
+      setOpenCategory(false);
+      setOpenGroup(false);
+      setOpenType(false);
+      setOpenBrand(false);
+    }
+  }, [open]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
 
-    console.log(selectedType);
+    if (!title.trim()) {
+      setError("عنوان فرم را وارد کنید.");
+      return;
+    }
 
-    onSubmit?.({
+    if (!selectedCategory) {
+      setError("دسته‌بندی را انتخاب کنید.");
+      return;
+    }
+
+    const payload: FormCreateDto = {
       title: title.trim(),
       columns,
-      // include these IDs in your payload as needed:
-      // categoryId: selectedCategory?.id,
-      // groupId: selectedGroup?.id,
-      // typeId: selectedType?.id,
-      // rows,
-    });
+      categoryId: selectedCategory?.id ?? null,
+      groupId: selectedGroup?.id,
+      typeId: selectedType?.id,
+      brandId: selectedBrand?.id,
+      rows,
+      displayOrder,
+    };
+
+    try {
+      setLoading(true);
+      const res = await api.post<FormCreateDto>("/api/Form", payload);
+
+      if (res.status === 204) {
+        toast.success("فرم با موفقیت ایجاد شد ✅");
+        onCreated();
+        onOpenChange?.(false);
+      }
+
+    } catch (err: any) {
+      console.error("Create form failed:", err);
+      // extract message if available
+      const msg = err?.response?.data?.message ?? err?.message ?? "خطایی رخ داد";
+      toast.error(err.response.data);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // --- Loaders (adapt endpoints to your API) ---
@@ -67,6 +125,14 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onSubmit 
     return r.data;
   }, [selectedGroup]);
 
+  const loadBrands: LoadItemsFn<Item> = useCallback(async ({ search, signal }) => {
+    const r = await api.get<Item[]>("/api/Brand", {
+      params: { q: search || undefined },
+      signal,
+    });
+    return r.data;
+  }, [selectedBrand]);
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -81,6 +147,7 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onSubmit 
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {error && <div className="text-red-600 text-sm">{error}</div>}
             {/* Chain opener */}
             <div
               className="flex justify-between bg-[#F5F5F5] p-2 rounded-[8px] text-[#636363] cursor-pointer"
@@ -95,21 +162,50 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onSubmit 
               <span>انتخاب</span>
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="formTitle">عنوان فرم</Label>
-              <Input
-                id="formTitle"
-                placeholder="مثلاً: لیست قیمت گیج فشار"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-              />
+            <div
+              className="flex justify-between bg-[#F5F5F5] p-2 rounded-[8px] text-[#636363] cursor-pointer"
+              onClick={() => setOpenBrand(true)}
+              title="انتخاب برند"
+            >
+              <span className="truncate">
+                {selectedBrand ? ` ${selectedBrand.name}` : "انتخاب برند"}
+              </span>
+              <span>انتخاب</span>
+            </div>
+
+            <div className="flex flex-col md:flex-row justify-between items-center gap-2">
+              <div className="flex-1 grid gap-2">
+                <Label htmlFor="formTitle">عنوان فرم</Label>
+                <Input
+                  className="bg-[#f5f5f5]"
+                  id="formTitle"
+                  placeholder="مثلاً: لیست قیمت گیج فشار"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
+              </div>
+
+              <div className="flex-1 grid gap-2">
+                <Label htmlFor="rows">ترتیب نمایش</Label>
+                <Input
+                  className="bg-[#f5f5f5]"
+                  id="displayOrder"
+                  type="number"
+                  min={0}
+                  value={displayOrder}
+                  onChange={(e) => {
+                    const v = Number(e.target.value);
+                    isNaN(v) ? setDisplayOrder(0) : setDisplayOrder(Math.max(0, v));
+                  }}
+                />
+              </div>
             </div>
 
             <div className="flex flex-col md:flex-row justify-between items-center gap-2">
               <div className="flex-1 grid gap-2">
                 <Label htmlFor="columns">تعداد ستون‌ (۶ تا ۹)</Label>
                 <Input
+                  className="bg-[#f5f5f5]"
                   id="columns"
                   type="number"
                   min={6}
@@ -126,6 +222,7 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onSubmit 
               <div className="flex-1 grid gap-2">
                 <Label htmlFor="rows">تعداد ردیف</Label>
                 <Input
+                  className="bg-[#f5f5f5]"
                   id="rows"
                   type="number"
                   min={0}
@@ -140,11 +237,13 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onSubmit 
             </div>
 
             <DialogFooter className="gap-3">
+              <Button className="flex-1 bg-[#1F78AE]" type="submit" disabled={loading}>
+                {loading ? "در حال انجام..." : "ایجاد فرم"}
+              </Button>
+
               <DialogClose className="flex-1 border-[#1F78AE] text-[#1F78AE]" asChild>
                 <Button type="button" variant="outline">انصراف</Button>
               </DialogClose>
-
-              <Button className="bg-[#1F78AE]" type="submit">ایجاد فرم</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -190,6 +289,18 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onSubmit 
         loadItems={loadTypes}
         onSelect={(typ) => {
           setSelectedType(typ);
+          // finish chain
+        }}
+      />
+
+      {/* Brand Picker (Load All Brands) */}
+      <EntityPickerDialog<Item>
+        open={openBrand}
+        onOpenChange={setOpenBrand}
+        title="انتخاب برند"
+        loadItems={loadBrands}
+        onSelect={(b) => {
+          setSelectedBrand(b);
           // finish chain
         }}
       />
