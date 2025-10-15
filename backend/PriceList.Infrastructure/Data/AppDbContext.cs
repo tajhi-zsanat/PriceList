@@ -31,6 +31,13 @@ namespace PriceList.Infrastructure.Data
         public DbSet<ColorFeature> ColorFeatures => Set<ColorFeature>();
         public DbSet<ErrorLog> ErrorLog => Set<ErrorLog>();
 
+        public DbSet<Form> Forms => Set<Form>();
+        public DbSet<FormColumnDef> FormColumnDefs => Set<FormColumnDef>();
+        public DbSet<FormCell> FormCells => Set<FormCell>();
+        public DbSet<FormCellFeatureValue> FormCellFeatureValues => Set<FormCellFeatureValue>();
+        public DbSet<FormRow> FormRows => Set<FormRow>();
+        public DbSet<FormRowFeature> FormRowFeatures => Set<FormRowFeature>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);

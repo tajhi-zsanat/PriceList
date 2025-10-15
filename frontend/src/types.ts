@@ -132,7 +132,7 @@ export type FormListItemDto = {
 };
 
 export type FormCreateDto = {
-  title: string;
+  formTitle: string;
   columns: number;
   categoryId?: number;
   groupId?: number;
@@ -165,3 +165,91 @@ export type EntityPickerDialogProps<TItem extends BaseItem> = {
   placeholder?: string;
   renderRow?: (item: TItem) => React.ReactNode;
 };
+
+export interface FormForProductsDto {
+  id: number;
+  brandId: number;
+  categoryId: number;
+  productGroupId: number;
+  productTypeId: number;
+  supplierId: number;
+  rows: number;
+  column: number;
+}
+
+export interface ProductCreateForm {
+  description: string;
+
+  documentPath?: string | null;
+  price: number;
+  categoryId: number;
+  productGroupId: number;
+  productTypeId: number;
+  brandId: number;
+  supplierId: number;
+  unitId: number;
+  image?: File[] | null;
+}
+
+
+// FormDate
+
+// enums help you stay consistent with server
+export const ColumnKinds = ["Static", "Fixed", "Dynamic"] as const;
+export type ColumnKind = typeof ColumnKinds[number];
+
+export const ColumnTypes = [
+  "Checkbox",
+  "Rowno",
+  "Image",
+  "File",
+  "MultilineText",
+  "Select",
+  "Custom1",
+  "Custom2",
+  "Custom3",
+  "Price",
+  "More",
+] as const;
+export type ColumnType = typeof ColumnTypes[number];
+
+// header for each column
+export interface FormHeader {
+  index: number;
+  kind: ColumnKind;              // "Static" | "Fixed" | "Dynamic"
+  type: ColumnType | string;     // allow future/unknown types from backend
+  key: string;                   // e.g. "image" | "unit" | ...
+  title: string;                 // localized title
+}
+
+// a single cell in a row
+export interface GridCell {
+  id: number;
+  colIndex: number;
+  value: string | number | boolean | null;
+}
+
+// a row
+export interface GridRow {
+  rowId: number;
+  cells: GridCell[];
+}
+
+// server groups rows by featureNames (can be empty [])
+export interface GridGroup {
+  featureNames: string[];
+  rows: GridRow[];
+  count: number;
+}
+
+// full payload
+export interface GridResponse {
+  headers: FormHeader[];
+  cells: GridGroup[];
+}
+
+// convenience
+// Nice typed key like "12-5"
+export type CellKey = `${number}-${number}`;
+export const keyFor = (r: number, c: number): CellKey => `${r}-${c}`;
+

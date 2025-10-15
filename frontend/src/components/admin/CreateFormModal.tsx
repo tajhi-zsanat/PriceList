@@ -14,8 +14,8 @@ import { toast } from "sonner";
 
 export default function CreateFormModal({ open, onOpenChange, trigger, onCreated = () => { } }: CreateFormModalProps) {
   const [title, setTitle] = useState("");
-  const [columns, setColumns] = useState<number>(6);
-  const [rows, setRows] = useState<number>(0);
+  const [columns, setColumns] = useState<number>(5);
+  const [rows, setRows] = useState<number>(1);
   const [displayOrder, setDisplayOrder] = useState<number>(0);
 
   const [openCategory, setOpenCategory] = useState(false);
@@ -34,8 +34,8 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
   useEffect(() => {
     if (open) {
       setTitle("");
-      setColumns(6);
-      setRows(0);
+      setColumns(5);
+      setRows(1);
       setDisplayOrder(0);
 
       setSelectedCategory(null);
@@ -57,19 +57,16 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
     e.preventDefault();
     setError(null);
 
-    if (!title.trim()) {
-      setError("عنوان فرم را وارد کنید.");
-      return;
-    }
-
     if (!selectedCategory) {
       setError("دسته‌بندی را انتخاب کنید.");
       return;
     }
 
+    const allCols: number = columns + 3;
+
     const payload: FormCreateDto = {
-      title: title.trim(),
-      columns,
+      formTitle: title.trim(),
+      columns: allCols,
       categoryId: selectedCategory?.id ?? null,
       groupId: selectedGroup?.id,
       typeId: selectedType?.id,
@@ -82,7 +79,7 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
       setLoading(true);
       const res = await api.post<FormCreateDto>("/api/Form", payload);
 
-      if (res.status === 204) {
+      if (res.status === 201) {
         toast.success("فرم با موفقیت ایجاد شد ✅");
         onCreated();
         onOpenChange?.(false);
@@ -91,7 +88,6 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
     } catch (err: any) {
       console.error("Create form failed:", err);
       // extract message if available
-      const msg = err?.response?.data?.message ?? err?.message ?? "خطایی رخ داد";
       toast.error(err.response.data);
     } finally {
       setLoading(false);
@@ -203,17 +199,17 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
 
             <div className="flex flex-col md:flex-row justify-between items-center gap-2">
               <div className="flex-1 grid gap-2">
-                <Label htmlFor="columns">تعداد ستون‌ (۶ تا ۹)</Label>
+                <Label htmlFor="columns">تعداد ستون‌ (5 تا 8)</Label>
                 <Input
                   className="bg-[#f5f5f5]"
                   id="columns"
                   type="number"
-                  min={6}
-                  max={9}
+                  min={5}
+                  max={8}
                   value={columns}
                   onChange={(e) => {
                     const v = Number(e.target.value);
-                    isNaN(v) ? setColumns(6) : setColumns(Math.min(9, Math.max(6, v)));
+                    isNaN(v) ? setColumns(5) : setColumns(Math.min(8, Math.max(5, v)));
                   }}
                   required
                 />
@@ -225,11 +221,12 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
                   className="bg-[#f5f5f5]"
                   id="rows"
                   type="number"
-                  min={0}
+                  min={1}
+                  max={100}
                   value={rows}
                   onChange={(e) => {
                     const v = Number(e.target.value);
-                    isNaN(v) ? setRows(0) : setRows(Math.max(0, v));
+                    isNaN(v) ? setRows(1) : setRows(Math.min(100, Math.max(1, v)));
                   }}
                   required
                 />

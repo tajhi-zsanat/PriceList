@@ -31,7 +31,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Dtos\Form\" />
     <Folder Include="wwwroot\uploads\brands\" />
     <Folder Include="wwwroot\uploads\groups\" />
     <Folder Include="wwwroot\uploads\types\" />

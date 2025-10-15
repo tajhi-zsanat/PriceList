@@ -98,6 +98,10 @@ builder.Services.AddScoped<IHeaderRepository, HeaderRepository>();
 builder.Services.AddScoped<IColorFeatureRepository, ColorFeatureRepository>();
 builder.Services.AddScoped<IProductPdfService, ProductPdfService>();
 builder.Services.AddScoped<IFormRepository, FormRepository>();
+builder.Services.AddScoped<IFormCellRepository, FormCellRepository>();
+builder.Services.AddScoped<IFormColumnDefRepository, FormColumnDefRepository>();
+builder.Services.AddScoped<IFormRowRepository, FormRowIRepository>();
+builder.Services.AddScoped<IFormRowFeatureRepository, FormRowFeatureRepository>();
 
 // Decide where files live (under wwwroot/uploads)
 var webRoot = builder.Environment.WebRootPath

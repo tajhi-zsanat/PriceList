@@ -1,6 +1,15 @@
-@PriceList.Api_HostAddress = http://localhost:5230
+@PriceList.Api_HostAddress = https://localhost:7034
 
 GET {{PriceList.Api_HostAddress}}/weatherforecast/
 Accept: application/json
+
+###
+
+POST {{PriceList.Api_HostAddress}}/api/form
+Content-Type: application/json
+
+{
+  //FormCreateDto
+}
 
 ###

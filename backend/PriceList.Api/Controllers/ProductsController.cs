@@ -109,6 +109,9 @@ namespace PriceList.Api.Controllers
                     p.ProductGroupId == groupId &&
                     p.ProductTypeId == typeId);
 
+            if (!await query.AnyAsync(ct))
+                return Ok(new List<SupplierSummaryDto>());
+
             var summaries = await query
             .GroupBy(p => new { p.SupplierId, SupplierName = p.Supplier.Name })
             .Select(g => new SupplierSummaryDto(
@@ -156,9 +159,9 @@ namespace PriceList.Api.Controllers
             [FromForm] ProductCreateForm form,
             CancellationToken ct = default)
         {
-            var model = form.Model?.Trim();
-            if (string.IsNullOrWhiteSpace(model))
-                return BadRequest("نام کالا الزامی است.");
+            var des = form.Description?.Trim();
+            if (string.IsNullOrWhiteSpace(des))
+                return BadRequest("شرح کالا الزامی است.");
 
             if (form.CategoryId <= 0) return BadRequest("شناسه دسته‌بندی نامعتبر است.");
             if (form.ProductGroupId <= 0) return BadRequest("شناسه گروه کالا نامعتبر است.");
@@ -189,7 +192,6 @@ namespace PriceList.Api.Controllers
             {
                 Description = string.IsNullOrWhiteSpace(form.Description) ? null : form.Description.Trim(),
                 Price = form.Price,
-                Number = form.Number,
                 DocumentPath = string.IsNullOrWhiteSpace(form.DocumentPath) ? null : form.DocumentPath,
                 CategoryId = form.CategoryId,
                 ProductGroupId = form.ProductGroupId,
@@ -252,5 +254,60 @@ namespace PriceList.Api.Controllers
             var result = ProductApiMappers.ToListItemDto(entity);
             return CreatedAtAction(nameof(GetById), new { id = entity.Id }, result);
         }
+
+        #region Admin
+        [HttpGet]
+        [ProducesResponseType(typeof(ScrollResult<ProductFeatureWithProductsDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<ScrollResult<ProductFeatureWithProductsDto>>> GetByCategories(
+        [FromQuery] int brandId,
+        [FromQuery] int categoryId,
+        [FromQuery] int groupId,
+        [FromQuery] int typeId,
+        [FromQuery] int supplierId,
+        // scroll parameters
+        [FromQuery] int skip = 0,
+        [FromQuery] int take = 20,
+        // optional
+        [FromQuery] string? search = null,
+        CancellationToken ct = default)
+        {
+
+            // Basic normalization / guardrails
+            if (skip < 0) skip = 0;
+            if (take < 1) take = 20;
+
+            // You can relax these if needed; keeping them to avoid bad queries.
+            if (brandId <= 0) return BadRequest("شناسه برند کالا نامعتبر است.");
+            if (categoryId <= 0) return BadRequest("شناسه دسته‌بندی نامعتبر است.");
+            if (groupId <= 0) return BadRequest("شناسه گروه کالا نامعتبر است.");
+            if (typeId <= 0) return BadRequest("شناسه نوع کالا نامعتبر است.");
+
+            try
+            {
+                // Example: pick a default/top supplier based on your business rule.
+                var products = await uow.Features.ListFeaturesWithProductsScrollAsync(
+                    skip: skip,
+                    take: take,
+                    categoryId: categoryId,
+                    groupId: groupId,
+                    typeId: typeId,
+                    brandId: brandId,
+                    supplierId: supplierId,
+                    productSearch: search,
+                    ct: ct
+                 );
+
+                // For infinite scroll, 200 with an empty Items array is fine; don't return 404.
+                return Ok(products);
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                // Request was cancelled by the client → return 499 or just end silently
+                HttpContext.Response.StatusCode = 499; // Client Closed Request (non-standard)
+                return new EmptyResult();
+            }
+        }
+        #endregion
     }
 }

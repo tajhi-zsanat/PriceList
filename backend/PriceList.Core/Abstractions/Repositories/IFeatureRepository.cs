@@ -11,7 +11,6 @@ namespace PriceList.Core.Abstractions.Repositories
 {
     public interface IFeatureRepository : IGenericRepository<Feature>
     {
-
         Task<ScrollResult<ProductFeatureWithProductsDto>> ListFeaturesWithProductsScrollAsync(
         int skip,
         int take,

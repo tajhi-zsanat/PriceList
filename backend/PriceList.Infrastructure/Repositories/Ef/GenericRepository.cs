@@ -32,13 +32,19 @@ namespace PriceList.Infrastructure.Repositories.Ef
         public async Task<TResult?> GetByIdAsync<TResult>(
             int id,
             Expression<Func<T, TResult>> selector,
+            Expression<Func<T, bool>>? predicate = null,
             CancellationToken ct = default)
         {
-            return await Set.AsNoTracking()
-                .Where(e => EF.Property<int>(e, "Id") == id)
-                .Select(selector)
-                .FirstOrDefaultAsync(ct);
+            IQueryable<T> q = Set.AsNoTracking();
+
+            if (predicate is not null)
+                q = q.Where(predicate);
+
+            q = q.Where(e => EF.Property<int>(e, "Id") == id);
+
+            return await q.Select(selector).FirstOrDefaultAsync(ct);
         }
+
 
         public async Task<List<T>> ListAsync(Expression<Func<T, bool>>? predicate = null,
               bool asNoTracking = true,
@@ -75,8 +81,16 @@ namespace PriceList.Infrastructure.Repositories.Ef
 
         public async Task<TResult?> FirstOrDefaultAsync<TResult>(Expression<Func<T, bool>> predicate,
                                                                  Expression<Func<T, TResult>> selector,
+                                                                 bool asNoTracking = true,
                                                                  CancellationToken ct = default)
-            => await Set.AsNoTracking().Where(predicate).Select(selector).FirstOrDefaultAsync(ct);
+        {
+            IQueryable<T> q = Set;
+
+            if (asNoTracking) q = q.AsNoTracking();
+            if (predicate is not null) q = q.Where(predicate);
+
+            return await q.Select(selector).FirstOrDefaultAsync(ct);
+        }
 
         public async Task<T> AddAsync(T entity, CancellationToken ct = default)
         { await Set.AddAsync(entity, ct); return entity; }

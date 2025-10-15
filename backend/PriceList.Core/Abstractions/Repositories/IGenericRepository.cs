@@ -18,6 +18,7 @@ namespace PriceList.Core.Abstractions.Repositories
         Task<TResult?> GetByIdAsync<TResult>(
             int id,
             Expression<Func<T, TResult>> selector,
+            Expression<Func<T, bool>>? predicate = null,
             CancellationToken ct = default);
 
         Task<List<T>> ListAsync(
@@ -36,6 +37,7 @@ namespace PriceList.Core.Abstractions.Repositories
 
         Task<TResult?> FirstOrDefaultAsync<TResult>(Expression<Func<T, bool>> predicate,
                                                     Expression<Func<T, TResult>> selector,
+                                                    bool asNoTracking = true,
                                                     CancellationToken ct = default);
 
         Task<T> AddAsync(T entity, CancellationToken ct = default);

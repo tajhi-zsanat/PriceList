@@ -10,5 +10,9 @@ namespace PriceList.Core.Common
     {
         public static string Build(IEnumerable<int> ids) =>
             string.Join("|", ids.Distinct().OrderBy(i => i));
+
+
+        public static string BuildKey(IEnumerable<string> names)
+            => string.Join("|", names.OrderBy(n => n, StringComparer.Ordinal));
     }
 }

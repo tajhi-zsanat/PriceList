@@ -3,8 +3,6 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import PublicLayout from "@/layouts/PublicLayout";
 import AdminLayout from "@/layouts/AdminLayout";
-import Protected from "./guards/Protected";
-import RoleGuard from "./guards/RoleGuard";
 
 // Public pages
 const Category = lazy(() => import("@/pages/public/category/Category"));

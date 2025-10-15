@@ -17,43 +17,27 @@ namespace PriceList.Infrastructure.Configurations
             b.HasKey(x => x.Id);
 
             b.Property(x => x.FormTitle)
-             .HasMaxLength(200);
+                .HasMaxLength(500);
 
-            b.HasOne(c => c.Category)
-             .WithMany(p => p.Forms)
-             .HasForeignKey(p => p.CategoryId)
-             .OnDelete(DeleteBehavior.Restrict);
+            b.Property(x => x.Rows)
+                .IsRequired();
 
-            b.HasOne(c => c.ProductGroup)
-            .WithMany(p => p.Forms)
-            .HasForeignKey(p => p.ProductGroupId)
-            .OnDelete(DeleteBehavior.Restrict);
+            b.Property(x => x.MinCols)
+                .HasDefaultValue(5)
+                .IsRequired();
 
-            b.HasOne(c => c.ProductType)
-            .WithMany(p => p.Forms)
-            .HasForeignKey(p => p.ProductTypeId)
-            .OnDelete(DeleteBehavior.Restrict);
+            b.Property(x => x.MaxCols)
+                .HasDefaultValue(8)
+                .IsRequired();
 
-            b.HasOne(c => c.Brand)
-            .WithMany(p => p.Forms)
-            .HasForeignKey(p => p.BrandId)
-            .OnDelete(DeleteBehavior.Restrict);
+            b.HasMany(x => x.Columns)
+                .WithOne(x => x.Form)
+                .HasForeignKey(x => x.FormId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-            b.HasOne(c => c.Supplier)
-            .WithMany(p => p.Forms)
-            .HasForeignKey(p => p.SupplierId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-            b.HasMany(c => c.Products)
-            .WithOne(p => p.Form)
-            .HasForeignKey(p => p.FormId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-            b.HasIndex(x => new { x.CategoryId, x.ProductGroupId, x.ProductTypeId, x.BrandId, x.SupplierId });
-
-            b.Property(x => x.DisplayOrder).HasDefaultValue(0);
-            b.Property(x => x.RowCount).HasDefaultValue(0);
-            b.Property(x => x.ColumnCount).HasDefaultValue(0);
+            // Useful index when listing forms
+            b.HasIndex(f => new { f.SupplierId, f.BrandId, f.CategoryId, f.ProductGroupId, f.ProductTypeId })
+                .IsUnique();
         }
     }
 }

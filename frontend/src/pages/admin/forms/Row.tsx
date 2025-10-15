@@ -2,12 +2,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import FarsiText from "@/components/FarsiText";
 import more from "@/assets/img/more icon-mobile.png";
 import type { FormListItemDto } from "@/types";
+import { Link } from "react-router-dom";
 
 export default function Row({ item, index }: { item: FormListItemDto; index: number }) {
   const categories = `${item.categoryName}/${item.groupdName}/${item.typeName}`;
 
   return (
-    <div
+    <Link to={`/admin/products?formId=${item.id}`}
       className="
         grid grid-cols-8 items-center text-center
         rounded-[20px] p-4 cursor-pointer
@@ -22,6 +23,6 @@ export default function Row({ item, index }: { item: FormListItemDto; index: num
       <span><FarsiText>{item.productCount}</FarsiText></span>
       <span><FarsiText>{item.updatedDate}</FarsiText></span>
       <span><img className="mx-auto" src={more} alt="بیشتر" /></span>
-    </div>
+    </Link>
   );
 }

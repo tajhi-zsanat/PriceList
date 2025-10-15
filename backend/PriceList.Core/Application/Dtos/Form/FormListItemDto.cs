@@ -8,7 +8,6 @@ namespace PriceList.Core.Application.Dtos.Form;
 
 public sealed record FormListItemDto(int Id,
     string? FormTitle,
-    int ProductCount,
     string CategoryName,
     string GroupdName,
     string TypeName,

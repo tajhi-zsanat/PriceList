@@ -30,10 +30,35 @@ namespace PriceList.Core.Entities
         public int BrandId { get; set; }
         public Brand Brand { get; set; } = null!;
 
-        public int RowCount { get; set; }
-        public int ColumnCount { get; set; }
+        public int Rows { get; set; }
+        public int MinCols { get; set; } = 5;          // always 5
+        public int MaxCols { get; set; } = 8;          // at most 8
 
-        public ICollection<Product> Products { get; set; } = new List<Product>();
+        public ICollection<FormColumnDef> Columns { get; set; } = new List<FormColumnDef>();
+    }
 
+    public enum ColumnKind
+    {
+        Static,
+        Dynamic,
+        Fixed
+    }
+
+    public enum ColumnType
+    {
+        Checkbox,
+        Rowno,
+        Image,
+        Date,
+        MultilineText,
+        Select,
+        Custom1,
+        Custom2,
+        Custom3,
+        Text,
+        Price,
+        File,
+        More, // tweak as needed
+        NotAssign
     }
 }
