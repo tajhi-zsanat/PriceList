@@ -24,54 +24,74 @@ namespace PriceList.Infrastructure.Repositories.Ef
         }
 
         public async Task<List<FeatureNameSetGroupDto>> GroupRowsAndCellsByFeatureNamesAsync(
-           int formId,
-           CancellationToken ct)
+            int formId,
+            CancellationToken ct)
         {
-            // 1) Minimal projection: RowId, Cells, Feature names (distinct)
+            // Step 1: Load rows with minimal projection
             var rows = await _db.FormRows
                 .Where(r => r.FormId == formId)
                 .Select(r => new
                 {
                     r.Id,
                     Cells = r.Cells
-                        .Select(c => new CellDto { Id = c.Id, ColIndex = c.ColIndex, Value = c.Value })
+                        .Select(c => new CellDto
+                        {
+                            Id = c.Id,
+                            ColIndex = c.ColIndex,
+                            Value = c.Value
+                        })
                         .ToList(),
-                    // IMPORTANT: ignore values; just take feature names. Distinct in case of duplicates.
+
+                    // Feature names (distinct)
                     FeatureNames = r.Features
                         .Select(f => f.Feature.Name)
                         .Distinct()
-                        .ToList()
+                        .ToList(),
+
+                    // Feature color — use default if null
+                    FeatureColor = r.Features
+                        .Select(f => f.Color)
+                        .FirstOrDefault() ?? "#206E4E"
                 })
                 .AsNoTracking()
                 .ToListAsync(ct);
 
-            if (rows.Count == 0) return new();
+            if (rows.Count == 0)
+                return new();
 
+            // Step 2: Group rows by feature name set key
             var groups = rows
                 .GroupBy(r => FeatureKeyHelper.BuildKey(r.FeatureNames))
                 .Select(g =>
                 {
-                    // Take the ordered names from the first (all equal by key)
-                    var orderedNames = g.First().FeatureNames.OrderBy(n => n, StringComparer.Ordinal).ToList();
+                    var first = g.First(); // representative item of the group
 
-                    var bucketRows = g.Select(x => new RowWithCellsDto
-                    {
-                        RowId = x.Id,
-                        Cells = x.Cells.OrderBy(c => c.ColIndex).ToList()
-                    }).ToList();
+                    var orderedNames = first.FeatureNames
+                        .OrderBy(n => n, StringComparer.Ordinal)
+                        .ToList();
+
+                    var bucketRows = g
+                        .Select(x => new RowWithCellsDto
+                        {
+                            RowId = x.Id,
+                            Cells = x.Cells.OrderBy(c => c.ColIndex).ToList()
+                        })
+                        .ToList();
 
                     return new FeatureNameSetGroupDto
                     {
-                        FeatureNames = orderedNames,   // empty list => “no features”
+                        FeatureNames = orderedNames,
+                        FeatureColor = first.FeatureColor,
                         Rows = bucketRows
                     };
                 })
-                // Optional: put “no features” last; then sort by joined names for stability
+                // Optional ordering
                 .OrderBy(b => b.FeatureNames.Count == 0 ? 1 : 0)
                 .ThenBy(b => string.Join(",", b.FeatureNames), StringComparer.Ordinal)
                 .ToList();
 
             return groups;
         }
+
     }
 }

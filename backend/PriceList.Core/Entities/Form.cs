@@ -49,6 +49,7 @@ namespace PriceList.Core.Entities
         Checkbox,
         Rowno,
         Image,
+        File,
         Date,
         MultilineText,
         Select,
@@ -57,7 +58,6 @@ namespace PriceList.Core.Entities
         Custom3,
         Text,
         Price,
-        File,
         More, // tweak as needed
         NotAssign
     }

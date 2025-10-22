@@ -10,6 +10,7 @@ namespace PriceList.Core.Application.Dtos.Form
     {
         // e.g., ["Color","Size"] — empty for rows with no features
         public List<string> FeatureNames { get; set; } = new();
+        public string? FeatureColor { get; set; }
         public List<RowWithCellsDto> Rows { get; set; } = new();
         public int Count => Rows.Count;
     }

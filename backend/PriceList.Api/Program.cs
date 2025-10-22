@@ -3,6 +3,7 @@ using Microsoft.OpenApi.Models;
 using PriceList.Core.Abstractions.Repositories;
 using PriceList.Core.Abstractions.Services;
 using PriceList.Core.Abstractions.Storage;
+using PriceList.Core.Application.Services;
 using PriceList.Core.Entities;
 using PriceList.Infrastructure.Data;
 using PriceList.Infrastructure.Repositories;
@@ -102,6 +103,9 @@ builder.Services.AddScoped<IFormCellRepository, FormCellRepository>();
 builder.Services.AddScoped<IFormColumnDefRepository, FormColumnDefRepository>();
 builder.Services.AddScoped<IFormRowRepository, FormRowIRepository>();
 builder.Services.AddScoped<IFormRowFeatureRepository, FormRowFeatureRepository>();
+
+//Service
+builder.Services.AddScoped<IFormService, FormService>();
 
 // Decide where files live (under wwwroot/uploads)
 var webRoot = builder.Environment.WebRootPath

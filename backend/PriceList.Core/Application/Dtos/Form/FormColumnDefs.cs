@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 namespace PriceList.Core.Application.Dtos.Form;
 
 public sealed record FormColumnDefDto(
+    int FormId,
     int Index,
     string Kind,
     string Type,

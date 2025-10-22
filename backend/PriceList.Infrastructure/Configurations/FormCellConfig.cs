@@ -20,7 +20,7 @@ namespace PriceList.Infrastructure.Configurations
 
             b.Property(x => x.Value).HasMaxLength(250);
 
-            b.HasIndex(c => new { c.ColIndex })
+            b.HasIndex(c => new { c.RowId, c.ColIndex })
                    .IsUnique();
         }
     }

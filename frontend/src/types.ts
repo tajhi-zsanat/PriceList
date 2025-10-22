@@ -215,6 +215,7 @@ export type ColumnType = typeof ColumnTypes[number];
 
 // header for each column
 export interface FormHeader {
+  formId: number;
   index: number;
   kind: ColumnKind;              // "Static" | "Fixed" | "Dynamic"
   type: ColumnType | string;     // allow future/unknown types from backend
@@ -239,6 +240,7 @@ export interface GridRow {
 export interface GridGroup {
   featureNames: string[];
   rows: GridRow[];
+  featureColor: string | null;
   count: number;
 }
 
@@ -251,5 +253,24 @@ export interface GridResponse {
 // convenience
 // Nice typed key like "12-5"
 export type CellKey = `${number}-${number}`;
-export const keyFor = (r: number, c: number): CellKey => `${r}-${c}`;
+
+//GridProvider.tsx
+export type FilesMap = Record<number, File | undefined>;
+export type ValuesMap = Record<number, string>;
+export type ValuesMapHeader = Record<string, string>;
+
+export type Ctx = {
+  editing: number | null;
+  setEditing: (id: number | null) => void;
+  editingHeader: string | null;
+  setEditingHeader: (string: string | null) => void;
+  editValue: string;
+  setEditValue: (v: string) => void;
+  files: FilesMap;
+  setFiles: React.Dispatch<React.SetStateAction<FilesMap>>;
+  cellValues: ValuesMap;
+  setCellValues: React.Dispatch<React.SetStateAction<ValuesMap>>;
+  cellValuesHeader: ValuesMapHeader;
+  setcellValuesHeader: React.Dispatch<React.SetStateAction<ValuesMapHeader>>;
+};
 

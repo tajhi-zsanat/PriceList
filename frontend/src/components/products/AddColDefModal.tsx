@@ -1,0 +1,127 @@
+import { useEffect, useMemo, useState } from "react"
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+    DialogTrigger,
+    DialogClose,
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { AddColDef } from "@/lib/api/formGrid"
+
+type Props = {
+    trigger: React.ReactNode
+    formId: number
+    currentCount: number // total existing columns
+    onCreated?: () => void
+}
+
+const MIN_COLS = 8
+const MAX_COLS = 11
+const MAX_CUSTOM = 3
+
+export default function AddColDefModal({ trigger, formId, currentCount, onCreated }: Props) {
+    const [open, setOpen] = useState(false)
+    const [loading, setLoading] = useState(false)
+    const [err, setErr] = useState<string | null>(null)
+
+    // How many customs already exist (0..3)
+    const existingCustoms = useMemo(
+        () => Math.min(MAX_CUSTOM, Math.max(0, currentCount - MIN_COLS)),
+        [currentCount]
+    )
+
+    // Which custom numbers we should render now (e.g., [2,3] when current=9)
+    const customNumbers = useMemo(() => {
+        const remain = Math.max(0, MAX_CUSTOM - existingCustoms) // 0..3
+        return Array.from({ length: remain }, (_, i) => existingCustoms + 1 + i)
+    }, [existingCustoms])
+
+    const [titles, setTitles] = useState<string[]>([])
+    useEffect(() => {
+        setTitles(Array.from({ length: customNumbers.length }, () => ""))
+    }, [customNumbers.length])
+
+    const setTitleAt = (i: number, v: string) => {
+        setTitles((prev) => {
+            const next = [...prev]
+            next[i] = v
+            return next
+        })
+    }
+
+    const nothingToAdd = currentCount >= MAX_COLS || customNumbers.length === 0
+
+    async function handleSubmit(e: React.FormEvent) {
+        debugger;
+        e.preventDefault();
+        setErr(null);
+        setLoading(true);
+        try {
+            const normalized = titles.map((t) => t.trim());
+            await AddColDef({ formId, customColDef: normalized }); // no res.ok needed
+            onCreated?.();
+            setOpen(false);
+        } catch (e: any) {
+            // Axios error message
+            const msg = e?.response?.data || e?.message || "خطای نامشخص رخ داد";
+            setErr(msg);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    return (
+        <Dialog open={open} onOpenChange={setOpen}>
+            {/* If at max, render a disabled trigger; else use as real trigger */}
+            {nothingToAdd ? (
+                <button
+                    type="button"
+                    className="flex items-center gap-2 bg-gray-100 text-gray-400 p-2 rounded-lg border border-gray-300 cursor-not-allowed"
+                    title="حداکثر تعداد ستون‌ها (11) تکمیل است"
+                    disabled
+                >
+                    <span>افزودن سرگروه</span>
+                </button>
+            ) : (
+                <DialogTrigger asChild>{trigger}</DialogTrigger>
+            )}
+
+            <DialogContent dir="rtl" className="sm:max-w-[560px]">
+                <DialogHeader>
+                    <DialogTitle>افزودن سرگروه جدید</DialogTitle>
+                </DialogHeader>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    {customNumbers.map((num, i) => (
+                        <div key={num}>
+                            <label className="block text-sm text-[#3F414D] mb-1">
+                                عنوان سرگروه {num}
+                            </label>
+                            <input
+                                type="text"
+                                value={titles[i] ?? ""}
+                                onChange={(e) => setTitleAt(i, e.target.value)}
+                                placeholder={`مثلاً: سرگروه ${num}`}
+                                className="w-full border border-[#CFD8DC] rounded-lg p-2 outline-none focus:ring-2 focus:ring-[#1F78AE]"
+                            />
+                        </div>
+                    ))}
+
+                    {err && <p className="text-red-500 text-sm">{err}</p>}
+
+                    <DialogFooter className="gap-2 sm:gap-2">
+                        <DialogClose asChild>
+                            <Button type="button" variant="outline">انصراف</Button>
+                        </DialogClose>
+                        <Button type="submit" disabled={loading}>
+                            {loading ? "در حال ثبت..." : "ثبت سرگروه"}
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+    )
+}

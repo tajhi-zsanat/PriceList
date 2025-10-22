@@ -10,8 +10,10 @@ using PriceList.Core.Abstractions.Storage;
 using PriceList.Core.Application.Dtos.Form;
 using PriceList.Core.Application.Dtos.ProductGroup;
 using PriceList.Core.Application.Mappings;
+using PriceList.Core.Application.Services;
 using PriceList.Core.Common;
 using PriceList.Core.Entities;
+using PriceList.Core.Enums;
 using System;
 using System.Text.RegularExpressions;
 
@@ -20,7 +22,7 @@ namespace PriceList.Api.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Produces("application/json")]
-    public class FormController(IUnitOfWork uow, IFileStorage storage) : ControllerBase
+    public class FormController(IUnitOfWork uow, IFileStorage storage, IFormService formService) : ControllerBase
     {
         [HttpGet]
         [ProducesResponseType(typeof(List<FormListItemDto>), StatusCodes.Status200OK)]
@@ -107,7 +109,7 @@ namespace PriceList.Api.Controllers
             // Load tracked entity (NO projection)
             var existing = await uow.FormCells.FirstOrDefaultAsync<FormCell>(
                 predicate: c => c.Id == dto.Id,
-                selector: c => c,          
+                selector: c => c,
                 asNoTracking: false,
                 ct: ct);
 
@@ -115,7 +117,7 @@ namespace PriceList.Api.Controllers
                 return BadRequest("سلول یافت نشد.");
 
             // UPDATE
-            existing.Value = dto.Value;
+            existing.Value = string.IsNullOrWhiteSpace(dto.Value) ? null : dto.Value;
 
             uow.FormCells.Update(existing);
             await uow.SaveChangesAsync(ct);
@@ -123,10 +125,44 @@ namespace PriceList.Api.Controllers
             return StatusCode(StatusCodes.Status201Created);
         }
 
-        // 4) Upload image/file for a cell
+        [HttpPut("RemoveMediaCell")]
+        [ProducesResponseType(typeof(FormCellDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(FormCellDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(FormCellDto), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<FormCellDto>> RemoveMediaCell(
+            [FromBody] DeleteMediaCellDto dto,
+            CancellationToken ct = default)
+        {
+            if (dto is null)
+                return BadRequest("بدنه درخواست خالی است.");
+
+            // Load tracked entity (NO projection)
+            var existing = await uow.FormCells.FirstOrDefaultAsync<FormCell>(
+                predicate: c => c.Id == dto.Id,
+                selector: c => c,
+                asNoTracking: false,
+                ct: ct);
+
+            if (existing == null)
+                return BadRequest("سلول یافت نشد.");
+
+            // UPDATE
+            existing.Value = null;
+
+            // delete old (best effort)
+            try { await storage.DeleteAsync(dto.Value, ct); } catch { }
+
+            uow.FormCells.Update(existing);
+            await uow.SaveChangesAsync(ct);
+
+            return StatusCode(StatusCodes.Status201Created);
+        }
+
         [HttpPut("UploadImage")]
+        [ProducesResponseType(typeof(ImageUrlDto), StatusCodes.Status201Created)]
         [RequestSizeLimit(10_000_000)]
-        public async Task<ActionResult> UploadMedia([FromForm] UploadImageDto dto, CancellationToken ct)
+        public async Task<ActionResult<ImageUrlDto>> UploadImage([FromForm] UploadImageDto dto, CancellationToken ct)
         {
             if (dto is null || dto.File is null)
                 return BadRequest("لطفاً عکس را وارد نمایید.");
@@ -159,7 +195,49 @@ namespace PriceList.Api.Controllers
             uow.FormCells.Update(existing);
             await uow.SaveChangesAsync(ct);
 
-            return StatusCode(StatusCodes.Status201Created);
+            var res = new ImageUrlDto(newPath);
+
+            return StatusCode(StatusCodes.Status201Created, res);
+        }
+
+        [HttpPut("UploadFile")]
+        [RequestSizeLimit(10_000_000)]
+        public async Task<ActionResult<FileUrlDto>> UploadFile([FromForm] UploadImageDto dto, CancellationToken ct)
+        {
+            if (dto is null || dto.File is null)
+                return BadRequest("لطفاً فایل را وارد نمایید.");
+
+            var existing = await uow.FormCells.FirstOrDefaultAsync<FormCell>(
+               predicate: c => c.Id == dto.Id,
+               selector: c => c,
+               asNoTracking: false,
+               ct: ct);
+
+            if (existing == null)
+                return BadRequest("سلول یافت نشد.");
+
+            // Restrict to image types here (LocalFileStorage also validates)
+            var allowed = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            { ".pdf" };
+            var ext = Path.GetExtension(dto.File.FileName);
+            if (!allowed.Contains(ext)) return BadRequest("فرمت فایل نامعتبر است.");
+
+            // save new
+            using var s = dto.File.OpenReadStream();
+            var newPath = await storage.SaveAsync(s, dto.File.FileName, "Documents", ct);
+
+            // delete old (best effort)
+            try { await storage.DeleteAsync(existing.Value, ct); } catch { }
+
+            existing.Value = newPath;
+
+
+            uow.FormCells.Update(existing);
+            await uow.SaveChangesAsync(ct);
+
+            var res = new FileUrlDto(newPath);
+
+            return StatusCode(StatusCodes.Status201Created, res);
         }
 
         [HttpPost]
@@ -266,5 +344,70 @@ namespace PriceList.Api.Controllers
             }
         }
 
+        [HttpPut("headerCell")]
+        [ProducesResponseType(typeof(FormCellDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(FormCellDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(FormCellDto), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<FormCellDto>> HeaderCell(
+            [FromBody] InsertHeaderCellDto dto,
+            CancellationToken ct = default)
+        {
+            if (dto is null)
+                return BadRequest("بدنه درخواست خالی است.");
+
+            if (dto.FormId == 0 || dto.Index == 0)
+                return BadRequest("شناسه نامعتبر می‌باشد.");
+
+            // Load tracked entity (NO projection)
+            var existing = await uow.FormColumns.FirstOrDefaultAsync<FormColumnDef>(
+                predicate: c => c.FormId == dto.FormId && c.Index == dto.Index,
+                selector: c => c,
+                asNoTracking: false,
+                ct: ct);
+
+            if (existing == null)
+                return BadRequest("سلول یافت نشد.");
+
+            // UPDATE
+            existing.Title = string.IsNullOrWhiteSpace(dto.Value) ? "سر گروه" : dto.Value;
+
+            uow.FormColumns.Update(existing);
+            await uow.SaveChangesAsync(ct);
+
+            return StatusCode(StatusCodes.Status201Created);
+        }
+
+        [HttpPost("CreateColDef")]
+        [Consumes("application/json")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        public async Task<IActionResult> CreateColDef([FromBody] FormColDefCreate dto, CancellationToken ct = default)
+        {
+            if (dto is null) return BadRequest("بدنه درخواست خالی است.");
+
+            if (dto.CustomColDef == null || !dto.CustomColDef.Any())
+                return BadRequest("هیچ ستونی ارسال نشده است.");
+
+            var results = new List<AddColDefResult>();
+
+            foreach (var customCol in dto.CustomColDef.Where(s => !string.IsNullOrWhiteSpace(s)))
+            {
+                var i = await formService.AddCustomColDef(customCol, dto.FormId, ct);
+                results.Add(i);
+            }
+
+            // If all failed with same error, surface that. Otherwise return 201 with details.
+            if (results.All(r => r.Status == AddColDefStatus.FormNotFound))
+                return NotFound("شناسه فرم نامعتبر می‌باشد.");
+            if (results.All(r => r.Status == AddColDefStatus.MaxColumnsReached))
+                return BadRequest("حداکثر تعداد سرستون‌ها قبلاً ثبت شده است.");
+            if (results.All(r => r.Status == AddColDefStatus.AlreadyExists))
+                return Conflict("ستون‌های سفارشی موردنظر قبلاً وجود دارند.");
+
+            return StatusCode(StatusCodes.Status201Created, results);
+        }
     }
 }

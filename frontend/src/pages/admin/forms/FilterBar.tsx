@@ -10,7 +10,7 @@ function SolidButton({
       type="button"
       className="flex items-center gap-2 bg-white text-[#636363] p-2 rounded-lg border border-[#636363] transition hover:bg-[#f2f5f7]"
     >
-      <img src={icon} alt="" aria-hidden="true" className="w-5 h-5" />
+      <img src={icon} alt="" aria-hidden="true" className="" />
       <span>{label}</span>
     </button>
   );
@@ -23,7 +23,7 @@ function DropdownButton({ label }: { label: string }) {
       className="flex items-center gap-2 bg-white text-[#636363] p-2 rounded-lg border border-[#636363] transition hover:bg-[#f2f5f7]"
     >
       <span>{label}</span>
-      <img src={bottomArrow} alt="" aria-hidden="true" className="w-5 h-5" />
+      <img src={bottomArrow} alt="" aria-hidden="true" className="" />
     </button>
   );
 }

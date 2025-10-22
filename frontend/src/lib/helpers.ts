@@ -1,3 +1,4 @@
+import type { CellKey } from "@/types";
 import { baseURL } from "./api";
 
 // helper for images coming from backend (stored as /uploads/...)
@@ -8,7 +9,8 @@ export const warningSaveProduct = (row: number, title: string | null) => {
   return `در ردیف ${row}، عنوان ${title ?? ""} باید وارد شود تا بتوان محصول را اضافه کرد.`;
 };
 
-export const keyFor = (r: number, c: number) => `${r}-${c}`;
+export const keyFor = (r: number, c: number): CellKey => `${r}-${c}`;
+
 
 export function totalCols(dynamicCount: number) {
   // 2 static on the left + dynamic + 1 static on the right
@@ -17,7 +19,7 @@ export function totalCols(dynamicCount: number) {
 }
 
 export const resolveImgSrc = (v?: string | null) => {
-  if (!v) return "";
+    if (!v) return "";
   if (v.startsWith("blob:") || v.startsWith("data:") || v.startsWith("http://") || v.startsWith("https://")) {
     return v; // already absolute or object URL
   }
@@ -28,3 +30,5 @@ export const resolveImgSrc = (v?: string | null) => {
     return `${baseURL.replace(/\/$/, "")}/${v.replace(/^\//, "")}`;
   }
 };
+
+export const isBlobUrl = (v?: string) => !!v && v.startsWith("blob:");

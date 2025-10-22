@@ -50,6 +50,7 @@ namespace PriceList.Core.Application.Mappings
         // --- Cell ---
         public static readonly Expression<Func<FormColumnDef, FormColumnDefDto>> ToFormColumnDefDto =
             cell => new FormColumnDefDto(
+                cell.FormId,
                 cell.Index,
                 cell.Kind.ToString(),
                 cell.Type.ToString(),
