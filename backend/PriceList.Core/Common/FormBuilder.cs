@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -108,5 +109,27 @@ namespace PriceList.Core.Common
                 Title = title,
                 Required = required
             };
+
+        public static ColumnType TakeColumnType(int index)
+        {
+            return index switch
+            {
+                6 => ColumnType.Custom1,
+                7 => ColumnType.Custom2,
+                8 => ColumnType.Custom3,
+                _ => ColumnType.NotAssign,
+            };
+        }
+
+        public static string TitleColumn(int index)
+        {
+            return index switch
+            {
+                6 => "سرگروه 1",
+                7 => "سرگروه 2",
+                8 => "سرگروه 3",
+                _ => "-",
+            };
+        }
     }
 }

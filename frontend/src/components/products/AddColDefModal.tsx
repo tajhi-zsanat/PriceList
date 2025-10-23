@@ -10,11 +10,12 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { AddColDef } from "@/lib/api/formGrid"
+import { toast } from "sonner";
 
 type Props = {
     trigger: React.ReactNode
     formId: number
-    currentCount: number // total existing columns
+    currentCount: number 
     onCreated?: () => void
 }
 
@@ -55,13 +56,13 @@ export default function AddColDefModal({ trigger, formId, currentCount, onCreate
     const nothingToAdd = currentCount >= MAX_COLS || customNumbers.length === 0
 
     async function handleSubmit(e: React.FormEvent) {
-        debugger;
         e.preventDefault();
         setErr(null);
         setLoading(true);
         try {
             const normalized = titles.map((t) => t.trim());
-            await AddColDef({ formId, customColDef: normalized }); // no res.ok needed
+            await AddColDef({ formId, customColDef: normalized });
+            toast.success("سر گروه با موفقیت ایجاد شد.");
             onCreated?.();
             setOpen(false);
         } catch (e: any) {
@@ -89,11 +90,16 @@ export default function AddColDefModal({ trigger, formId, currentCount, onCreate
                 <DialogTrigger asChild>{trigger}</DialogTrigger>
             )}
 
-            <DialogContent dir="rtl" className="sm:max-w-[560px]">
-                <DialogHeader>
-                    <DialogTitle>افزودن سرگروه جدید</DialogTitle>
+            <DialogContent dir="rtl" className="sm:max-w-lg w-full">
+                <DialogHeader className="text-start gap-4">
+                    <DialogTitle className="border-b border-b-[#CFD8DC] pb-4">
+                        افزودن سرگروه جدید
+                    </DialogTitle>
                 </DialogHeader>
 
+                <p className="text-[#636363] text-base">
+                    میتوانید حداکثر سه سرگروه برای فرم خود وارد نمایید.
+                </p>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {customNumbers.map((num, i) => (
                         <div key={num}>
@@ -113,12 +119,21 @@ export default function AddColDefModal({ trigger, formId, currentCount, onCreate
                     {err && <p className="text-red-500 text-sm">{err}</p>}
 
                     <DialogFooter className="gap-2 sm:gap-2">
-                        <DialogClose asChild>
-                            <Button type="button" variant="outline">انصراف</Button>
-                        </DialogClose>
-                        <Button type="submit" disabled={loading}>
+                        <Button
+                            className="flex-1 bg-[#1F78AE]"
+                            type="submit"
+                            disabled={loading}
+                        >
                             {loading ? "در حال ثبت..." : "ثبت سرگروه"}
                         </Button>
+                        <DialogClose asChild>
+                            <Button className="flex-1 border border-[#1F78AE]"
+                                type="button"
+                                variant="outline"
+                            >
+                                انصراف
+                            </Button>
+                        </DialogClose>
                     </DialogFooter>
                 </form>
             </DialogContent>

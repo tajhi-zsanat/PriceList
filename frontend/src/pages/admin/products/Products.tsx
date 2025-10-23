@@ -59,7 +59,7 @@ function ProductsInner() {
             trigger={
               <button
                 type="button"
-                className="flex items-center gap-2 bg-white text-[#636363] p-2 rounded-lg border border-[#636363] transition hover:bg-[#f2f5f7]"
+                className="flex items-center gap-2 bg-white text-[#636363] p-2 rounded-lg border border-[#636363] cursor-pointer transition hover:bg-[#f2f5f7]"
               >
                 <span>افزودن سرگروه</span>
               </button>

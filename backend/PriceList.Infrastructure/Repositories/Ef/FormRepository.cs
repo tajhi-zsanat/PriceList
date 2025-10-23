@@ -1,7 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PriceList.Core.Abstractions.Repositories;
+using PriceList.Core.Common;
 using PriceList.Core.Entities;
+using PriceList.Core.Enums;
 using PriceList.Infrastructure.Data;
 using System;
 using System.Collections.Generic;
@@ -93,7 +96,7 @@ namespace PriceList.Infrastructure.Repositories.Ef
                 Title = title
             };
             await _db.FormColumnDefs.AddAsync(col, ct);
-            await _db.SaveChangesAsync(ct); // to get Id if needed later
+            await _db.SaveChangesAsync(ct);
             return col.Id;
         }
 
@@ -129,7 +132,114 @@ namespace PriceList.Infrastructure.Repositories.Ef
 
             await _db.Database.ExecuteSqlRawAsync(
                 sql,
-                new object[] { insertAt, utcNow, pDate, pTime, formId }, ct);
+                new object[] { insertAt, utcNow, pDate, pTime, formId },
+                ct);
+        }
+
+        //Delete Section
+
+        public async Task RemoveColumnDefByIndexAsync(int formId, int index, CancellationToken ct)
+        {
+            var def = await _db.FormColumnDefs
+                .FirstOrDefaultAsync(c => c.FormId == formId && c.Index == index, ct);
+
+            if (def is null) return;
+
+            _db.FormColumnDefs.Remove(def);
+            await _db.SaveChangesAsync(ct);
+        }
+
+        /// <summary>
+        /// Reindex dynamic part of defs and return {old -> new}. startIndex is usually 6.
+        /// </summary>
+        public async Task<Dictionary<int, int>> ReindexColumnDefsAsync(
+            int formId,
+            int startIndex,
+            CancellationToken ct)
+        {
+            var defs = await _db.FormColumnDefs
+                .Where(c => c.FormId == formId && c.Index >= startIndex)
+                .OrderBy(c => c.Index)
+                .ToListAsync(ct);
+
+            var map = new Dictionary<int, int>(defs.Count);
+            var next = startIndex;
+
+            foreach (var d in defs)
+            {
+                map[d.Index] = next;
+                d.Index = next;
+
+                // If this is one of the custom columns, recompute based on new slot
+                if (d.Type == ColumnType.Custom1 ||
+                    d.Type == ColumnType.Custom2 ||
+                    d.Type == ColumnType.Custom3)
+                {
+                    var newType = FormBuilder.TakeColumnType(next);
+                    d.Type = newType;
+                    d.Key = newType.ToString();
+                    //d.Title = string.IsNullOrEmpty(d.Title) ? FormBuilder.TitleColumn(next) : d.Title;
+                }
+
+                next++;
+            }
+
+            await _db.SaveChangesAsync(ct);
+            return map;
+        }
+
+        public async Task ApplyCellIndexMappingAsync(
+            int formId,
+            IReadOnlyDictionary<int, int> map,
+            CancellationToken ct)
+        {
+            if (map is null || map.Count == 0) return;
+
+            // Build CASE expression and IN list with parameters
+            var olds = map.Keys.ToArray();
+            var news = olds.Select(o => map[o]).ToArray();
+
+            var sbCase = new StringBuilder("CASE c.ColIndex ");
+            for (int i = 0; i < olds.Length; i++)
+                sbCase.Append($"WHEN @o{i} THEN @n{i} ");
+            sbCase.Append("ELSE c.ColIndex END");
+
+            var inList = string.Join(",", Enumerable.Range(0, olds.Length).Select(i => $"@o{i}"));
+
+            var sql = $@"
+UPDATE c
+SET ColIndex = {sbCase}
+FROM FormCells AS c
+INNER JOIN FormRows AS r ON r.Id = c.RowId
+WHERE r.FormId = @formId
+  AND c.ColIndex IN ({inList});";
+
+            var parameters = new List<object> { new SqlParameter("@formId", formId) };
+            for (int i = 0; i < olds.Length; i++)
+            {
+                parameters.Add(new SqlParameter($"@o{i}", olds[i]));
+                parameters.Add(new SqlParameter($"@n{i}", news[i]));
+            }
+
+            await _db.Database.ExecuteSqlRawAsync(sql, parameters.ToArray(), ct);
+        }
+
+        public async Task DeleteCellsByColumnIndexAsync(int formId, int index, CancellationToken ct)
+        {
+            // Fast set-based delete with join to rows of the form
+            var sql = @"
+DELETE c
+FROM FormCells AS c
+INNER JOIN FormRows AS r ON r.Id = c.RowId
+WHERE r.FormId = @formId AND c.ColIndex = @index;";
+
+            var p = new[]
+            {
+        new SqlParameter("@formId", formId),
+        new SqlParameter("@index", index),
+    };
+
+            await _db.Database.ExecuteSqlRawAsync(sql, p, ct);
         }
     }
 }

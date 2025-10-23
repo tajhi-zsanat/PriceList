@@ -18,5 +18,22 @@ namespace PriceList.Core.Abstractions.Repositories
 
         Task ShiftCellsAsync(int formId, int insertAt, CancellationToken ct);
         Task InsertCellsForColumnAsync(int formId, int insertAt, CancellationToken ct);
+
+
+        //Delete Section
+        Task RemoveColumnDefByIndexAsync(int formId, int index, CancellationToken ct);
+        /// <summary>
+        /// Reindexes dynamic defs (startIndex inclusive; typically 6) and
+        /// returns a stable mapping { oldIndex -> newIndex }.
+        /// Also updates Type/Key/Title for custom columns.
+        /// </summary>
+        Task<Dictionary<int, int>> ReindexColumnDefsAsync(int formId, int startIndex, CancellationToken ct);
+
+        Task DeleteCellsByColumnIndexAsync(int formId, int index, CancellationToken ct);
+
+        /// <summary>
+        /// Applies a {old -> new} index mapping to all cells of the form in one SQL update.
+        /// </summary>
+        Task ApplyCellIndexMappingAsync(int formId, IReadOnlyDictionary<int, int> map, CancellationToken ct);
     }
 }

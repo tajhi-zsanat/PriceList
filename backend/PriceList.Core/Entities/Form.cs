@@ -50,7 +50,6 @@ namespace PriceList.Core.Entities
         Rowno,
         Image,
         File,
-        Date,
         MultilineText,
         Select,
         Custom1,

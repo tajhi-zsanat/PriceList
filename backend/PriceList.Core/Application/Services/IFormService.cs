@@ -11,5 +11,6 @@ namespace PriceList.Core.Application.Services
     public interface IFormService
     {
         Task<AddColDefResult> AddCustomColDef(string CustomCol, int FormId, CancellationToken ct);
+        Task<RemoveColDefResult> RemoveCustomColDef(int Index, int FormId, CancellationToken ct);
     }
 }

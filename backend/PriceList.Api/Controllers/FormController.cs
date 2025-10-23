@@ -400,14 +400,34 @@ namespace PriceList.Api.Controllers
             }
 
             // If all failed with same error, surface that. Otherwise return 201 with details.
-            if (results.All(r => r.Status == AddColDefStatus.FormNotFound))
+            if (results.All(r => r.Status == MappingColDefStatus.FormNotFound))
                 return NotFound("شناسه فرم نامعتبر می‌باشد.");
-            if (results.All(r => r.Status == AddColDefStatus.MaxColumnsReached))
+            if (results.All(r => r.Status == MappingColDefStatus.MaxColumnsReached))
                 return BadRequest("حداکثر تعداد سرستون‌ها قبلاً ثبت شده است.");
-            if (results.All(r => r.Status == AddColDefStatus.AlreadyExists))
+            if (results.All(r => r.Status == MappingColDefStatus.AlreadyExists))
                 return Conflict("ستون‌های سفارشی موردنظر قبلاً وجود دارند.");
 
             return StatusCode(StatusCodes.Status201Created, results);
+        }
+
+        [HttpDelete("DeleteColDef")]
+        [Consumes("application/json")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> DeleteColDef([FromBody] FormColDefRemove dto, CancellationToken ct = default)
+        {
+            if (dto is null) return BadRequest("بدنه درخواست خالی است.");
+            if (dto.Index < 6) return BadRequest("ستون نامعتبر می‌باشد."); // 0..5 are fixed columns
+
+            var res = await formService.RemoveCustomColDef(dto.FormId, dto.Index, ct);
+
+            return res.Status switch
+            {
+                RemoveColDefStatus.FormNotFound => NotFound("شناسه فرم نامعتبر می‌باشد."),
+                RemoveColDefStatus.NoContent => NoContent(),
+                _ => Problem(statusCode: 500, title: "حذف ستون با خطا مواجه شد.")
+            };
         }
     }
 }
