@@ -5,15 +5,18 @@ import check from "@/assets/img/admin/check_small.png";
 import { toast } from "sonner";
 import { upsertHeaderCell } from "@/lib/api/formGrid";
 
+import { AlertDialogDeleteDefHeader } from "@/components/products/AlertDialogDeleteDefHeader";
 
 export function EditableHeader({
     formId,
     index,
-    current
+    current,
+    onDeleted
 }: {
     formId: number;
     index: number;
     current: string;
+    onDeleted: () => Promise<void>;
 }) {
     const { editingHeader, setEditingHeader, editValue, setEditValue, setcellValuesHeader } = useGridCtx();
 
@@ -31,11 +34,18 @@ export function EditableHeader({
     return (
         <div className="">
             {!isEditing && (
-                <button type="button" onClick={(e) => { e.stopPropagation(); startEdit(); }}
-                    className="absolute top-1 left-1 z-10 opacity-0 cursor-pointer group-hover:opacity-100 transition"
-                    title="ویرایش" aria-label="ویرایش">
-                    <img src={editIcon} alt="" />
-                </button>
+                <>
+                    <button type="button" onClick={(e) => { e.stopPropagation(); startEdit(); }}
+                        className="absolute top-1 left-1 z-10 opacity-0 cursor-pointer group-hover:opacity-100 transition"
+                        title="ویرایش" aria-label="ویرایش">
+                        <img src={editIcon} alt="" />
+                    </button>
+                    <AlertDialogDeleteDefHeader
+                        formId={formId}
+                        index={index}
+                        onDeleted={onDeleted}
+                    />
+                </>
             )}
 
             {isEditing && (

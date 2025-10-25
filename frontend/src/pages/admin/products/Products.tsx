@@ -1,9 +1,8 @@
 // ProductsPage.tsx
 import { useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useGridData } from "./hooks/useGridData";
 import { GridProvider, useGridCtx } from "./ctx/GridContext";
-import { requiredColIndexes } from "@/lib/grid-helpers";
 import { GridTable } from "@/components/admin/GridTable";
 import AddColDefModal from "@/components/products/AddColDefModal";
 
@@ -19,13 +18,13 @@ function ProductsInner() {
     if (!formId) navigate("/admin/form", { replace: true });
   }, [formId, navigate]);
 
-  const idx = useMemo(() => (grid ? requiredColIndexes(grid) : null), [grid]);
+  // const idx = useMemo(() => (grid ? requiredColIndexes(grid) : null), [grid]);
 
   if (!formId) return null;
 
   if (loading) return <div className="p-4">در حال بارگذاری…</div>;
   if (err) return <div className="p-4 text-red-500">خطا: {err}</div>;
-  if (!grid || !idx) return <div className="p-4">در حال بارگذاری...</div>;
+  if (!grid) return <div className="p-4">در حال بارگذاری...</div>;
 
   return (
     <div className="flex-1">
@@ -54,7 +53,7 @@ function ProductsInner() {
         <div className="flex items-center gap-2 p-2">
           <AddColDefModal
             formId={Number(formId)}
-            currentCount={grid.headers.length} 
+            currentCount={grid.headers.length}
             onCreated={refetch}
             trigger={
               <button
@@ -73,7 +72,13 @@ function ProductsInner() {
           </button>
         </div>
       </div>
-      <GridTable grid={grid} formId={formId} cellValues={cellValues} cellValuesHeader={cellValuesHeader} />
+      <GridTable
+        grid={grid}
+        formId={formId}
+        cellValues={cellValues}
+        cellValuesHeader={cellValuesHeader}
+        onDeleted={refetch}
+      />
       <div className="flex flex-col gap-2 border border-[#CFD8DC] border-t-0 rounded-b-[8px] p-3">
         <span className="text-[#636363]">توضیحات</span>
       </div>

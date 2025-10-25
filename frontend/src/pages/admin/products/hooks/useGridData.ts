@@ -38,8 +38,9 @@ export function useGridData(formId: string | null) {
     return () => ctrlRef.current?.abort();
   }, [formId, fetchGrid]);
 
+
   const refetch = useCallback(async () => {
-    setGrid(null);           // optional: shows the loading state
+    setGrid(null);
     await fetchGrid();
   }, [fetchGrid]);
 

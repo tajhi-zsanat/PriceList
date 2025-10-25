@@ -38,7 +38,6 @@ export function useFileUpload(formId: string | null) {
   };
 
   const doUploadPDF = async (id: number) => {
-    debugger;
     if (!formId) return toast.error("شناسه فرم نامشخص است.");
     const f = files[id]; if (!f) return toast.warning("فایلی انتخاب نشده است.");
     try {

@@ -19,8 +19,13 @@ export function EditableCell({
   const save = async (v: string) => {
     setCellValues(p => ({ ...p, [cellId]: v }));
     setEditing(null); setEditValue("");
-    try { await upsertCell({ id: cellId, value: v }); toast.success("ذخیره شد."); }
-    catch { toast.error("ذخیره ناموفق بود."); }
+    try {
+      await upsertCell({ id: cellId, value: v });
+      toast.success("ذخیره شد.");
+    }
+    catch {
+      toast.error("ذخیره ناموفق بود.");
+    }
   };
 
   const isEditing = editing === cellId;

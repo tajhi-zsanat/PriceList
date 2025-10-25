@@ -3,7 +3,7 @@ import type { GridResponse } from "@/types";
 
 // ---------- Types for responses ----------
 interface UploadImageResponse { imageUrl: string }   // <-- match backend casing
-interface UploadPdfResponse   { pdfUrl: string }     // <-- pick one casing and keep it!
+interface UploadPdfResponse { pdfUrl: string }     // <-- pick one casing and keep it!
 
 // ---------- Queries / commands ----------
 export async function getGrid(formId: number | string, signal?: AbortSignal): Promise<GridResponse> {
@@ -27,6 +27,11 @@ export interface AddColDefPayload {
   customColDef: string[];
 }
 
+export interface removeHeaderDefRequest {
+  formId: number;
+  index: number;
+}
+
 export async function upsertCell(payload: UpsertCellRequest): Promise<void> {
   await api.put(`/api/Form/Cell`, payload);
 }
@@ -37,6 +42,15 @@ export async function upsertHeaderCell(payload: UpsertHeaderCellRequest): Promis
 
 export async function RemoveCellMedia(payload: UpsertCellRequest): Promise<void> {
   await api.put(`/api/Form/RemoveMediaCell`, payload);
+}
+
+export async function removeDef(payload: removeHeaderDefRequest): Promise<void> {
+  try {
+    await api.delete(`/api/Form/DeleteColDef`, { data: payload });
+  } catch (err: any) {
+    console.error("Delete failed", err);
+    throw err; // or handle gracefully
+  }
 }
 
 // ---------- Uploads (always return string) ----------

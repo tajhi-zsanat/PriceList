@@ -178,7 +178,7 @@ namespace PriceList.Infrastructure.Repositories.Ef
                     var newType = FormBuilder.TakeColumnType(next);
                     d.Type = newType;
                     d.Key = newType.ToString();
-                    //d.Title = string.IsNullOrEmpty(d.Title) ? FormBuilder.TitleColumn(next) : d.Title;
+                    d.Title = (string.IsNullOrEmpty(d.Title) || d.Title.StartsWith("سرگروه")) ? FormBuilder.TitleColumn(next) : d.Title;
                 }
 
                 next++;

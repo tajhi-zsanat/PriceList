@@ -2,9 +2,10 @@ import type { FormHeader } from "@/types";
 import { EditableHeader } from "./cells/EditableHeader";
 import { keyFor } from "@/lib/helpers";
 
-export function GridHeaderRow({ headers, cellValuesHeader }: {
+export function GridHeaderRow({ headers, cellValuesHeader, onDeleted }: {
   headers: FormHeader[],
-  cellValuesHeader: Record<string, string>
+  cellValuesHeader: Record<string, string>,
+  onDeleted: () => Promise<void>;
 }) {
   return (
     <tr className="h-20">
@@ -24,7 +25,12 @@ export function GridHeaderRow({ headers, cellValuesHeader }: {
             ].join(" ").trim()}>
 
             {isCustom && (
-              <EditableHeader key={`r-${h.index}-i${h.index}`} formId={h.formId} index={h.index} current={current} />
+              <EditableHeader
+                key={`r-${h.index}-i${h.index}`}
+                formId={h.formId} index={h.index}
+                current={current}
+                onDeleted={onDeleted}
+              />
             )}
 
             {!isCustom && (
