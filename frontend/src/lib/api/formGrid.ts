@@ -1,13 +1,21 @@
 import api from "@/lib/api";
-import type { GridResponse } from "@/types";
+import type { FeatureItemDto, GridResponse } from "@/types";
 
 // ---------- Types for responses ----------
 interface UploadImageResponse { imageUrl: string }   // <-- match backend casing
 interface UploadPdfResponse { pdfUrl: string }     // <-- pick one casing and keep it!
 
 // ---------- Queries / commands ----------
-export async function getGrid(formId: number | string, signal?: AbortSignal): Promise<GridResponse> {
-  const { data } = await api.get<GridResponse>(`/api/Form/${formId}/allCells`, { signal });
+export async function getGrid(
+  formId: number | string,
+  page: number,
+  pageSize: number,
+  signal?: AbortSignal
+): Promise<GridResponse> {
+  const { data } = await api.get<GridResponse>(
+    `/api/Form/${formId}/cells`,
+    { params: { page, pageSize }, signal }
+  );
   return data;
 }
 
@@ -30,6 +38,14 @@ export interface AddColDefPayload {
 export interface removeHeaderDefRequest {
   formId: number;
   index: number;
+}
+
+export interface AddFeaturesToRowsRequest {
+  formId: string | number;
+  featureIds: string[];
+  rowIds: number[];
+  displayOrder: number;
+  color?: string;
 }
 
 export async function upsertCell(payload: UpsertCellRequest): Promise<void> {
@@ -83,4 +99,23 @@ export async function uploadPDF(id: number, file: File): Promise<string> {
 export async function AddColDef(payload: AddColDefPayload) {
   // Axios throws on non-2xx automatically
   return api.post(`/api/Form/CreateColDef`, payload);
+}
+
+export async function getFeatureList(
+  formId: number | string,
+  signal?: AbortSignal
+): Promise<FeatureItemDto[]> {
+  const { data } = await api.get<FeatureItemDto[]>(`/api/Feature/by-category`,
+    { params: { formId }, signal }
+  );
+  return data;
+}
+
+
+export async function addFeaturesToRows(
+  payload: AddFeaturesToRowsRequest,
+  signal?: AbortSignal) {
+  return api.post(`/api/Feature/`
+    , payload
+    , { signal });
 }

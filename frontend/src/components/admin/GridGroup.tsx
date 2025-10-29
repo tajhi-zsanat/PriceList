@@ -21,8 +21,8 @@ export function GridGroup({ group, headers, gi, formId, cellValues }: {
         </tr>
       )}
 
-      {(group.rows ?? []).map((row: any, ri: number) => (
-        <GridRow key={`g-${gi}-r-${row.rowId ?? ri}`} row={row} rIndex={ri}
+      {(group.rows ?? []).map((row: any) => (
+        <GridRow key={`g-${gi}-r-${row.rowId}`} row={row}
           headers={headers} formId={formId} cellValues={cellValues} />
       ))}
     </>

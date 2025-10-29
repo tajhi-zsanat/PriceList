@@ -233,6 +233,7 @@ export interface GridCell {
 // a row
 export interface GridRow {
   rowId: number;
+  rowCount: number;
   cells: GridCell[];
 }
 
@@ -248,7 +249,21 @@ export interface GridGroup {
 export interface GridResponse {
   headers: FormHeader[];
   cells: GridGroup[];
+  meta: {
+    page: number;
+    pageSize: number;
+    totalRows: number;
+    totalPages: number;
+    hasPrev: boolean;
+    hasNext: boolean;
+  };
 }
+
+// types.ts (or alongside the API function)
+export type FeatureItemDto = {
+  value: string;
+  label: string; // note the capital L from your backend
+};
 
 // convenience
 // Nice typed key like "12-5"
@@ -272,5 +287,7 @@ export type Ctx = {
   setCellValues: React.Dispatch<React.SetStateAction<ValuesMap>>;
   cellValuesHeader: ValuesMapHeader;
   setcellValuesHeader: React.Dispatch<React.SetStateAction<ValuesMapHeader>>;
+  rowIds: Record<number, number>;
+  setRowIds: React.Dispatch<React.SetStateAction<Record<number, number>>>;
 };
 

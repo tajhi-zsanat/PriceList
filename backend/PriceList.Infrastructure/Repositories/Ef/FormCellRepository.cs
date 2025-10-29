@@ -23,75 +23,111 @@ namespace PriceList.Infrastructure.Repositories.Ef
         {
         }
 
-        public async Task<List<FeatureNameSetGroupDto>> GroupRowsAndCellsByFeatureNamesAsync(
+        public async Task<(List<FeatureNameSetGroupDto> Groups, int TotalRows)>
+         GroupRowsAndCellsByFeatureNamesPagedAsync(
             int formId,
+            int page,
+            int pageSize,
             CancellationToken ct)
         {
-            // Step 1: Load rows with minimal projection
+            var totalRows = await _db.FormRows
+                .Where(r => r.FormId == formId)
+                .CountAsync(ct);
+
+            if (totalRows == 0)
+                return (new List<FeatureNameSetGroupDto>(), 0);
+
+            var skip = (page - 1) * pageSize;
+            var startRowNumber = skip + 1;
+
+            // Compute a deterministic sort key for each row:
+            //   - min positive DisplayOrder across its features
+            //   - rows with no features (or only 0/negative) go to the end (int.MaxValue)
             var rows = await _db.FormRows
                 .Where(r => r.FormId == formId)
                 .Select(r => new
                 {
                     r.Id,
-                    Cells = r.Cells
-                        .Select(c => new CellDto
-                        {
-                            Id = c.Id,
-                            ColIndex = c.ColIndex,
-                            Value = c.Value
-                        })
-                        .ToList(),
+                    SortOrder = r.Features
+                        .Select(fr => (int?)((fr.DisplayOrder.HasValue && fr.DisplayOrder > 0) ? fr.DisplayOrder : null))
+                        .Min() ?? int.MaxValue,
 
-                    // Feature names (distinct)
+                    // pick the color from the feature that defines the SortOrder, else a default
+                    FeatureColor = r.Features
+                        .OrderBy(fr => (fr.DisplayOrder.HasValue && fr.DisplayOrder > 0) ? fr.DisplayOrder : int.MaxValue)
+                        .Select(fr => fr.Color)
+                        .FirstOrDefault() ?? "#206E4E",
+
                     FeatureNames = r.Features
-                        .Select(f => f.Feature.Name)
+                        .Select(fr => fr.Feature.Name)
                         .Distinct()
                         .ToList(),
 
-                    // Feature color — use default if null
-                    FeatureColor = r.Features
-                        .Select(f => f.Color)
-                        .FirstOrDefault() ?? "#206E4E"
+                    Cells = r.Cells
+                        .Select(c => new CellDto { Id = c.Id, ColIndex = c.ColIndex, Value = c.Value })
+                        .ToList()
                 })
+                .OrderBy(r => r.SortOrder)
+                .ThenBy(r => r.Id)
+                .Skip(skip)
+                .Take(pageSize)
                 .AsNoTracking()
                 .ToListAsync(ct);
 
-            if (rows.Count == 0)
-                return new();
+            int currentRowNumber = startRowNumber;
 
-            // Step 2: Group rows by feature name set key
+            // Group but PRESERVE ordering using the carried SortOrder.
             var groups = rows
                 .GroupBy(r => FeatureKeyHelper.BuildKey(r.FeatureNames))
                 .Select(g =>
                 {
-                    var first = g.First(); // representative item of the group
-
-                    var orderedNames = first.FeatureNames
-                        .OrderBy(n => n, StringComparer.Ordinal)
-                        .ToList();
-
-                    var bucketRows = g
+                    // deterministic group props
+                    var orderedRows = g
+                        .OrderBy(x => x.SortOrder)
+                        .ThenBy(x => x.Id)
                         .Select(x => new RowWithCellsDto
                         {
+                            RowCount = currentRowNumber++,
                             RowId = x.Id,
                             Cells = x.Cells.OrderBy(c => c.ColIndex).ToList()
                         })
                         .ToList();
 
-                    return new FeatureNameSetGroupDto
+                    // sort names just for display, not for ordering groups
+                    var orderedNames = g.First().FeatureNames
+                        .OrderBy(n => n, StringComparer.Ordinal)
+                        .ToList();
+
+                    // choose a representative color (first row’s already-sort-aligned color)
+                    var featureColor = g
+                        .OrderBy(x => x.SortOrder).ThenBy(x => x.Id)
+                        .Select(x => x.FeatureColor)
+                        .FirstOrDefault() ?? "#206E4E";
+
+                    // group sort key = min row SortOrder
+                    var groupSort = g.Min(x => x.SortOrder);
+
+                    return new
                     {
-                        FeatureNames = orderedNames,
-                        FeatureColor = first.FeatureColor,
-                        Rows = bucketRows
+                        Group = new FeatureNameSetGroupDto
+                        {
+                            FeatureNames = orderedNames,
+                            FeatureColor = featureColor,
+                            Rows = orderedRows
+                        },
+                        HasNoFeatures = orderedNames.Count == 0,
+                        GroupSort = groupSort,
+                        GroupNameForTie = string.Join(",", orderedNames)
                     };
                 })
-                // Optional ordering
-                .OrderBy(b => b.FeatureNames.Count == 0 ? 1 : 0)
-                .ThenBy(b => string.Join(",", b.FeatureNames), StringComparer.Ordinal)
+                // ✅ FINAL ordering of groups: groups with features first, then by DisplayOrder, then by name
+                .OrderBy(x => x.HasNoFeatures ? 1 : 0)
+                .ThenBy(x => x.GroupSort)
+                .ThenBy(x => x.GroupNameForTie, StringComparer.Ordinal)
+                .Select(x => x.Group)
                 .ToList();
 
-            return groups;
+            return (groups, totalRows);
         }
-
     }
 }

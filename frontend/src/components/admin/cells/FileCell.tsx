@@ -29,7 +29,7 @@ export function FileCell({ cellId, current, formId }:{
   };
 
   return (
-    <div className="">
+    <div className="w-16 h-16 flex items-center justify-center m-auto">
       <input ref={inputRef} type="file" accept="application/pdf" className="hidden" onChange={onChange} />
       {current ? (
         <a className="m-auto" href={resolveImgSrc(current)}>

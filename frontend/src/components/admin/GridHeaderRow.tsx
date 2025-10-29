@@ -7,12 +7,14 @@ export function GridHeaderRow({ headers, cellValuesHeader, onDeleted }: {
   cellValuesHeader: Record<string, string>,
   onDeleted: () => Promise<void>;
 }) {
+
   return (
     <tr className="h-20">
       {headers.map((h) => {
         const isCustom = typeof h.type === "string" && h.type.includes("Custom");
         const isWide48 = h.type === "Image" || h.type === "Select" || h.type === "Price" || isCustom;
         const isWide24 = h.type === "File";
+        const isDes = h.type === "MultilineText";
         const isNarrow14 = h.kind === "Static";
 
         const current = (cellValuesHeader[keyFor(h.formId, h.index)] ?? h.title ?? "") as string;
@@ -21,8 +23,9 @@ export function GridHeaderRow({ headers, cellValuesHeader, onDeleted }: {
             className={[
               isCustom ? "relative hover:bg-[#eceff1] transition group" : "",
               "border border-[#3F414D] border-t-0 px-2 py-3 text-center",
-              isNarrow14 ? "w-14" : "", isWide48 ? "w-48" : "", isWide24 ? "w-24" : ""
-            ].join(" ").trim()}>
+              isNarrow14 ? "w-[8%]" : "", isWide48 ? "w-[15%]" : "", isWide24 ? "w-[10%]" : "", isDes ? "w-[50%]" : ""
+            ].join(" ").trim()}
+          >
 
             {isCustom && (
               <EditableHeader

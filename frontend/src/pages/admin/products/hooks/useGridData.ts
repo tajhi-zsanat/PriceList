@@ -3,10 +3,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { getGrid } from "@/lib/api/formGrid";
 import type { GridResponse } from "@/types";
 
-export function useGridData(formId: string | null) {
+export function useGridData(formId: string | null, initialPageSize = 4) {
   const [grid, setGrid] = useState<GridResponse | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [isFetching, setIsFetching] = useState(false);
+
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(initialPageSize);
+
   const ctrlRef = useRef<AbortController | null>(null);
 
   const fetchGrid = useCallback(async () => {
@@ -21,7 +25,7 @@ export function useGridData(formId: string | null) {
     setIsFetching(true);
 
     try {
-      const data = await getGrid(formId, ctrl.signal);
+      const data = await getGrid(formId, page, pageSize, ctrl.signal);
       setGrid(data);
     } catch (e: any) {
       if (e?.name === "CanceledError" || e?.name === "AbortError") return;
@@ -29,14 +33,14 @@ export function useGridData(formId: string | null) {
     } finally {
       setIsFetching(false);
     }
-  }, [formId]);
+  }, [formId, page, pageSize]);
 
   useEffect(() => {
     if (!formId) return;
     setGrid(null);
     fetchGrid();
     return () => ctrlRef.current?.abort();
-  }, [formId, fetchGrid]);
+  }, [formId, page, pageSize, fetchGrid]);
 
 
   const refetch = useCallback(async () => {
@@ -47,5 +51,25 @@ export function useGridData(formId: string | null) {
   // still keeps your original "derived" loading
   const loading = (!!formId && !err && grid === null) || isFetching;
 
-  return { grid, loading, err, setGrid, refetch };
+  // page navigation
+  const nextPage = useCallback(() => {
+    if (grid?.meta?.hasNext) setPage((p) => p + 1);
+  }, [grid]);
+
+  const prevPage = useCallback(() => {
+    if (page > 1 && grid?.meta?.hasPrev) setPage((p) => p - 1);
+  }, [page, grid]);
+
+  return {
+    grid,
+    loading,
+    err,
+    page,
+    pageSize,
+    setPage,
+    setPageSize,
+    nextPage,
+    prevPage,
+    refetch,
+  };
 }

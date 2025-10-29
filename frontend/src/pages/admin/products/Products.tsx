@@ -4,21 +4,22 @@ import { useEffect } from "react";
 import { useGridData } from "./hooks/useGridData";
 import { GridProvider, useGridCtx } from "./ctx/GridContext";
 import { GridTable } from "@/components/admin/GridTable";
-import AddColDefModal from "@/components/products/AddColDefModal";
+import AddColDefModal from "@/components/admin/products/AddColDefModal";
+import backwardIcon from "@/assets/img/admin/chevron_backward.png"
+import forwardIcon from "@/assets/img/admin/chevron_forward.png"
+import AddFeatureModal from "@/components/admin/products/AddFeatureModal";
 
 function ProductsInner() {
   const location = useLocation();
   const navigate = useNavigate();
   const formId = new URLSearchParams(location.search).get("formId");
 
-  const { grid, loading, err, refetch } = useGridData(formId);
+  const { grid, loading, err, nextPage, prevPage, refetch } = useGridData(formId);
   const { cellValues, cellValuesHeader } = useGridCtx();
 
   useEffect(() => {
     if (!formId) navigate("/admin/form", { replace: true });
   }, [formId, navigate]);
-
-  // const idx = useMemo(() => (grid ? requiredColIndexes(grid) : null), [grid]);
 
   if (!formId) return null;
 
@@ -29,7 +30,12 @@ function ProductsInner() {
   return (
     <div className="flex-1">
       <div className="flex justify-between items-center py-6">
-        <h3>فرم 343</h3>
+        <div className="flex items-center gap-2">
+          <h3>فرم 343</h3>
+          <span className="text-[#636363] text-sm">
+            ({grid.meta.totalRows}محصول)
+          </span>
+        </div>
         <div className="flex items-center gap-2">
           <button type="button" className="button-outline">
             <span>بایگانی کردن فرم</span>
@@ -50,28 +56,61 @@ function ProductsInner() {
       </div>
 
       <div className="border border-[#3F414D] rounded-tl-[4px] rounded-tr-[4px]">
-        <div className="flex items-center gap-2 p-2">
-          <AddColDefModal
-            formId={Number(formId)}
-            currentCount={grid.headers.length}
-            onCreated={refetch}
-            trigger={
-              <button
-                type="button"
-                className="flex items-center gap-2 bg-white text-[#636363] p-2 rounded-lg border border-[#636363] cursor-pointer transition hover:bg-[#f2f5f7]"
-              >
-                <span>افزودن سرگروه</span>
-              </button>
-            }
-          />
-          <button
-            type="button"
-            className="flex items-center gap-2 bg-white text-[#636363] p-2 rounded-lg border border-[#636363] transition hover:bg-[#f2f5f7]"
-          >
-            <span>افزودن ویژگی</span>
-          </button>
+        <div className="flex items-center justify-between p-2">
+          <div className="flex items-center gap-2">
+            <AddColDefModal
+              formId={Number(formId)}
+              currentCount={grid.headers.length}
+              onCreated={refetch}
+              trigger={
+                <button
+                  type="button"
+                  className="flex items-center gap-2 bg-white text-[#636363] p-2 rounded-lg border border-[#636363] cursor-pointer transition hover:bg-[#f2f5f7]"
+                >
+                  <span>افزودن سرگروه</span>
+                </button>
+              }
+            />
+            <AddFeatureModal
+              cells={grid.cells}
+              formId={formId}
+              onCreated={refetch}
+              trigger={
+                <button
+                  type="button"
+                  className="flex items-center gap-2 bg-white text-[#636363] p-2 rounded-lg border border-[#636363] cursor-pointer transition hover:bg-[#f2f5f7]"
+                >
+                  <span>افزودن ویژگی</span>
+                </button>
+              }
+            />
+          </div>
+          <div className="flex justify-center items-center gap-2">
+            <span>
+              صفحه {grid.meta.page} از {grid.meta.totalPages}
+            </span>
+            <button
+              onClick={prevPage}
+              disabled={!grid.meta.hasPrev}
+            >
+              <img
+                className={`${!grid.meta.hasPrev ? 'opacity-50' : "cursor-pointer"}`}
+                src={forwardIcon}
+                alt="بعدی" />
+            </button>
+            <button
+              onClick={nextPage}
+              disabled={!grid.meta.hasNext}
+            >
+              <img
+                className={`${!grid.meta.hasNext ? 'opacity-50' : "cursor-pointer"}`}
+                src={backwardIcon}
+                alt="قبلی" />
+            </button>
+          </div>
         </div>
       </div>
+
       <GridTable
         grid={grid}
         formId={formId}

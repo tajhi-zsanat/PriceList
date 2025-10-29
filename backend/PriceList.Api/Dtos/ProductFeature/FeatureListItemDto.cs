@@ -1,3 +1,3 @@
 ﻿namespace PriceList.Api.Dtos.ProductFeature;
 
-public sealed record FeatureListItemDto(int Id, string? Name);
+public sealed record FeatureListItemDto(int Value, string? Label);

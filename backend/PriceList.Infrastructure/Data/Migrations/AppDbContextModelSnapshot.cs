@@ -621,6 +621,9 @@ namespace PriceList.Infrastructure.Data.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(4)");
 
+                    b.Property<int?>("DisplayOrder")
+                        .HasColumnType("int");
+
                     b.Property<int>("FeatureId")
                         .HasColumnType("int");
 

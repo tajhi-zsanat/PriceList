@@ -17,7 +17,8 @@ namespace PriceList.Core.Entities
         public int FeatureId { get; set; }
         public Feature Feature { get; set; } = default!;
 
-        // Optional: if a row’s feature *also* carries a value (e.g., “Color = #FF0000”)
-        public string? Color { get; set; } // store normalized text; interpret via Feature.ValueKind
+        public int? DisplayOrder { get; set; }
+
+        public string? Color { get; set; }
     }
 }

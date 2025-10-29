@@ -5,7 +5,7 @@ import check from "@/assets/img/admin/check_small.png";
 import { toast } from "sonner";
 import { upsertHeaderCell } from "@/lib/api/formGrid";
 
-import { AlertDialogDeleteDefHeader } from "@/components/products/AlertDialogDeleteDefHeader";
+import { AlertDialogDeleteDefHeader } from "@/components/admin/products/AlertDialogDeleteDefHeader";
 
 export function EditableHeader({
     formId,
@@ -32,7 +32,13 @@ export function EditableHeader({
     const isEditing = editingHeader === headerCellId;
 
     return (
-        <div className="">
+        <div
+            className=""
+            // onClick={(e) => {
+            //     e.stopPropagation();
+            //     startEdit();
+            // }}
+        >
             {!isEditing && (
                 <>
                     <button type="button" onClick={(e) => { e.stopPropagation(); startEdit(); }}

@@ -17,12 +17,13 @@ export function GridProvider({ children }: { children: React.ReactNode }) {
   const [cellValues, setCellValues] = useState<ValuesMap>({});
   const [cellValuesHeader, setcellValuesHeader] = useState<ValuesMapHeader>({});
   const [files, setFiles] = useState<FilesMap>({});
+  const [rowIds, setRowIds] = useState<Record<number, number>>({});
 
   const value = useMemo(() => ({
     editing, setEditing, editingHeader, setEditingHeader
     , editValue, setEditValue, files, setFiles
-    , cellValues, setCellValues, cellValuesHeader, setcellValuesHeader
-  }), [editing, editingHeader, editValue, files, cellValues, cellValuesHeader, setcellValuesHeader]);
+    , cellValues, setCellValues, cellValuesHeader, setcellValuesHeader, rowIds, setRowIds
+  }), [editing, editingHeader, editValue, files, cellValues, cellValuesHeader, setcellValuesHeader, rowIds, setRowIds]);
 
   return <GridContext.Provider value={value}>{children}</GridContext.Provider>;
 }

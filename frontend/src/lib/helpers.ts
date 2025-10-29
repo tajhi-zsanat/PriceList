@@ -32,3 +32,5 @@ export const resolveImgSrc = (v?: string | null) => {
 };
 
 export const isBlobUrl = (v?: string) => !!v && v.startsWith("blob:");
+
+export const uniq = <T,>(arr: T[]) => Array.from(new Set(arr));

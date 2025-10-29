@@ -12,8 +12,10 @@ namespace PriceList.Core.Abstractions.Repositories
 {
     public interface IFormCellRepository : IGenericRepository<FormCell>
     {
-        Task<List<FeatureNameSetGroupDto>> GroupRowsAndCellsByFeatureNamesAsync(
-           int FormId,
-           CancellationToken ct = default);
+        Task<(List<FeatureNameSetGroupDto> Groups, int TotalRows)> GroupRowsAndCellsByFeatureNamesPagedAsync(
+        int formId,
+        int page,
+        int pageSize,
+        CancellationToken ct);
     }
 }

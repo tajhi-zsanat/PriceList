@@ -51,45 +51,46 @@ namespace PriceList.Api.Controllers
             }
         }
 
-        //[HttpGet("{formId:int}/meta")]
-        //public async Task<ActionResult<FormColumnDefDto>> GetMeta(int formId, CancellationToken ct)
-        //{
-        //    var form = await uow.Form.GetByIdAsync(formId, ct);
-        //    if (form == null) return NotFound();
-
-        //    var item = new FormMetaDto(form.Id
-        //        , form.FormTitle
-        //        , form.Rows
-        //        , form.Columns.OrderBy(c => c.Index).Select(FormMappings.ToColumnDto).ToList()
-        //    );
-
-        //    return Ok(item);
-        //}
-
-        [HttpGet("{formId:int}/allCells")]
-        public async Task<ActionResult<List<FormCellsListItemDto>>> GetCells(
-            int formId, CancellationToken ct = default)
+        [HttpGet("{formId:int}/cells")]
+        public async Task<ActionResult<FormCellsPageResponseDto>> GetCells(
+            int formId,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10,
+            CancellationToken ct = default)
         {
             try
             {
-                var list = await uow.FormCells.GroupRowsAndCellsByFeatureNamesAsync(formId, ct);
+                // clamp user input a bit
+                page = Math.Max(1, page);
+                pageSize = Math.Clamp(pageSize, 10, 200);
 
+                // headers are unchanged, always needed for rendering
                 var headers = await uow.FormColumns.ListAsync(
-                    predicate: (fc => fc.FormId == formId),
+                    predicate: fc => fc.FormId == formId,
                     selector: FormMappings.ToFormColumnDefDto,
-                    orderBy: (c => c.OrderBy(c => c.Index)),
+                    orderBy: q => q.OrderBy(c => c.Index),
                     asNoTracking: true,
-                    ct: ct
-                    );
+                    ct: ct);
 
-                var res = new FormCellsResponseDto(headers, list);
+                // paged rows (only the current slice), still grouped by feature name sets
+                var (groups, totalRows) =
+                    await uow.FormCells.GroupRowsAndCellsByFeatureNamesPagedAsync(formId, page, pageSize, ct);
 
-                return Ok(res);
+                var totalPages = (int)Math.Ceiling(totalRows / (double)pageSize);
+                var meta = new PaginationMeta(
+                    Page: page,
+                    PageSize: pageSize,
+                    TotalRows: totalRows,
+                    TotalPages: Math.Max(totalPages, 1),
+                    HasPrev: page > 1,
+                    HasNext: page < totalPages
+                );
+
+                return Ok(new FormCellsPageResponseDto(headers, groups, meta));
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested)
             {
-                // Request was cancelled by the client → return 499 or just end silently
-                HttpContext.Response.StatusCode = 499; // Client Closed Request (non-standard)
+                HttpContext.Response.StatusCode = 499;
                 return new EmptyResult();
             }
         }

@@ -6,7 +6,7 @@ import deleteIcon from "@/assets/img/admin/delete.png";
 import { useGridCtx } from "@/pages/admin/products/ctx/GridContext";
 import { useFileUpload } from "@/pages/admin/products/hooks/useFileUpload";
 
-export function ImageCell({ cellId, current, formId }:{
+export function ImageCell({ cellId, current, formId }: {
   cellId: number; current: string; formId: string | null;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -34,7 +34,7 @@ export function ImageCell({ cellId, current, formId }:{
       {current ? (
         <img
           src={resolveImgSrc(current)}
-          className="w-full h-full object-cover rounded cursor-pointer m-auto"
+          className="w-full h-full object-contain rounded cursor-pointer m-auto"
           alt="" onClick={onPick}
         />
       ) : !files[cellId] && (
