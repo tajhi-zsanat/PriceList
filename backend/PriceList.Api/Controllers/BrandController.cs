@@ -26,23 +26,23 @@ namespace PriceList.Api.Controllers
             [FromQuery] int typeId,         
             CancellationToken ct = default)
         {
-            if (categoryId <= 0) return BadRequest("شناسه دسته بندی نامعتبر است.");
-            if (groupId <= 0) return BadRequest("شناسه گروه کالا نامعتبر است.");
-            if (typeId <= 0) return BadRequest("شناسه نوع کالا نامعتبر است.");
+            //if (categoryId <= 0) return BadRequest("شناسه دسته بندی نامعتبر است.");
+            //if (groupId <= 0) return BadRequest("شناسه گروه کالا نامعتبر است.");
+            //if (typeId <= 0) return BadRequest("شناسه نوع کالا نامعتبر است.");
 
-            var list = await uow.Brands.ListAsync(
-                predicate: b => b.Products.Any(p =>
-                    p.CategoryId == categoryId &&
-                    p.ProductGroupId == groupId &&
-                    p.ProductTypeId == typeId),
-                selector: BrandMappings.ToListItem,
-                orderBy: q => q
-                    .OrderBy(b => b.DisplayOrder == 0) 
-                    .ThenBy(b => b.DisplayOrder)
-                    .ThenBy(b => b.Name),
-                ct: ct);
+            //var list = await uow.Brands.ListAsync(
+            //    predicate: b => b.Products.Any(p =>
+            //        p.CategoryId == categoryId &&
+            //        p.ProductGroupId == groupId &&
+            //        p.ProductTypeId == typeId),
+            //    selector: BrandMappings.ToListItem,
+            //    orderBy: q => q
+            //        .OrderBy(b => b.DisplayOrder == 0) 
+            //        .ThenBy(b => b.DisplayOrder)
+            //        .ThenBy(b => b.Name),
+            //    ct: ct);
 
-            return Ok(list);
+            return Ok();
         }
 
         [HttpGet]

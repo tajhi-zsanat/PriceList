@@ -36,10 +36,10 @@ namespace PriceList.Infrastructure.Configurations
              .OnDelete(DeleteBehavior.Restrict);
 
             // ProductGroup ↔ Product
-            b.HasMany(pg => pg.Products)
-             .WithOne(p => p.ProductGroup)
-             .HasForeignKey(p => p.ProductGroupId)
-             .OnDelete(DeleteBehavior.NoAction);
+            //b.HasMany(pg => pg.Products)
+            // .WithOne(p => p.ProductGroup)
+            // .HasForeignKey(p => p.ProductGroupId)
+            // .OnDelete(DeleteBehavior.NoAction);
 
             // ProductGroup ↔ Product
             b.HasMany(pg => pg.Forms)

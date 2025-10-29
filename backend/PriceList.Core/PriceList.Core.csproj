@@ -7,7 +7,35 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Abstractions\Repositories\IColorFeatureRepository.cs" />
+    <Compile Remove="Abstractions\Repositories\IFeatureRepository.cs" />
+    <Compile Remove="Abstractions\Repositories\IFormRowFeatureRepository.cs" />
+    <Compile Remove="Abstractions\Repositories\IHeaderRepository.cs" />
+    <Compile Remove="Abstractions\Repositories\IProductFeatureRepository.cs" />
+    <Compile Remove="Abstractions\Repositories\IProductImageRepository.cs" />
+    <Compile Remove="Abstractions\Repositories\IProductRepository.cs" />
+    <Compile Remove="Abstractions\Repositories\IProductTypeFeaturesRepository.cs" />
+    <Compile Remove="Abstractions\Services\IProductPdfService.cs" />
+    <Compile Remove="Application\Mappings\ProductHeaderMappings.cs" />
+    <Compile Remove="Application\Mappings\ProductMappings.cs" />
+    <Compile Remove="Entities\ColorFeature.cs" />
+    <Compile Remove="Entities\Feature.cs" />
+    <Compile Remove="Entities\FormCellFeatureValue.cs" />
+    <Compile Remove="Entities\FormRowFeature.cs" />
+    <Compile Remove="Entities\Header.cs" />
+    <Compile Remove="Entities\Product.cs" />
+    <Compile Remove="Entities\ProductFeature.cs" />
+    <Compile Remove="Entities\ProductHeader.cs" />
+    <Compile Remove="Entities\ProductImage.cs" />
+    <Compile Remove="Entities\ProductTypeFeature.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="2.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Abstractions\Services\" />
   </ItemGroup>
 
 </Project>

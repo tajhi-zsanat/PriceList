@@ -13,10 +13,6 @@ namespace PriceList.Api.Mappings
                 p.Id,
                 p.Name,
                 p.ImagePath,
-                p.ProductTypeFeatures
-                    .OrderBy(tf => tf.Feature.Name)
-                    .Select(tf => new ProductFeatureItemDto(tf.Feature.Id, tf.Feature.Name))
-                    .ToList()
             );
     }
 }

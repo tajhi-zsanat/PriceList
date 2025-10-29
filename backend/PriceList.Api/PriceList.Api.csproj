@@ -7,6 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Controllers\FeatureController.cs" />
+    <Compile Remove="Controllers\HeaderController.cs" />
+    <Compile Remove="Controllers\ProductFeatureController.cs" />
+    <Compile Remove="Controllers\ProductsController.cs" />
+    <Compile Remove="Mappings\ProductApiMappers.cs" />
+    <Compile Remove="Mappings\ProductHeaderApiMappers.cs" />
+    <Compile Remove="Mappings\ProductTypeApiMappers.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="Fonts\Vazir-Bold-FD-WOL.ttf" />
     <Content Include="Fonts\Vazir-FD-WOL.ttf" />
     <Content Include="Fonts\Vazir-Light-FD-WOL.ttf" />

@@ -7,6 +7,27 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Configurations\ColorFeatureConfiguration.cs" />
+    <Compile Remove="Configurations\FeatureConfiguration.cs" />
+    <Compile Remove="Configurations\FormCellFeatureValueConfig.cs" />
+    <Compile Remove="Configurations\FormRowFeatureConfiguration.cs" />
+    <Compile Remove="Configurations\HeaderConfiguration.cs" />
+    <Compile Remove="Configurations\ProductConfiguration.cs" />
+    <Compile Remove="Configurations\ProductCustomPropertyConfiguration.cs" />
+    <Compile Remove="Configurations\ProductFeatureConfiguration.cs" />
+    <Compile Remove="Configurations\ProductTypeFeatureConfiguration.cs" />
+    <Compile Remove="Repositories\Ef\ColorFeatureRepository.cs" />
+    <Compile Remove="Repositories\Ef\FeatureRepository.cs" />
+    <Compile Remove="Repositories\Ef\FormRowFeatureRepository.cs" />
+    <Compile Remove="Repositories\Ef\HeaderRepository.cs" />
+    <Compile Remove="Repositories\Ef\ProductFeatureRepository.cs" />
+    <Compile Remove="Repositories\Ef\ProductImageRepository.cs" />
+    <Compile Remove="Repositories\Ef\ProductRepository.cs" />
+    <Compile Remove="Repositories\Ef\ProductTypeFeaturesRepository.cs" />
+    <Compile Remove="Services\ProductPdfService.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.8" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.8">
       <PrivateAssets>all</PrivateAssets>

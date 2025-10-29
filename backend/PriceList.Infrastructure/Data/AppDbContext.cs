@@ -16,27 +16,27 @@ namespace PriceList.Infrastructure.Data
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-        public DbSet<Product> Products => Set<Product>();
-        public DbSet<ProductHeader> ProductHeader => Set<ProductHeader>();
-        public DbSet<Header> Headers => Set<Header>();
+        //public DbSet<Product> Products => Set<Product>();
+        //public DbSet<ProductHeader> ProductHeader => Set<ProductHeader>();
+        //public DbSet<Header> Headers => Set<Header>();
         public DbSet<Category> Categories => Set<Category>();
         public DbSet<ProductGroup> ProductGroups => Set<ProductGroup>();
         public DbSet<ProductType> ProductTypes => Set<ProductType>();
-        public DbSet<Feature> Features => Set<Feature>();
+        //public DbSet<Feature> Features => Set<Feature>();
         public DbSet<Brand> Brands => Set<Brand>();
         public DbSet<Supplier> Suppliers => Set<Supplier>();
-        public DbSet<ProductTypeFeature> ProductTypeFeature => Set<ProductTypeFeature>();
-        public DbSet<ProductFeature> ProductFeatures => Set<ProductFeature>();
+        //public DbSet<ProductTypeFeature> ProductTypeFeature => Set<ProductTypeFeature>();
+        //public DbSet<ProductFeature> ProductFeatures => Set<ProductFeature>();
         public DbSet<Unit> Units => Set<Unit>();
-        public DbSet<ColorFeature> ColorFeatures => Set<ColorFeature>();
+        //public DbSet<ColorFeature> ColorFeatures => Set<ColorFeature>();
         public DbSet<ErrorLog> ErrorLog => Set<ErrorLog>();
 
         public DbSet<Form> Forms => Set<Form>();
         public DbSet<FormColumnDef> FormColumnDefs => Set<FormColumnDef>();
         public DbSet<FormCell> FormCells => Set<FormCell>();
-        public DbSet<FormCellFeatureValue> FormCellFeatureValues => Set<FormCellFeatureValue>();
+        //public DbSet<FormCellFeatureValue> FormCellFeatureValues => Set<FormCellFeatureValue>();
         public DbSet<FormRow> FormRows => Set<FormRow>();
-        public DbSet<FormRowFeature> FormRowFeatures => Set<FormRowFeature>();
+        //public DbSet<FormRowFeature> FormRowFeatures => Set<FormRowFeature>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

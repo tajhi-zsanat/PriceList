@@ -16,11 +16,7 @@ namespace PriceList.Core.Application.Mappings
             p => new ProductTypeListItemDto(
                 p.Id,
                 p.Name,
-                p.ImagePath,
-                p.ProductTypeFeatures
-                    .OrderBy(tf => tf.Feature.Name)
-                    .Select(tf => new ProductFeatureItemDto(tf.Feature.Id, tf.Feature.Name))
-                    .ToList()
+                p.ImagePath
             );
     }
 }

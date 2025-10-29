@@ -15,6 +15,6 @@ namespace PriceList.Core.Entities
         public bool IsMain { get; set; }
 
         public int ProductId { get; set; }
-        public Product Product { get; set; } = null!;
+        //public Product Product { get; set; } = null!;
     }
 }

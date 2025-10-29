@@ -18,9 +18,9 @@ namespace PriceList.Core.Entities
         public int? SupplierValueId { get; set; }
         public int DisplayOrder { get; set; }
 
-        public ICollection<Product> Products { get; set; } = new List<Product>();
+        //public ICollection<Product> Products { get; set; } = new List<Product>();
 
-        public ICollection<ProductTypeFeature> ProductTypeFeatures { get; set; } = new List<ProductTypeFeature>();
+        //public ICollection<ProductTypeFeature> ProductTypeFeatures { get; set; } = new List<ProductTypeFeature>();
 
         public ICollection<Form> Forms { get; set; } = [];
     }

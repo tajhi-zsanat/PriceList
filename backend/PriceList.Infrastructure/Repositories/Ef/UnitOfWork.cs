@@ -14,7 +14,7 @@ namespace PriceList.Infrastructure.Repositories.Ef
         private readonly AppDbContext _db;
         private IDbContextTransaction? _tx;
 
-        public IProductRepository Products { get; }
+        //public IProductRepository Products { get; }
         public ICategoryRepository Categories { get; }
         public IProductGroupRepository ProductGroups { get; }
         public IProductTypeRepository ProductTypes { get; }
@@ -22,20 +22,20 @@ namespace PriceList.Infrastructure.Repositories.Ef
         public IErrorLogRepository Errors { get; }
         public IUnitRepository Units { get; }
         public ISupplierRepository Suppliers { get; }
-        public IFeatureRepository Features { get; }
-        public IColorFeatureRepository ColorFeatures { get; }
-        public IProductTypeFeaturesRepository ProductTypeFeatures { get; }
-        public IProductFeatureRepository ProductFeatures { get; }
-        public IProductImageRepository ProductImageRepository { get; }
-        public IHeaderRepository Header { get; }
+        //public IFeatureRepository Features { get; }
+        //public IColorFeatureRepository ColorFeatures { get; }
+        //public IProductTypeFeaturesRepository ProductTypeFeatures { get; }
+        //public IProductFeatureRepository ProductFeatures { get; }
+        //public IProductImageRepository ProductImageRepository { get; }
+        //public IHeaderRepository Header { get; }
         public IFormRepository Forms { get; }
         public IFormCellRepository FormCells { get; }
         public IFormColumnDefRepository FormColumns { get; }
         public IFormRowRepository FormRows { get; }
-        public IFormRowFeatureRepository FormRowFeatures { get; }
+        //public IFormRowFeatureRepository FormRowFeatures { get; }
         public UnitOfWork(
             AppDbContext db,
-            IProductRepository products,
+            //IProductRepository products,
             ICategoryRepository categories,
             IProductGroupRepository productGroups,
             IProductTypeRepository productTypes,
@@ -43,20 +43,20 @@ namespace PriceList.Infrastructure.Repositories.Ef
             IErrorLogRepository errors,
             IUnitRepository units,
             ISupplierRepository suppliers,
-            IFeatureRepository features,
-            IProductTypeFeaturesRepository productTypeFeatures,
-            IProductFeatureRepository productFeatures,
-            IProductImageRepository productImageRepository,
-            IHeaderRepository productHeader,
-            IColorFeatureRepository colorFeatures,
+            //IFeatureRepository features,
+            //IProductTypeFeaturesRepository productTypeFeatures,
+            //IProductFeatureRepository productFeatures,
+            //IProductImageRepository productImageRepository,
+            //IHeaderRepository productHeader,
+            //IColorFeatureRepository colorFeatures,
             IFormRepository form,
             IFormCellRepository formCells,
             IFormColumnDefRepository formColumns,
-            IFormRowRepository formRows,
-            IFormRowFeatureRepository formRowFeatures)
+            IFormRowRepository formRows
+            /*IFormRowFeatureRepository formRowFeatures*/)
         {
             _db = db;
-            Products = products;
+            //Products = products;
             Categories = categories;
             ProductGroups = productGroups;
             ProductTypes = productTypes;
@@ -64,17 +64,17 @@ namespace PriceList.Infrastructure.Repositories.Ef
             Errors = errors;
             Units = units;
             Suppliers = suppliers;
-            Features = features;
-            ProductTypeFeatures = productTypeFeatures;
-            ProductFeatures = productFeatures;
-            ProductImageRepository = productImageRepository;
-            Header = productHeader;
-            ColorFeatures = colorFeatures;
+            //Features = features;
+            //ProductTypeFeatures = productTypeFeatures;
+            //ProductFeatures = productFeatures;
+            //ProductImageRepository = productImageRepository;
+            //Header = productHeader;
+            //ColorFeatures = colorFeatures;
             Forms = form;
             FormCells = formCells;
             FormColumns = formColumns;
             FormRows = formRows;
-            FormRowFeatures = formRowFeatures;
+            //FormRowFeatures = formRowFeatures;
         }
 
         public Task<int> SaveChangesAsync(CancellationToken ct = default) => _db.SaveChangesAsync(ct);

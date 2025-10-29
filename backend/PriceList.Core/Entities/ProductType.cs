@@ -21,13 +21,13 @@ namespace PriceList.Core.Entities
 
         public ProductGroup ProductGroup { get; set; } = null!;
 
-        public ICollection<Product> Products { get; set; } = new List<Product>();
+        //public ICollection<Product> Products { get; set; } = new List<Product>();
 
         //public ICollection<ProductFeature> ProductFeatures { get; set; } = new List<ProductFeature>();
 
-        public ICollection<ProductTypeFeature> ProductTypeFeatures { get; set; } = new List<ProductTypeFeature>();
+        //public ICollection<ProductTypeFeature> ProductTypeFeatures { get; set; } = new List<ProductTypeFeature>();
 
-        public ICollection<Header> ProductHeaders { get; set; } = new List<Header>();
+        //public ICollection<Header> ProductHeaders { get; set; } = new List<Header>();
 
         //public ICollection<Supplier> Suppliers { get; set; } = new List<Supplier>();
 

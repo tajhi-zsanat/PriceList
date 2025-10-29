@@ -21,7 +21,7 @@ namespace PriceList.Core.Entities
 
         public Category Category { get; set; } = null!;
 
-        public ICollection<Product> Products { get; set; } = new List<Product>();
+        //public ICollection<Product> Products { get; set; } = new List<Product>();
 
         public ICollection<ProductType> ProductTypes { get; set; } = new List<ProductType>();
 

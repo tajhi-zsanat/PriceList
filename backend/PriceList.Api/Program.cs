@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using PriceList.Core.Abstractions.Repositories;
-using PriceList.Core.Abstractions.Services;
 using PriceList.Core.Abstractions.Storage;
 using PriceList.Core.Application.Services;
 using PriceList.Core.Entities;
@@ -83,7 +82,7 @@ FontManager.RegisterFont(File.OpenRead("Fonts/Vazir-Thin-FD-WOL.ttf"));  // Thin
 // ✅ DI: interfaces (Core) → implementations (Infrastructure)
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
+//builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IProductGroupRepository, ProductGroupRepository>();
 builder.Services.AddScoped<IProductTypeRepository, ProductTypeRepository>();
@@ -91,18 +90,18 @@ builder.Services.AddScoped<IBrandRepository, BrandRepository>();
 builder.Services.AddScoped<IErrorLogRepository, ErrorLogRepository>();
 builder.Services.AddScoped<IUnitRepository, UnitRepository>();
 builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
-builder.Services.AddScoped<IFeatureRepository, FeatureRepository>();
-builder.Services.AddScoped<IProductTypeFeaturesRepository, ProductTypeFeaturesRepository>();
-builder.Services.AddScoped<IProductFeatureRepository, ProductFeatureRepository>();
-builder.Services.AddScoped<IProductImageRepository, ProductImageRepository>();
-builder.Services.AddScoped<IHeaderRepository, HeaderRepository>();
-builder.Services.AddScoped<IColorFeatureRepository, ColorFeatureRepository>();
-builder.Services.AddScoped<IProductPdfService, ProductPdfService>();
+//builder.Services.AddScoped<IFeatureRepository, FeatureRepository>();
+//builder.Services.AddScoped<IProductTypeFeaturesRepository, ProductTypeFeaturesRepository>();
+//builder.Services.AddScoped<IProductFeatureRepository, ProductFeatureRepository>();
+//builder.Services.AddScoped<IProductImageRepository, ProductImageRepository>();
+//builder.Services.AddScoped<IHeaderRepository, HeaderRepository>();
+//builder.Services.AddScoped<IColorFeatureRepository, ColorFeatureRepository>();
+//builder.Services.AddScoped<IProductPdfService, ProductPdfService>();
 builder.Services.AddScoped<IFormRepository, FormRepository>();
 builder.Services.AddScoped<IFormCellRepository, FormCellRepository>();
 builder.Services.AddScoped<IFormColumnDefRepository, FormColumnDefRepository>();
 builder.Services.AddScoped<IFormRowRepository, FormRowIRepository>();
-builder.Services.AddScoped<IFormRowFeatureRepository, FormRowFeatureRepository>();
+//builder.Services.AddScoped<IFormRowFeatureRepository, FormRowFeatureRepository>();
 
 //Service
 builder.Services.AddScoped<IFormService, FormService>();

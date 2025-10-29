@@ -21,7 +21,7 @@ namespace PriceList.Core.Entities
         public int ProductGroupId { get; set; }
         public ProductGroup ProductGroup { get; set; } = null!;
 
-        public int ProductTypeId { get; set; }
+        public int? ProductTypeId { get; set; }
         public ProductType ProductType { get; set; } = null!;
 
         public int SupplierId { get; set; }
@@ -31,8 +31,8 @@ namespace PriceList.Core.Entities
         public Brand Brand { get; set; } = null!;
 
         public int Rows { get; set; }
-        public int MinCols { get; set; } = 5;          // always 5
-        public int MaxCols { get; set; } = 8;          // at most 8
+        public int MinCols { get; set; } = 5;          
+        public int MaxCols { get; set; } = 8;         
 
         public ICollection<FormColumnDef> Columns { get; set; } = new List<FormColumnDef>();
     }

@@ -68,127 +68,127 @@ namespace PriceList.Api.Controllers
             return item is null ? NotFound("نوع کالا یافت نشد.") : Ok(item);
         }
 
-        [HttpPut("{id:int}")]
-        [Consumes("multipart/form-data")]
-        [ProducesResponseType(typeof(ProductTypeListItemDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status409Conflict)]
-        public async Task<ActionResult<ProductTypeListItemDto>> UpdateWithFile(
-             int id,
-             [FromForm] TypeUpdateForm form,
-             CancellationToken ct = default)
-        {
-            var entity = await uow.ProductTypes.GetByIdAsync(id, ct);
+        //[HttpPut("{id:int}")]
+        //[Consumes("multipart/form-data")]
+        //[ProducesResponseType(typeof(ProductTypeListItemDto), StatusCodes.Status200OK)]
+        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
+        //[ProducesResponseType(StatusCodes.Status404NotFound)]
+        //[ProducesResponseType(StatusCodes.Status409Conflict)]
+        //public async Task<ActionResult<ProductTypeListItemDto>> UpdateWithFile(
+        //     int id,
+        //     [FromForm] TypeUpdateForm form,
+        //     CancellationToken ct = default)
+        //{
+        //    var entity = await uow.ProductTypes.GetByIdAsync(id, ct);
 
-            if (entity is null)
-                return NotFound("نوع کالا پیدا نشد.");
+        //    if (entity is null)
+        //        return NotFound("نوع کالا پیدا نشد.");
 
-            var name = form.Name?.Trim();
-            if (string.IsNullOrWhiteSpace(name))
-                return BadRequest("نام نوع کالا الزامی است.");
+        //    var name = form.Name?.Trim();
+        //    if (string.IsNullOrWhiteSpace(name))
+        //        return BadRequest("نام نوع کالا الزامی است.");
 
-            if (form.GroupId <= 0)
-                return BadRequest("شناسه گروه کالا نامعتبر است.");
+        //    if (form.GroupId <= 0)
+        //        return BadRequest("شناسه گروه کالا نامعتبر است.");
 
-            var groupExists = await uow.ProductGroups.AnyAsync(g => g.Id == form.GroupId, ct);
-            if (!groupExists)
-                return NotFound("گروه کالا یافت نشد.");
+        //    var groupExists = await uow.ProductGroups.AnyAsync(g => g.Id == form.GroupId, ct);
+        //    if (!groupExists)
+        //        return NotFound("گروه کالا یافت نشد.");
 
-            // Only check duplicates if Category or Name changed
-            var nameChanged = !string.Equals(entity.Name, name, StringComparison.Ordinal);
-            var groupChanged = entity.ProductGroupId != form.GroupId;
+        //    // Only check duplicates if Category or Name changed
+        //    var nameChanged = !string.Equals(entity.Name, name, StringComparison.Ordinal);
+        //    var groupChanged = entity.ProductGroupId != form.GroupId;
 
-            if (nameChanged || groupChanged)
-            {
-                // ✅ Check ProductTypes in the same group (not ProductGroups)
-                var dup = await uow.ProductTypes.AnyAsync(
-                    t => t.Id != id
-                      && t.ProductGroupId == form.GroupId
-                      && t.Name.ToUpper() == name.ToUpperInvariant(),
-                    ct);
+        //    if (nameChanged || groupChanged)
+        //    {
+        //        // ✅ Check ProductTypes in the same group (not ProductGroups)
+        //        var dup = await uow.ProductTypes.AnyAsync(
+        //            t => t.Id != id
+        //              && t.ProductGroupId == form.GroupId
+        //              && t.Name.ToUpper() == name.ToUpperInvariant(),
+        //            ct);
 
-                if (dup) return Conflict("نام نوع کالا تکراری است.");
-            }
+        //        if (dup) return Conflict("نام نوع کالا تکراری است.");
+        //    }
 
-            if (form.Image is not null && form.Image.Length > 0)
-            {
-                // Restrict to image types here (LocalFileStorage also validates)
-                var allowed = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-            { ".jpg", ".jpeg", ".png", ".webp", ".svg" };
-                var ext = Path.GetExtension(form.Image.FileName);
-                if (!allowed.Contains(ext)) return BadRequest("فرمت تصویر نامعتبر است.");
+        //    if (form.Image is not null && form.Image.Length > 0)
+        //    {
+        //        // Restrict to image types here (LocalFileStorage also validates)
+        //        var allowed = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        //    { ".jpg", ".jpeg", ".png", ".webp", ".svg" };
+        //        var ext = Path.GetExtension(form.Image.FileName);
+        //        if (!allowed.Contains(ext)) return BadRequest("فرمت تصویر نامعتبر است.");
 
-                // save new
-                using var s = form.Image.OpenReadStream();
-                var newPath = await storage.SaveAsync(s, form.Image.FileName, "types", ct);
+        //        // save new
+        //        using var s = form.Image.OpenReadStream();
+        //        var newPath = await storage.SaveAsync(s, form.Image.FileName, "types", ct);
 
-                // delete old (best effort)
-                try { await storage.DeleteAsync(entity.ImagePath, ct); } catch { }
+        //        // delete old (best effort)
+        //        try { await storage.DeleteAsync(entity.ImagePath, ct); } catch { }
 
-                entity.ImagePath = newPath;
-            }
+        //        entity.ImagePath = newPath;
+        //    }
 
-            var requestedIds = (form.Features ?? new List<int>()).Distinct().ToArray();
+        //    var requestedIds = (form.Features ?? new List<int>()).Distinct().ToArray();
 
-            // validate requested features exist
-            var validIds = await uow.Features.ListAsync(
-                 predicate: f => requestedIds.Contains(f.Id),
-                 selector: f => f.Id,
-                 asNoTracking: false,
-                 ct: default
-              );
+        //    // validate requested features exist
+        //    var validIds = await uow.Features.ListAsync(
+        //         predicate: f => requestedIds.Contains(f.Id),
+        //         selector: f => f.Id,
+        //         asNoTracking: false,
+        //         ct: default
+        //      );
 
-            if (validIds.Count != requestedIds.Length)
-                return BadRequest("برخی ویژگی‌های انتخاب‌شده معتبر نیستند.");
+        //    if (validIds.Count != requestedIds.Length)
+        //        return BadRequest("برخی ویژگی‌های انتخاب‌شده معتبر نیستند.");
 
-            var currentIds = await uow.ProductTypeFeatures.ListAsync(
-                 predicate: x => x.ProductTypeId == id,
-                 selector: x => x.FeatureId,
-                 asNoTracking: false,
-                 ct: default
-              );
+        //    var currentIds = await uow.ProductTypeFeatures.ListAsync(
+        //         predicate: x => x.ProductTypeId == id,
+        //         selector: x => x.FeatureId,
+        //         asNoTracking: false,
+        //         ct: default
+        //      );
 
-            var toAdd = requestedIds.Except(currentIds).ToArray();
-            var toRemove = currentIds.Except(requestedIds).ToArray();
+        //    var toAdd = requestedIds.Except(currentIds).ToArray();
+        //    var toRemove = currentIds.Except(requestedIds).ToArray();
 
-            if (toAdd.Length > 0)
-            {
-                var newLinks = toAdd.Select(fid => new ProductTypeFeature
-                {
-                    ProductTypeId = id,
-                    FeatureId = fid
-                });
-                await uow.ProductTypeFeatures.AddRangeAsync(newLinks, ct);
-            }
+        //    if (toAdd.Length > 0)
+        //    {
+        //        var newLinks = toAdd.Select(fid => new ProductTypeFeature
+        //        {
+        //            ProductTypeId = id,
+        //            FeatureId = fid
+        //        });
+        //        await uow.ProductTypeFeatures.AddRangeAsync(newLinks, ct);
+        //    }
 
-            if (toRemove.Length > 0)
-            {
-                // remove by query to avoid tracking issues
-                var removeLinks = await uow.ProductTypeFeatures.ListAsync(
-                    predicate: x => x.ProductTypeId == id && toRemove.Contains(x.FeatureId)
-                    );
+        //    if (toRemove.Length > 0)
+        //    {
+        //        // remove by query to avoid tracking issues
+        //        var removeLinks = await uow.ProductTypeFeatures.ListAsync(
+        //            predicate: x => x.ProductTypeId == id && toRemove.Contains(x.FeatureId)
+        //            );
 
-                uow.ProductTypeFeatures.RemoveRange(removeLinks);
-            }
+        //        uow.ProductTypeFeatures.RemoveRange(removeLinks);
+        //    }
 
-            entity.Name = name;
-            entity.DisplayOrder = form.DisplayOrder;
-            entity.ProductGroupId = form.GroupId;
+        //    entity.Name = name;
+        //    entity.DisplayOrder = form.DisplayOrder;
+        //    entity.ProductGroupId = form.GroupId;
 
 
-            try
-            {
-                await uow.SaveChangesAsync(ct);
-            }
-            catch (DbUpdateException ex) when (SqlExceptionHelpers.IsUniqueViolation(ex))
-            {
-                return Conflict("نام گروه کالا تکراری است.");
-            }
+        //    try
+        //    {
+        //        await uow.SaveChangesAsync(ct);
+        //    }
+        //    catch (DbUpdateException ex) when (SqlExceptionHelpers.IsUniqueViolation(ex))
+        //    {
+        //        return Conflict("نام گروه کالا تکراری است.");
+        //    }
 
-            var result = ProductTypeApiMappers.ToListItemDto(entity);
-            return Ok(result);
-        }
+        //    var result = ProductTypeApiMappers.ToListItemDto(entity);
+        //    return Ok(result);
+        //}
 
         [HttpPost]
         [Consumes("multipart/form-data")]
@@ -244,17 +244,17 @@ namespace PriceList.Api.Controllers
 
             var featureIds = (form.Features ?? new List<int>()).Distinct().ToArray();
 
-            if (featureIds.Length > 0)
-            {
-                var existingFeatureIds = await uow.Features.ListAsync(
-                    predicate: f => featureIds.Contains(f.Id),
-                    asNoTracking: false,
-                    ct: default
-                 );
+            //if (featureIds.Length > 0)
+            //{
+            //    var existingFeatureIds = await uow.Features.ListAsync(
+            //        predicate: f => featureIds.Contains(f.Id),
+            //        asNoTracking: false,
+            //        ct: default
+            //     );
 
-                if (existingFeatureIds.Count != featureIds.Length)
-                    return BadRequest("برخی ویژگی‌های انتخاب‌شده معتبر نیستند.");
-            }
+            //    if (existingFeatureIds.Count != featureIds.Length)
+            //        return BadRequest("برخی ویژگی‌های انتخاب‌شده معتبر نیستند.");
+            //}
 
             var entity = new ProductType
             {
@@ -262,10 +262,6 @@ namespace PriceList.Api.Controllers
                 DisplayOrder = form.DisplayOrder,
                 ProductGroupId = form.GroupId,
                 ImagePath = imagePath,
-                ProductTypeFeatures = featureIds.Select(fid => new ProductTypeFeature
-                {
-                    FeatureId = fid
-                }).ToList()
             };
 
             await uow.ProductTypes.AddAsync(entity, ct);
@@ -280,8 +276,9 @@ namespace PriceList.Api.Controllers
                 return Conflict("نام گروه کالا تکراری است.");
             }
 
-            var result = ProductTypeApiMappers.ToListItemDto(entity);
-            return CreatedAtAction(nameof(GetById), new { id = entity.Id }, result);
+            //var result = ProductTypeApiMappers.ToListItemDto(entity);
+            //return CreatedAtAction(nameof(GetById), new { id = entity.Id }, result);
+            return Created();
         }
 
         [HttpDelete("{id:int}")]

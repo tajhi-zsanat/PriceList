@@ -41,9 +41,9 @@ namespace PriceList.Core.Entities
         public int? UnitId { get; set; }
         public Unit? Unit { get; set; } = null!;
 
-        public ICollection<ProductHeader> ProductHeaders { get; set; } = new List<ProductHeader>();
-        public ICollection<Header> Headers { get; set; } = new List<Header>();
+        //public ICollection<ProductHeader> ProductHeaders { get; set; } = new List<ProductHeader>();
+        //public ICollection<Header> Headers { get; set; } = new List<Header>();
 
-        public ICollection<ProductFeature> ProductFeatures { get; set; } = new List<ProductFeature>();
+        //public ICollection<ProductFeature> ProductFeatures { get; set; } = new List<ProductFeature>();
     }
 }

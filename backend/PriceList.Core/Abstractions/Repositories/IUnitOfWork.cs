@@ -8,7 +8,7 @@ namespace PriceList.Core.Abstractions.Repositories
 {
     public interface IUnitOfWork : IAsyncDisposable
     {
-        IProductRepository Products { get; }
+        //IProductRepository Products { get; }
         ICategoryRepository Categories { get; }
         IProductGroupRepository ProductGroups { get; }
         IProductTypeRepository ProductTypes { get; }
@@ -16,17 +16,17 @@ namespace PriceList.Core.Abstractions.Repositories
         IErrorLogRepository Errors { get; }
         IUnitRepository Units { get; }
         ISupplierRepository Suppliers { get; }
-        IFeatureRepository Features { get; }
-        IColorFeatureRepository ColorFeatures { get; }
-        IProductTypeFeaturesRepository ProductTypeFeatures { get; }
-        IProductFeatureRepository ProductFeatures { get; }
-        IProductImageRepository ProductImageRepository { get; }
-        IHeaderRepository Header { get; }
+        //IFeatureRepository Features { get; }
+        //IColorFeatureRepository ColorFeatures { get; }
+        //IProductTypeFeaturesRepository ProductTypeFeatures { get; }
+        //IProductFeatureRepository ProductFeatures { get; }
+        //IProductImageRepository ProductImageRepository { get; }
+        //IHeaderRepository Header { get; }
         IFormRepository Forms { get; }
         IFormCellRepository FormCells { get; }
         IFormColumnDefRepository FormColumns { get; }
         IFormRowRepository FormRows { get; }
-        IFormRowFeatureRepository FormRowFeatures { get; }
+        //IFormRowFeatureRepository FormRowFeatures { get; }
 
         Task<int> SaveChangesAsync(CancellationToken ct = default);
 
