@@ -1,5 +1,5 @@
 import api from "@/lib/api";
-import type { FeatureItemDto, GridResponse } from "@/types";
+import type {  GridResponse, TypeItemDto } from "@/types";
 
 // ---------- Types for responses ----------
 interface UploadImageResponse { imageUrl: string }   // <-- match backend casing
@@ -40,11 +40,11 @@ export interface removeHeaderDefRequest {
   index: number;
 }
 
-export interface AddFeaturesToRowsRequest {
+export interface AddTypeToRowsRequest {
   formId: string | number;
-  featureIds: string[];
+  typeId: string | undefined;
   rowIds: number[];
-  displayOrder: number;
+  displayOrder: string;
   color?: string;
 }
 
@@ -101,21 +101,21 @@ export async function AddColDef(payload: AddColDefPayload) {
   return api.post(`/api/Form/CreateColDef`, payload);
 }
 
-export async function getFeatureList(
+export async function getTypeList(
   formId: number | string,
   signal?: AbortSignal
-): Promise<FeatureItemDto[]> {
-  const { data } = await api.get<FeatureItemDto[]>(`/api/Feature/by-category`,
+): Promise<TypeItemDto[]> {
+  const { data } = await api.get<TypeItemDto[]>(`/api/ProductType/by-form`,
     { params: { formId }, signal }
   );
   return data;
 }
 
 
-export async function addFeaturesToRows(
-  payload: AddFeaturesToRowsRequest,
+export async function addTypeToRows(
+  payload: AddTypeToRowsRequest,
   signal?: AbortSignal) {
-  return api.post(`/api/Feature/`
+  return api.post(`/api/ProductType/assignments`
     , payload
     , { signal });
 }

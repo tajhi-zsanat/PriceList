@@ -126,7 +126,7 @@ export type FormListItemDto = {
   productCount: number;
   categoryName: string;
   groupdName: string;
-  typeName: string;
+  countProduct: string;
   brandName: string;
   updatedDate: string;
 };
@@ -136,7 +136,6 @@ export type FormCreateDto = {
   columns: number;
   categoryId?: number;
   groupId?: number;
-  typeId?: number;
   brandId?: number;
   rows?: number;
   displayOrder?: number;
@@ -230,25 +229,23 @@ export interface GridCell {
   value: string | number | boolean | null;
 }
 
-// a row
 export interface GridRow {
   rowId: number;
   rowCount: number;
   cells: GridCell[];
 }
 
-// server groups rows by featureNames (can be empty [])
-export interface GridGroup {
-  featureNames: string[];
+export interface GridGroupByType {
+  typeName: string;
+  typeId: number;
+  color: string | null;
   rows: GridRow[];
-  featureColor: string | null;
   count: number;
 }
 
-// full payload
 export interface GridResponse {
   headers: FormHeader[];
-  cells: GridGroup[];
+  cells: GridGroupByType[];
   meta: {
     page: number;
     pageSize: number;
@@ -259,10 +256,10 @@ export interface GridResponse {
   };
 }
 
-// types.ts (or alongside the API function)
-export type FeatureItemDto = {
-  value: string;
-  label: string; // note the capital L from your backend
+export type TypeItemDto = {
+  id: string;
+  name: string;
+  imagePath: string;
 };
 
 // convenience

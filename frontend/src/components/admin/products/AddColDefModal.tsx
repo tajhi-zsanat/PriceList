@@ -84,7 +84,7 @@ export default function AddColDefModal({ trigger, formId, currentCount, onCreate
                     title="حداکثر تعداد ستون‌ها (11) تکمیل است"
                     disabled
                 >
-                    <span>افزودن سرگروه</span>
+                    <span>افزودن ویژگی</span>
                 </button>
             ) : (
                 <DialogTrigger asChild>{trigger}</DialogTrigger>
@@ -93,24 +93,24 @@ export default function AddColDefModal({ trigger, formId, currentCount, onCreate
             <DialogContent dir="rtl" className="sm:max-w-lg w-full">
                 <DialogHeader className="text-start gap-4">
                     <DialogTitle className="border-b border-b-[#CFD8DC] pb-4">
-                        افزودن سرگروه جدید
+                        افزودن ویژگی جدید
                     </DialogTitle>
                 </DialogHeader>
 
                 <p className="text-[#636363] text-base">
-                    میتوانید حداکثر سه سرگروه برای فرم خود وارد نمایید.
+                    میتوانید حداکثر سه ویژگی برای فرم خود وارد نمایید.
                 </p>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {customNumbers.map((num, i) => (
                         <div key={num}>
                             <label className="block text-sm text-[#3F414D] mb-1">
-                                عنوان سرگروه {num}
+                                عنوان ویژگی {num}
                             </label>
                             <input
                                 type="text"
                                 value={titles[i] ?? ""}
                                 onChange={(e) => setTitleAt(i, e.target.value)}
-                                placeholder={`مثلاً: سرگروه ${num}`}
+                                placeholder={`مثلاً: ویژگی ${num}`}
                                 className="w-full border border-[#CFD8DC] rounded-lg p-2 outline-none focus:ring-2 focus:ring-[#1F78AE]"
                             />
                         </div>
@@ -124,7 +124,7 @@ export default function AddColDefModal({ trigger, formId, currentCount, onCreate
                             type="submit"
                             disabled={loading}
                         >
-                            {loading ? "در حال ثبت..." : "ثبت سرگروه"}
+                            {loading ? "در حال ثبت..." : "ثبت ویژگی"}
                         </Button>
                         <DialogClose asChild>
                             <Button className="flex-1 border border-[#1F78AE]"

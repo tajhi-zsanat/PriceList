@@ -8,5 +8,5 @@ namespace PriceList.Core.Application.Dtos.Form;
 
 public sealed record FormCellsPageResponseDto(
     IReadOnlyList<FormColumnDefDto> Headers,
-    IReadOnlyList<FeatureNameSetGroupDto> Cells,
+    IReadOnlyList<GridGroupByType> Cells,
     PaginationMeta Meta);

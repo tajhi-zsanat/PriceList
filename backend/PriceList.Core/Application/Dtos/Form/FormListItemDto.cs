@@ -10,7 +10,7 @@ public sealed record FormListItemDto(int Id,
     string? FormTitle,
     string CategoryName,
     string GroupdName,
-    string TypeName,
+    string? CountProduct,
     string BrandName,
     string UpdatedDate
     );

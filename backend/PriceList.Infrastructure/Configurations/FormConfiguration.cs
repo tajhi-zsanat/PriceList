@@ -27,7 +27,7 @@ namespace PriceList.Infrastructure.Configurations
                 .IsRequired();
 
             b.Property(x => x.MaxCols)
-                .HasDefaultValue(8)
+                .HasDefaultValue(15)
                 .IsRequired();
 
             b.HasMany(x => x.Columns)
@@ -36,7 +36,7 @@ namespace PriceList.Infrastructure.Configurations
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Useful index when listing forms
-            b.HasIndex(f => new { f.SupplierId, f.BrandId, f.CategoryId, f.ProductGroupId, f.ProductTypeId })
+            b.HasIndex(f => new { f.SupplierId, f.BrandId, f.CategoryId, f.ProductGroupId })
                 .IsUnique();
         }
     }

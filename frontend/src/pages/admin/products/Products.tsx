@@ -7,7 +7,7 @@ import { GridTable } from "@/components/admin/GridTable";
 import AddColDefModal from "@/components/admin/products/AddColDefModal";
 import backwardIcon from "@/assets/img/admin/chevron_backward.png"
 import forwardIcon from "@/assets/img/admin/chevron_forward.png"
-import AddFeatureModal from "@/components/admin/products/AddFeatureModal";
+import AddFeatureModal from "@/components/admin/products/AddTypeModal";
 
 function ProductsInner() {
   const location = useLocation();
@@ -58,22 +58,22 @@ function ProductsInner() {
       <div className="border border-[#3F414D] rounded-tl-[4px] rounded-tr-[4px]">
         <div className="flex items-center justify-between p-2">
           <div className="flex items-center gap-2">
-            <AddColDefModal
-              formId={Number(formId)}
-              currentCount={grid.headers.length}
+            <AddFeatureModal
+              cells={grid.cells}
+              formId={formId}
               onCreated={refetch}
               trigger={
                 <button
                   type="button"
                   className="flex items-center gap-2 bg-white text-[#636363] p-2 rounded-lg border border-[#636363] cursor-pointer transition hover:bg-[#f2f5f7]"
                 >
-                  <span>افزودن سرگروه</span>
+                  <span>انتخاب دسته بندی</span>
                 </button>
               }
             />
-            <AddFeatureModal
-              cells={grid.cells}
-              formId={formId}
+            <AddColDefModal
+              formId={Number(formId)}
+              currentCount={grid.headers.length}
               onCreated={refetch}
               trigger={
                 <button

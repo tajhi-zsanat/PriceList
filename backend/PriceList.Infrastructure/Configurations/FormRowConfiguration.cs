@@ -18,6 +18,11 @@ namespace PriceList.Infrastructure.Configurations
 
             b.HasIndex(x => new { x.FormId, x.RowIndex })
                 .IsUnique();
+
+            b.HasOne(x => x.Form)
+              .WithMany(f => f.FormRows)
+              .HasForeignKey(x => x.FormId)
+              .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

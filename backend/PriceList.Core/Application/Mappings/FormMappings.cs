@@ -16,7 +16,7 @@ namespace PriceList.Core.Application.Mappings
                 f.FormTitle,
                 f.Category.Name,
                 f.ProductGroup.Name,
-                f.ProductType.Name,
+                f.Rows.ToString(),
                 f.Brand.Name,
                 f.UpdateDate);
 

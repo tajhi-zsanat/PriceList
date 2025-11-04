@@ -18,6 +18,7 @@ namespace PriceList.Infrastructure.Repositories.Ef
         : base(db, logger)
         {
         }
+
         public Task<List<ProductType>> GetByGroupIdAsync(int ProductGroupId, CancellationToken ct = default)
         => Set.Where(pt => pt.ProductGroupId == ProductGroupId)
               .AsNoTracking()
@@ -37,6 +38,24 @@ namespace PriceList.Infrastructure.Repositories.Ef
             return q.AsNoTracking()
                     .Select(selector)
                     .ToListAsync(ct);
+        }
+
+        public async Task AddFormTypeAsync(
+            int formId,
+            int typeId,
+            int displayOrder,
+            string? color,
+            CancellationToken ct = default)
+        {
+            var entity = new FormProductType
+            {
+                FormId = formId,
+                ProductTypeId = typeId,
+                DisplayOrder = displayOrder,
+                Color = color
+            };
+
+            await _db.AddAsync(entity, ct);
         }
     }
 }

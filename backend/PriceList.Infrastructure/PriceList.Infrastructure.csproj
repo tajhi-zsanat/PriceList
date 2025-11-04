@@ -19,6 +19,7 @@
     <Compile Remove="Repositories\Ef\ColorFeatureRepository.cs" />
     <Compile Remove="Repositories\Ef\FeatureRepository.cs" />
     <Compile Remove="Repositories\Ef\FormRowFeatureRepository.cs" />
+    <Compile Remove="Repositories\Ef\FormRowProductTypeRepo.cs" />
     <Compile Remove="Repositories\Ef\HeaderRepository.cs" />
     <Compile Remove="Repositories\Ef\ProductFeatureRepository.cs" />
     <Compile Remove="Repositories\Ef\ProductImageRepository.cs" />

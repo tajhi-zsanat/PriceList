@@ -18,5 +18,11 @@ namespace PriceList.Core.Abstractions.Repositories
             Expression<Func<ProductType, TResult>> selector,
             Func<IQueryable<ProductType>, IOrderedQueryable<ProductType>>? orderBy = null,
             CancellationToken ct = default);
+
+        Task AddFormTypeAsync(int formId,
+            int typeId,
+            int displayOrder,
+            string? color,
+            CancellationToken ct = default);
     }
 }

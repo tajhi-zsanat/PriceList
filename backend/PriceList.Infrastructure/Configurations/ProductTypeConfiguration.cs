@@ -20,12 +20,6 @@ namespace PriceList.Infrastructure.Configurations
                 .IsRequired()
                 .HasMaxLength(200);
 
-            // ProductType ↔ Product
-            //b.HasMany(pt => pt.Products)
-            // .WithOne(p => p.ProductType)
-            // .HasForeignKey(p => p.ProductTypeId)
-            // .OnDelete(DeleteBehavior.NoAction);
-
             b.HasOne(pt => pt.ProductGroup)
              .WithMany(pg => pg.ProductTypes)
              .HasForeignKey(pt => pt.ProductGroupId)

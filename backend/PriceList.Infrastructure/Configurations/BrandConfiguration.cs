@@ -20,11 +20,11 @@ namespace PriceList.Infrastructure.Configurations
                 .IsRequired()
                 .HasMaxLength(200);
 
-            // Brand ↔ Product
-            //b.HasMany(br => br.Products)
-            // .WithOne(p => p.Brand)
-            // .HasForeignKey(p => p.BrandId)
-            // .OnDelete(DeleteBehavior.NoAction);
+            // Brand ↔ Form
+            b.HasMany(br => br.Forms)
+             .WithOne(p => p.Brand)
+             .HasForeignKey(p => p.BrandId)
+             .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

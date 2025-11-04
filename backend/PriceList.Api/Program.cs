@@ -100,11 +100,14 @@ builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
 builder.Services.AddScoped<IFormRepository, FormRepository>();
 builder.Services.AddScoped<IFormCellRepository, FormCellRepository>();
 builder.Services.AddScoped<IFormColumnDefRepository, FormColumnDefRepository>();
-builder.Services.AddScoped<IFormRowRepository, FormRowIRepository>();
+builder.Services.AddScoped<IFormRowRepository, FormRowRepository>();
+builder.Services.AddScoped<IFormProductTypeRepo, FormProductTypeRepo>();
+builder.Services.AddScoped<IFormRowProductTypeRepo, FormRowTypeRepository>();
 //builder.Services.AddScoped<IFormRowFeatureRepository, FormRowFeatureRepository>();
 
 //Service
 builder.Services.AddScoped<IFormService, FormService>();
+builder.Services.AddScoped<ITypeService, TypeService>();
 
 // Decide where files live (under wwwroot/uploads)
 var webRoot = builder.Environment.WebRootPath

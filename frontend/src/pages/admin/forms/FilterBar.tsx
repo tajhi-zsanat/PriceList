@@ -30,7 +30,7 @@ function DropdownButton({ label }: { label: string }) {
 
 export default function FilterBar() {
   return (
-    <div className="p-6 flex items-center gap-4 bg-[#F5F5F5] rounded-[12px] mt-4">
+    <div className="flex items-center gap-4">
       <SolidButton icon={arrangement} label="چیدمان" />
       <SolidButton icon={filter} label="فیلتر" />
       {["دسته بندی", "قیمت", "برند", "وضعیت تایید"].map(lbl => (

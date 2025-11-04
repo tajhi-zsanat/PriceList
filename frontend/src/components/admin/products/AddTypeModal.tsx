@@ -10,32 +10,38 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import type { FeatureItemDto, GridGroup } from "@/types";
+import type { GridGroupByType, TypeItemDto } from "@/types";
 import { useGridCtx } from "@/pages/admin/products/ctx/GridContext";
-import { MultiSelect, type MultiSelectOption } from "@/components/ui/multi-select";
-import { addFeaturesToRows, getFeatureList } from "@/lib/api/formGrid";
+import { addTypeToRows, getTypeList } from "@/lib/api/formGrid";
 import { Label } from "@radix-ui/react-label";
 import { Input } from "@/components/ui/input";
 import { uniq } from "@/lib/helpers";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 
 type Props = {
     trigger: React.ReactNode;
-    cells: GridGroup[];
+    cells: GridGroupByType[];
     formId: number | string;
     onCreated?: () => void;
 };
 
-export default function AddFeatureModal({ trigger, cells, formId, onCreated }: Props) {
+export default function AddTypeModal({ trigger, cells, formId, onCreated }: Props) {
     const { rowIds, setRowIds } = useGridCtx();
 
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [err, setErr] = useState<string | null>(null);
 
-    const [featuresItems, setFeaturesItems] = useState<MultiSelectOption[]>([]);
-    const [selected, setSelected] = useState<string[]>([]);
+    const [typeItems, setTypeItems] = useState<TypeItemDto[]>([]);
+    const [selected, setSelected] = useState<string | undefined>(undefined);
     const [startrow, setStartrow] = useState<number>();
-    const [displayOrder, setDisplayOrder] = useState<number>();
+    const [displayOrder, setDisplayOrder] = useState<string>("");
     const [endrow, setendrow] = useState<number>();
     const [color, setColor] = useState<string>("#206E4E");
 
@@ -52,17 +58,9 @@ export default function AddFeatureModal({ trigger, cells, formId, onCreated }: P
         (async () => {
             try {
                 setLoading(true);
-                const res = await getFeatureList(formId, ctrl.signal);
+                const res = await getTypeList(formId, ctrl.signal);
+                setTypeItems(res);
 
-                // Defensive: handle single object vs array (in case API ever returns one item)
-                const arr: FeatureItemDto[] = Array.isArray(res) ? res : [res];
-
-                const options: MultiSelectOption[] = arr.map(f => ({
-                    value: String(f.value),
-                    label: String(f.label),
-                }));
-
-                setFeaturesItems(options);
             } catch (e: any) {
                 if (e?.name === "CanceledError" || e?.name === "AbortError") return;
                 const msg = e?.response?.data || e?.message || "خطای نامشخص رخ داد";
@@ -75,7 +73,7 @@ export default function AddFeatureModal({ trigger, cells, formId, onCreated }: P
         return () => ctrl.abort();
     }, [formId]);
 
-    const fillRowIds = (groups: GridGroup[]) => {
+    const fillRowIds = (groups: GridGroupByType[]) => {
         const map: Record<number, number> = {};
         groups.forEach(g => {
             g.rows.forEach(r => {
@@ -93,8 +91,8 @@ export default function AddFeatureModal({ trigger, cells, formId, onCreated }: P
         if (startrow == null) { toast.warning("از ردیف وارد نشده است."); return; }
         if (endrow == null) { toast.warning("تا ردیف وارد نشده است."); return; }
         if (endrow < startrow) { toast.warning("تا ردیف باید بزرگتر یا مساوی از ردیف باشد."); return; }
-        if (selected.length === 0) { toast.warning("حداقل یک ویژگی انتخاب کنید."); return; }
-        if (displayOrder === 0 || !displayOrder) { toast.warning("ترتیب نمایش باید بزرگ تر از 0 باشد."); return; }
+        if (!selected) { toast.warning("لطفاً نوع محصول را وارد نمایید."); return; }
+        if (!displayOrder || displayOrder === "") { toast.warning("ترتیب نمایش باید بزرگ تر از 0 باشد."); return; }
 
         setLoading(true);
         try {
@@ -108,17 +106,15 @@ export default function AddFeatureModal({ trigger, cells, formId, onCreated }: P
                 toast.warning("هیچ ردیفی با این محدوده یافت نشد.");
                 return;
             }
-
+       
             const ctrl = new AbortController();
-
-            await addFeaturesToRows({
+            await addTypeToRows({
                 formId,
-                featureIds: selected,
+                typeId: selected,
                 rowIds: selectedRowIDs,
-                displayOrder: displayOrder,
+                displayOrder,
                 color,
-            },
-                ctrl.signal);
+            }, ctrl.signal);
 
             toast.success("ویژگی‌ها با موفقیت ثبت شدند.");
             onCreated?.();
@@ -144,15 +140,25 @@ export default function AddFeatureModal({ trigger, cells, formId, onCreated }: P
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {err && <p className="text-red-500 text-sm">{err}</p>}
 
-                    <div className="space-y-3">
+                    <div className="flex-1 grid gap-2">
                         <Label htmlFor="displayOrder" className="text-bold">انتخاب ویژگی</Label>
-                        <MultiSelect
-                            options={featuresItems}
+                        <Select
+                            dir="rtl"
                             value={selected}
-                            onValueChange={(values: string[]) => setSelected(values)}
-                            placeholder={loading ? "در حال بارگذاری..." : "انتخاب ویژگی..."}
-                            disabled={loading}
-                        />
+                            onValueChange={setSelected}
+                        >
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder="-- انتخاب نوع محصول --" />
+                            </SelectTrigger>
+
+                            <SelectContent>
+                                {typeItems.map(u => (
+                                    <SelectItem key={u.id} value={String(u.id)}>
+                                        {u.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
                     <div className="flex-1 grid gap-2">
                         <Label htmlFor="displayOrder" className="text-bold">ترتیب نمایش</Label>
@@ -163,12 +169,12 @@ export default function AddFeatureModal({ trigger, cells, formId, onCreated }: P
                             value={displayOrder}
                             placeholder="ترتیب نمایش"
                             onChange={(e) => {
-                                const v = e.currentTarget.valueAsNumber;
-                                setDisplayOrder(Number.isNaN(v) ? undefined : v);
+                                const v = e.target.value;
+                                setDisplayOrder(v);
                             }}
                         />
                     </div>
-                    <div>
+                    <div className="flex-1 grid gap-2">
                         <Label className="">محدوده ردیف ها</Label>
                         <div className="flex flex-col md:flex-row justify-between items-center gap-2">
                             <div className="flex-1 grid gap-2">
@@ -235,7 +241,7 @@ export default function AddFeatureModal({ trigger, cells, formId, onCreated }: P
                         <Button
                             className="flex-1 bg-[#1F78AE]"
                             type="submit"
-                            disabled={loading || selected.length === 0}
+                            disabled={loading}
                         >
                             {loading ? "در حال ثبت..." : "ثبت ویژگی"}
                         </Button>

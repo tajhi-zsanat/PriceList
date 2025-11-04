@@ -20,12 +20,12 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
 
   const [openCategory, setOpenCategory] = useState(false);
   const [openGroup, setOpenGroup] = useState(false);
-  const [openType, setOpenType] = useState(false);
+  // const [openType, setOpenType] = useState(false);
   const [openBrand, setOpenBrand] = useState(false);
 
   const [selectedCategory, setSelectedCategory] = useState<Item | null>(null);
   const [selectedGroup, setSelectedGroup] = useState<Item | null>(null);
-  const [selectedType, setSelectedType] = useState<Item | null>(null);
+  // const [selectedType, setSelectedType] = useState<Item | null>(null);
   const [selectedBrand, setSelectedBrand] = useState<Item | null>(null);
 
   const [loading, setLoading] = useState(false);
@@ -40,7 +40,7 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
 
       setSelectedCategory(null);
       setSelectedGroup(null);
-      setSelectedType(null);
+      // setSelectedType(null);
       setSelectedBrand(null);
 
       setError(null);
@@ -48,7 +48,7 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
 
       setOpenCategory(false);
       setOpenGroup(false);
-      setOpenType(false);
+      // setOpenType(false);
       setOpenBrand(false);
     }
   }, [open]);
@@ -62,6 +62,16 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
       return;
     }
 
+    if (!selectedBrand) {
+      setError("برند را انتخاب کنید.");
+      return;
+    }
+
+    if (displayOrder === 0) {
+      setError("ترتیب نمایش را انتخاب کنید.");
+      return;
+    }
+
     const allCols: number = columns + 3;
 
     const payload: FormCreateDto = {
@@ -69,7 +79,7 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
       columns: allCols,
       categoryId: selectedCategory?.id ?? null,
       groupId: selectedGroup?.id,
-      typeId: selectedType?.id,
+      // typeId: selectedType?.id,
       brandId: selectedBrand?.id,
       rows,
       displayOrder,
@@ -112,14 +122,14 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
     return r.data;
   }, [selectedCategory]);
 
-  const loadTypes: LoadItemsFn<Item> = useCallback(async ({ search, signal }) => {
-    if (!selectedGroup) return [];
-    const r = await api.get<Item[]>("/api/ProductType/by-group", {
-      params: { groupId: selectedGroup.id, q: search || undefined },
-      signal,
-    });
-    return r.data;
-  }, [selectedGroup]);
+  // const loadTypes: LoadItemsFn<Item> = useCallback(async ({ search, signal }) => {
+  //   if (!selectedGroup) return [];
+  //   const r = await api.get<Item[]>("/api/ProductType/by-group", {
+  //     params: { groupId: selectedGroup.id, q: search || undefined },
+  //     signal,
+  //   });
+  //   return r.data;
+  // }, [selectedGroup]);
 
   const loadBrands: LoadItemsFn<Item> = useCallback(async ({ search, signal }) => {
     const r = await api.get<Item[]>("/api/Brand", {
@@ -134,7 +144,10 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogTrigger asChild>{trigger}</DialogTrigger>
 
-        <DialogContent dir="rtl" className="sm:max-w-[520px]">
+        <DialogContent
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          dir="rtl"
+          className="">
           <DialogHeader className="text-start gap-4">
             <DialogTitle className="border-b border-b-[#CFD8DC] pb-4">افزودن فرم جدید</DialogTitle>
             <DialogDescription className="leading-6">
@@ -153,7 +166,7 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
               <span className="truncate">
                 {selectedCategory?.name ?? "انتخاب دسته‌بندی"}
                 {selectedGroup ? ` / ${selectedGroup.name}` : ""}
-                {selectedType ? ` / ${selectedType.name}` : ""}
+                {/* {selectedType ? ` / ${selectedType.name}` : ""} */}
               </span>
               <span>انتخاب</span>
             </div>
@@ -234,11 +247,14 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
             </div>
 
             <DialogFooter className="gap-3">
-              <Button className="flex-1 bg-[#1F78AE]" type="submit" disabled={loading}>
+              <Button
+                className="flex-1 cursor-pointer bg-[#1F78AE] hover:bg-[#0a4c75]"
+                type="submit" disabled={loading}>
                 {loading ? "در حال انجام..." : "ایجاد فرم"}
               </Button>
 
-              <DialogClose className="flex-1 border-[#1F78AE] text-[#1F78AE]" asChild>
+              <DialogClose
+                className="flex-1 cursor-pointer border-[#1F78AE] text-[#1F78AE] hover:bg-[#1F78AE] hover:text-white" asChild>
                 <Button type="button" variant="outline">انصراف</Button>
               </DialogClose>
             </DialogFooter>
@@ -258,7 +274,7 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
         onSelect={(cat) => {
           setSelectedCategory(cat);
           setSelectedGroup(null);
-          setSelectedType(null);
+          // setSelectedType(null);
           // open next step
           setOpenGroup(true);
         }}
@@ -268,18 +284,18 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
       <EntityPickerDialog<Item>
         open={openGroup}
         onOpenChange={setOpenGroup}
-        title="انتخاب گروه"
+        title="انتخاب دسته‌بندی"
         loadItems={loadGroups}
         onSelect={(grp) => {
           setSelectedGroup(grp);
-          setSelectedType(null);
+          // setSelectedType(null);
           // open next step
-          setOpenType(true);
+          // setOpenType(true);
         }}
       />
 
       {/* Type Picker (depends on selected group) */}
-      <EntityPickerDialog<Item>
+      {/* <EntityPickerDialog<Item>
         open={openType}
         onOpenChange={setOpenType}
         title="انتخاب نوع"
@@ -288,7 +304,7 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
           setSelectedType(typ);
           // finish chain
         }}
-      />
+      /> */}
 
       {/* Brand Picker (Load All Brands) */}
       <EntityPickerDialog<Item>

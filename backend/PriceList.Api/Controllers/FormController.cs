@@ -24,11 +24,11 @@ namespace PriceList.Api.Controllers
     [Produces("application/json")]
     public class FormController(IUnitOfWork uow, IFileStorage storage, IFormService formService) : ControllerBase
     {
+        #region Get
         [HttpGet]
         [ProducesResponseType(typeof(List<FormListItemDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<List<FormListItemDto>>> GetAll(
-            int formId,
-           CancellationToken ct = default)
+          CancellationToken ct = default)
         {
             try
             {
@@ -74,7 +74,7 @@ namespace PriceList.Api.Controllers
 
                 // paged rows (only the current slice), still grouped by feature name sets
                 var (groups, totalRows) =
-                    await uow.FormCells.GroupRowsAndCellsByFeatureNamesPagedAsync(formId, page, pageSize, ct);
+                    await uow.FormCells.GroupRowsAndCellsByTypePagedAsync(formId, page, pageSize, ct);
 
                 var totalPages = (int)Math.Ceiling(totalRows / (double)pageSize);
                 var meta = new PaginationMeta(
@@ -94,7 +94,9 @@ namespace PriceList.Api.Controllers
                 return new EmptyResult();
             }
         }
+        #endregion
 
+        #region Put
         [HttpPut("cell")]
         [ProducesResponseType(typeof(FormCellDto), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(FormCellDto), StatusCodes.Status200OK)]
@@ -241,6 +243,42 @@ namespace PriceList.Api.Controllers
             return StatusCode(StatusCodes.Status201Created, res);
         }
 
+        [HttpPut("headerCell")]
+        [ProducesResponseType(typeof(FormCellDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(FormCellDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(FormCellDto), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<FormCellDto>> HeaderCell(
+            [FromBody] InsertHeaderCellDto dto,
+            CancellationToken ct = default)
+        {
+            if (dto is null)
+                return BadRequest("بدنه درخواست خالی است.");
+
+            if (dto.FormId == 0 || dto.Index == 0)
+                return BadRequest("شناسه نامعتبر می‌باشد.");
+
+            // Load tracked entity (NO projection)
+            var existing = await uow.FormColumns.FirstOrDefaultAsync<FormColumnDef>(
+                predicate: c => c.FormId == dto.FormId && c.Index == dto.Index,
+                selector: c => c,
+                asNoTracking: false,
+                ct: ct);
+
+            if (existing == null)
+                return BadRequest("سلول یافت نشد.");
+
+            // UPDATE
+            existing.Title = string.IsNullOrWhiteSpace(dto.Value) ? "سر گروه" : dto.Value;
+
+            uow.FormColumns.Update(existing);
+            await uow.SaveChangesAsync(ct);
+
+            return StatusCode(StatusCodes.Status201Created);
+        }
+        #endregion
+
+        #region Post
         [HttpPost]
         [Consumes("application/json")]
         [ProducesResponseType(typeof(FormMetaDto), StatusCodes.Status201Created)]
@@ -259,20 +297,27 @@ namespace PriceList.Api.Controllers
             if (dto.Rows < 1)
                 return BadRequest("تعداد سطر باید حداقل ۱ باشد.");
 
+            var isDisplayOrderExist = await uow.Forms.AnyAsync(
+                predicate: f => f.DisplayOrder == dto.DisplayOrder,
+                ct: ct
+                );
+
+            if (isDisplayOrderExist)
+                return BadRequest("ترتیب نمایش قبلاً ثبت شده است.");
             // Validate ids
-            if (dto.BrandId <= 0 || dto.CategoryId <= 0 || dto.GroupId <= 0 || dto.TypeId <= 0)
-                return BadRequest("شناسه نامعتبر می‌باشد.");
+            //if (dto.BrandId <= 0 || dto.CategoryId <= 0 || dto.GroupId <= 0 || dto.TypeId <= 0)
+            //    return BadRequest("شناسه نامعتبر می‌باشد.");
 
             // Load lookups
             var brand = await uow.Brands.GetByIdAsync(dto.BrandId, ct);
             var category = await uow.Categories.GetByIdAsync(dto.CategoryId, ct);
             var group = await uow.ProductGroups.GetByIdAsync(dto.GroupId, ct);
-            var type = await uow.ProductTypes.GetByIdAsync(dto.TypeId, ct);
+            //var type = await uow.ProductTypes.GetByIdAsync(dto.TypeId, ct);
 
             if (brand is null) return NotFound("برند یافت نشد.");
             if (category is null) return NotFound("دسته‌بندی یافت نشد.");
             if (group is null) return NotFound("گروه محصول یافت نشد.");
-            if (type is null) return NotFound("نوع محصول یافت نشد.");
+            //if (type is null) return NotFound("نوع محصول یافت نشد.");
 
             // Resolve supplier from auth/tenant (TODO)
             const int supplierId = 1;
@@ -282,8 +327,7 @@ namespace PriceList.Api.Controllers
                 f.SupplierId == supplierId &&
                 f.BrandId == dto.BrandId &&
                 f.CategoryId == dto.CategoryId &&
-                f.ProductGroupId == dto.GroupId &&
-                f.ProductTypeId == dto.TypeId, ct);
+                f.ProductGroupId == dto.GroupId);
 
             if (existsCombo)
                 return Conflict("فرم با این ترکیب قبلاً ایجاد شده است.");
@@ -305,7 +349,7 @@ namespace PriceList.Api.Controllers
                 BrandId = dto.BrandId,
                 CategoryId = dto.CategoryId,
                 ProductGroupId = dto.GroupId,
-                ProductTypeId = dto.TypeId,
+                //ProductTypeId = dto.TypeId,
                 FormTitle = string.IsNullOrWhiteSpace(dto.FormTitle) ? null : dto.FormTitle.Trim(),
                 Rows = dto.Rows,
                 DisplayOrder = dto.DisplayOrder
@@ -345,40 +389,6 @@ namespace PriceList.Api.Controllers
             }
         }
 
-        [HttpPut("headerCell")]
-        [ProducesResponseType(typeof(FormCellDto), StatusCodes.Status201Created)]
-        [ProducesResponseType(typeof(FormCellDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(FormCellDto), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<FormCellDto>> HeaderCell(
-            [FromBody] InsertHeaderCellDto dto,
-            CancellationToken ct = default)
-        {
-            if (dto is null)
-                return BadRequest("بدنه درخواست خالی است.");
-
-            if (dto.FormId == 0 || dto.Index == 0)
-                return BadRequest("شناسه نامعتبر می‌باشد.");
-
-            // Load tracked entity (NO projection)
-            var existing = await uow.FormColumns.FirstOrDefaultAsync<FormColumnDef>(
-                predicate: c => c.FormId == dto.FormId && c.Index == dto.Index,
-                selector: c => c,
-                asNoTracking: false,
-                ct: ct);
-
-            if (existing == null)
-                return BadRequest("سلول یافت نشد.");
-
-            // UPDATE
-            existing.Title = string.IsNullOrWhiteSpace(dto.Value) ? "سر گروه" : dto.Value;
-
-            uow.FormColumns.Update(existing);
-            await uow.SaveChangesAsync(ct);
-
-            return StatusCode(StatusCodes.Status201Created);
-        }
-
         [HttpPost("CreateColDef")]
         [Consumes("application/json")]
         [ProducesResponseType(StatusCodes.Status201Created)]
@@ -410,7 +420,9 @@ namespace PriceList.Api.Controllers
 
             return StatusCode(StatusCodes.Status201Created, results);
         }
+        #endregion
 
+        #region Delete
         [HttpDelete("DeleteColDef")]
         [Consumes("application/json")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -419,7 +431,7 @@ namespace PriceList.Api.Controllers
         public async Task<IActionResult> DeleteColDef([FromBody] FormColDefRemove dto, CancellationToken ct = default)
         {
             if (dto is null) return BadRequest("بدنه درخواست خالی است.");
-            if (dto.Index < 6) return BadRequest("ستون نامعتبر می‌باشد."); // 0..5 are fixed columns
+            if (dto.Index < 6) return BadRequest("ستون نامعتبر می‌باشد.");
 
             var res = await formService.RemoveCustomColDef(dto.FormId, dto.Index, ct);
 
@@ -430,5 +442,6 @@ namespace PriceList.Api.Controllers
                 _ => Problem(statusCode: 500, title: "حذف ستون با خطا مواجه شد.")
             };
         }
+        #endregion
     }
 }

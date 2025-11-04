@@ -116,10 +116,12 @@ export function EditableCell({
           />
         ) : isUnit ? (
           <Select
+            dir="rtl"
             value={editValue}
             onValueChange={(val) => { setEditValue(val); save(val); }}
           >
-            <SelectTrigger className="w-full text-center bg-white">
+            <SelectTrigger 
+            className="w-full text-center bg-white">
               <SelectValue placeholder="انتخاب واحد" />
             </SelectTrigger>
             <SelectContent>

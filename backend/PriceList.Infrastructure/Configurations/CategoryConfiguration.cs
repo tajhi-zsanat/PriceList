@@ -25,6 +25,12 @@ namespace PriceList.Infrastructure.Configurations
 
             b.Property(x => x.DisplayOrder)
              .HasDefaultValue(0);
+
+            // Brand ↔ Form
+            b.HasMany(br => br.Forms)
+             .WithOne(p => p.Category)
+             .HasForeignKey(p => p.CategoryId)
+             .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

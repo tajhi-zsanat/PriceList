@@ -1,28 +1,53 @@
-import { Checkbox } from "@/components/ui/checkbox";
 import FarsiText from "@/components/FarsiText";
 import more from "@/assets/img/more icon-mobile.png";
 import type { FormListItemDto } from "@/types";
-import { Link } from "react-router-dom";
 
 export default function Row({ item, index }: { item: FormListItemDto; index: number }) {
-  const categories = `${item.categoryName}/${item.groupdName}/${item.typeName}`;
+  const categories = `${item.categoryName}/${item.groupdName}`;
+
+  const handleRowClick = () => {
+    window.location.href = `/admin/products?formId=${item.id}`;
+  };
 
   return (
-    <Link to={`/admin/products?formId=${item.id}`}
+    <div
+      onClick={handleRowClick}
       className="
-        grid grid-cols-8 items-center text-center
-        rounded-[20px] p-4 cursor-pointer
+        grid grid-cols-13 items-center text-center
+        rounded-[20px] py-5 cursor-pointer
         odd:bg-[#ECEFF1] even:bg-[#F5F5F5]
+        hover:scale-[1.01]
+         transition-scale duration-200 ease-in-out
       "
       role="row"
     >
-      <span><Checkbox /></span>
-      <span>{index + 1}</span>
-      <span className="col-span-2">{categories}</span>
-      <span>{item.brandName}</span>
-      <span><FarsiText>{item.productCount}</FarsiText></span>
-      <span><FarsiText>{item.updatedDate}</FarsiText></span>
-      <span><img className="mx-auto" src={more} alt="بیشتر" /></span>
-    </Link>
+      <span className="col-span-1">
+        <input
+          type="checkbox"
+          className="size-4 align-middle cursor-pointer"
+          onClick={(e) => e.stopPropagation()}
+        />
+      </span>
+
+      <span className="col-span-1">{index + 1}</span>
+      <span className="col-span-3">{categories}</span>
+      <span className="col-span-3">{item.brandName}</span>
+      <span className="col-span-1">
+        <FarsiText>{item.countProduct}</FarsiText>
+      </span>
+      <span className="col-span-3">
+        <FarsiText>{item.updatedDate}</FarsiText>
+      </span>
+
+      <span
+        className="col-span-1"
+        onClick={(e) => {
+          e.stopPropagation();
+          console.log("open more menu or dialog...");
+        }}
+      >
+        <img className="mx-auto cursor-pointer" src={more} alt="بیشتر" />
+      </span>
+    </div>
   );
 }

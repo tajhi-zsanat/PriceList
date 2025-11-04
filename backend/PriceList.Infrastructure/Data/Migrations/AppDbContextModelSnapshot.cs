@@ -219,7 +219,7 @@ namespace PriceList.Infrastructure.Data.Migrations
                     b.Property<int>("MaxCols")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
-                        .HasDefaultValue(8);
+                        .HasDefaultValue(15);
 
                     b.Property<int>("MinCols")
                         .ValueGeneratedOnAdd()
@@ -227,9 +227,6 @@ namespace PriceList.Infrastructure.Data.Migrations
                         .HasDefaultValue(5);
 
                     b.Property<int>("ProductGroupId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ProductTypeId")
                         .HasColumnType("int");
 
                     b.Property<int>("Rows")
@@ -259,11 +256,8 @@ namespace PriceList.Infrastructure.Data.Migrations
 
                     b.HasIndex("ProductGroupId");
 
-                    b.HasIndex("ProductTypeId");
-
-                    b.HasIndex("SupplierId", "BrandId", "CategoryId", "ProductGroupId", "ProductTypeId")
-                        .IsUnique()
-                        .HasFilter("[ProductTypeId] IS NOT NULL");
+                    b.HasIndex("SupplierId", "BrandId", "CategoryId", "ProductGroupId")
+                        .IsUnique();
 
                     b.ToTable("Forms", (string)null);
                 });
@@ -395,6 +389,53 @@ namespace PriceList.Infrastructure.Data.Migrations
                     b.ToTable("FormColumnDefs", (string)null);
                 });
 
+            modelBuilder.Entity("PriceList.Core.Entities.FormProductType", b =>
+                {
+                    b.Property<int>("FormId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProductTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Color")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CreateDate")
+                        .HasMaxLength(10)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<DateTime>("CreateDateAndTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreateTime")
+                        .HasMaxLength(4)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(4)");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UpdateDate")
+                        .HasMaxLength(10)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<DateTime>("UpdateDateAndTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdateTime")
+                        .HasMaxLength(4)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(4)");
+
+                    b.HasKey("FormId", "ProductTypeId");
+
+                    b.HasIndex("ProductTypeId");
+
+                    b.ToTable("FormProductTypes", (string)null);
+                });
+
             modelBuilder.Entity("PriceList.Core.Entities.FormRow", b =>
                 {
                     b.Property<int>("Id")
@@ -441,6 +482,50 @@ namespace PriceList.Infrastructure.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("FormRows", (string)null);
+                });
+
+            modelBuilder.Entity("PriceList.Core.Entities.FormRowProductType", b =>
+                {
+                    b.Property<int>("FormRowId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProductTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreateDate")
+                        .HasMaxLength(10)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<DateTime>("CreateDateAndTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreateTime")
+                        .HasMaxLength(4)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(4)");
+
+                    b.Property<int>("FormId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UpdateDate")
+                        .HasMaxLength(10)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<DateTime>("UpdateDateAndTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdateTime")
+                        .HasMaxLength(4)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(4)");
+
+                    b.HasKey("FormRowId", "ProductTypeId");
+
+                    b.HasIndex("ProductTypeId");
+
+                    b.ToTable("FormRowProductTypes", (string)null);
                 });
 
             modelBuilder.Entity("PriceList.Core.Entities.ProductGroup", b =>
@@ -653,29 +738,25 @@ namespace PriceList.Infrastructure.Data.Migrations
                     b.HasOne("PriceList.Core.Entities.Brand", "Brand")
                         .WithMany("Forms")
                         .HasForeignKey("BrandId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("PriceList.Core.Entities.Category", "Category")
                         .WithMany("Forms")
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("PriceList.Core.Entities.ProductGroup", "ProductGroup")
                         .WithMany("Forms")
                         .HasForeignKey("ProductGroupId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.HasOne("PriceList.Core.Entities.ProductType", "ProductType")
-                        .WithMany("Forms")
-                        .HasForeignKey("ProductTypeId");
 
                     b.HasOne("PriceList.Core.Entities.Supplier", "Supplier")
                         .WithMany("Forms")
                         .HasForeignKey("SupplierId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Brand");
@@ -683,8 +764,6 @@ namespace PriceList.Infrastructure.Data.Migrations
                     b.Navigation("Category");
 
                     b.Navigation("ProductGroup");
-
-                    b.Navigation("ProductType");
 
                     b.Navigation("Supplier");
                 });
@@ -711,15 +790,53 @@ namespace PriceList.Infrastructure.Data.Migrations
                     b.Navigation("Form");
                 });
 
+            modelBuilder.Entity("PriceList.Core.Entities.FormProductType", b =>
+                {
+                    b.HasOne("PriceList.Core.Entities.Form", "Form")
+                        .WithMany("FormProductTypes")
+                        .HasForeignKey("FormId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PriceList.Core.Entities.ProductType", "ProductType")
+                        .WithMany("FormProductTypes")
+                        .HasForeignKey("ProductTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Form");
+
+                    b.Navigation("ProductType");
+                });
+
             modelBuilder.Entity("PriceList.Core.Entities.FormRow", b =>
                 {
                     b.HasOne("PriceList.Core.Entities.Form", "Form")
-                        .WithMany()
+                        .WithMany("FormRows")
                         .HasForeignKey("FormId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Form");
+                });
+
+            modelBuilder.Entity("PriceList.Core.Entities.FormRowProductType", b =>
+                {
+                    b.HasOne("PriceList.Core.Entities.FormRow", "FormRow")
+                        .WithMany("RowProductTypes")
+                        .HasForeignKey("FormRowId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PriceList.Core.Entities.ProductType", "ProductType")
+                        .WithMany("RowProductTypes")
+                        .HasForeignKey("ProductTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("FormRow");
+
+                    b.Navigation("ProductType");
                 });
 
             modelBuilder.Entity("PriceList.Core.Entities.ProductGroup", b =>
@@ -757,11 +874,17 @@ namespace PriceList.Infrastructure.Data.Migrations
             modelBuilder.Entity("PriceList.Core.Entities.Form", b =>
                 {
                     b.Navigation("Columns");
+
+                    b.Navigation("FormProductTypes");
+
+                    b.Navigation("FormRows");
                 });
 
             modelBuilder.Entity("PriceList.Core.Entities.FormRow", b =>
                 {
                     b.Navigation("Cells");
+
+                    b.Navigation("RowProductTypes");
                 });
 
             modelBuilder.Entity("PriceList.Core.Entities.ProductGroup", b =>
@@ -773,7 +896,9 @@ namespace PriceList.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("PriceList.Core.Entities.ProductType", b =>
                 {
-                    b.Navigation("Forms");
+                    b.Navigation("FormProductTypes");
+
+                    b.Navigation("RowProductTypes");
                 });
 
             modelBuilder.Entity("PriceList.Core.Entities.Supplier", b =>

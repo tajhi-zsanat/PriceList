@@ -4,6 +4,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import type { BaseItem, EntityPickerDialogProps } from "@/types";
 import { DialogDescription } from "@radix-ui/react-dialog";
+import beforeIcon from "@/assets/img/admin/navigate_before.png";
+// import loadingIcon from "@/assets/img/loading.gif";
+
 
 export default function EntityPickerDialog<TItem extends BaseItem>({
     open,
@@ -22,6 +25,7 @@ export default function EntityPickerDialog<TItem extends BaseItem>({
     // simple debounce
     const [debouncedQ, setDebouncedQ] = useState(q);
     useEffect(() => {
+
         const id = setTimeout(() => setDebouncedQ(q), 300);
         return () => clearTimeout(id);
     }, [q]);
@@ -34,7 +38,6 @@ export default function EntityPickerDialog<TItem extends BaseItem>({
 
         setLoading(true);
         setError(null);
-
         loadItems({ search: debouncedQ, signal: controller.signal })
             .then((data) => mounted && setItems(data))
             .catch((e) => {
@@ -42,7 +45,10 @@ export default function EntityPickerDialog<TItem extends BaseItem>({
                 if (e?.name === "AbortError" || e?.name === "CanceledError") return;
                 setError(e?.response?.data ?? e?.message ?? "خطایی رخ داد");
             })
-            .finally(() => mounted && setLoading(false));
+            .finally(() => {
+                mounted
+                    && setLoading(false)
+            });
 
         return () => {
             mounted = false;
@@ -57,7 +63,7 @@ export default function EntityPickerDialog<TItem extends BaseItem>({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent dir="rtl" className="sm:max-w-[520px]">
+            <DialogContent dir="rtl" className="">
                 <DialogHeader className="text-start">
                     <DialogTitle className="border-b border-b-[#CFD8DC] pb-4">{title}</DialogTitle>
                     <DialogDescription className="text-sm text-muted-foreground mt-1">
@@ -74,10 +80,12 @@ export default function EntityPickerDialog<TItem extends BaseItem>({
                     />
                 </div>
 
-                {loading && <div className="py-2 text-sm text-muted-foreground">در حال بارگذاری…</div>}
+                {/* {loading && <div className="py-2 text-sm text-muted-foreground">
+                    <img src={loadingIcon} alt="" aria-hidden="true" />
+                </div>} */}
                 {error && <div className="py-2 text-sm text-red-600">{error}</div>}
 
-                <div className="flex flex-col max-h-[50vh] overflow-auto">
+                <div className="flex flex-col h-64 max-h-64 overflow-auto">
                     {items.map((item) => (
                         <button
                             type="button"
@@ -89,6 +97,7 @@ export default function EntityPickerDialog<TItem extends BaseItem>({
                             }}
                         >
                             {renderRow ? renderRow(item) : <span>{item.name}</span>}
+                            <img src={beforeIcon} alt="" aria-hidden="true" />
                         </button>
                     ))}
                     {!loading && !error && items.length === 0 && (

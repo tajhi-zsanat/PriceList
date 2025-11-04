@@ -29,4 +29,19 @@ namespace PriceList.Core.Enums
     }
 
     public sealed record RemoveColDefResult(RemoveColDefStatus Status);
+
+    public enum TypeStatus
+    {
+        Initial,
+        FormNotFound,
+        MaxColumnsReached,
+        AlreadyExists,
+        ColumnNotFound,
+        InvalidColumn,
+        NoContent,
+        DisplayOrderConflict,
+        AlreadyAssigned
+    }
+
+    public sealed record AddTypeToFormResult(TypeStatus Status, int? NewColumnIndex = null);
 }

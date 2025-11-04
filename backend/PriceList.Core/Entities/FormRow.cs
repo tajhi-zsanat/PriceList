@@ -17,6 +17,8 @@ namespace PriceList.Core.Entities
         public int RowIndex { get; set; } // 0-based, stable logical row id within a form
 
         public ICollection<FormCell> Cells { get; set; } = new List<FormCell>();
+
+        public ICollection<FormRowProductType> RowProductTypes { get; set; } = new List<FormRowProductType>();
         //public ICollection<FormRowFeature> Features { get; set; } = new List<FormRowFeature>();
     }
 }
