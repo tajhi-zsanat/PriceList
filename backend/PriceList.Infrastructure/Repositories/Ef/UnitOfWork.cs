@@ -32,8 +32,8 @@ namespace PriceList.Infrastructure.Repositories.Ef
         public IFormCellRepository FormCells { get; }
         public IFormColumnDefRepository FormColumns { get; }
         public IFormRowRepository FormRows { get; }
-        public IFormRowProductTypeRepo FormRowProductTypes { get; }
-        public IFormProductTypeRepo FormTypes { get; }
+        public IFormRowProductGroupRepo FormRowProductGroups { get; }
+        public IFormProductGroupRepo FormGroups { get; }
         //public IFormRowFeatureRepository FormRowFeatures { get; }
         public UnitOfWork(
             AppDbContext db,
@@ -55,8 +55,8 @@ namespace PriceList.Infrastructure.Repositories.Ef
             IFormCellRepository formCells,
             IFormColumnDefRepository formColumns,
             IFormRowRepository formRows,
-            IFormRowProductTypeRepo formRowProductTypes,
-            IFormProductTypeRepo formTypes
+            IFormRowProductGroupRepo formRowProductTypes,
+            IFormProductGroupRepo formTypes
             /*IFormRowFeatureRepository formRowFeatures*/)
         {
             _db = db;
@@ -78,8 +78,8 @@ namespace PriceList.Infrastructure.Repositories.Ef
             FormCells = formCells;
             FormColumns = formColumns;
             FormRows = formRows;
-            FormRowProductTypes = formRowProductTypes;
-            FormTypes = formTypes;
+            FormRowProductGroups = formRowProductTypes;
+            FormGroups = formTypes;
             //FormRowFeatures = formRowFeatures;
         }
 

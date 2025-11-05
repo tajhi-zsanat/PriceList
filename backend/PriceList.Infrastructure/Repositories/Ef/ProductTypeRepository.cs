@@ -47,10 +47,10 @@ namespace PriceList.Infrastructure.Repositories.Ef
             string? color,
             CancellationToken ct = default)
         {
-            var entity = new FormProductType
+            var entity = new FormProductGroup
             {
                 FormId = formId,
-                ProductTypeId = typeId,
+                ProductGroupId = typeId,
                 DisplayOrder = displayOrder,
                 Color = color
             };

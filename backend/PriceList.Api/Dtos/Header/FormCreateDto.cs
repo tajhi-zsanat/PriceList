@@ -6,8 +6,6 @@ namespace PriceList.Api.Dtos.Header
     {
         public int BrandId { get; set; }
         public int CategoryId { get; set; }
-        public int GroupId { get; set; }
-        //public int TypeId { get; set; }
 
         public string? FormTitle { get; set; }
         public int Rows { get; set; } = 0;

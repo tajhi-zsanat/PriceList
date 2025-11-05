@@ -85,30 +85,30 @@ namespace PriceList.Infrastructure.Repositories.Ef
                 );
 
             // --- 4) Load all product types configured for this form (ordered)
-            var formTypes = await _db.FormProductTypes
+            var formTypes = await _db.FormProductGroups
                 .AsNoTracking()
                 .Where(ft => ft.FormId == formId)
                 .OrderBy(ft => ft.DisplayOrder)
                 .Select(ft => new
                 {
-                    ft.ProductTypeId,
-                    TypeName = ft.ProductType.Name,
+                    ft.ProductGroupId,
+                    TypeName = ft.ProductGroup.Name,
                     ft.Color
                 })
                 .ToListAsync(ct);
 
-            var typeIdsForForm = formTypes.Select(t => t.ProductTypeId).ToHashSet();
+            var typeIdsForForm = formTypes.Select(t => t.ProductGroupId).ToHashSet();
 
             // --- 5) Load which page rows have which types (batched)
-            var pageRowTypes = await _db.FormRowProductTypes
+            var pageRowTypes = await _db.FormRowProductGroups
                 .AsNoTracking()
                 .Where(frt => frt.FormId == formId && pageRowIds.Contains(frt.FormRowId))
-                .Select(frt => new { frt.FormRowId, frt.ProductTypeId })
+                .Select(frt => new { frt.FormRowId, frt.ProductGroupId })
                 .ToListAsync(ct);
 
             // Map: typeId -> HashSet<rowId> (only for rows in this page)
             var rowsByType = pageRowTypes
-                .GroupBy(x => x.ProductTypeId)
+                .GroupBy(x => x.ProductGroupId)
                 .ToDictionary(
                     g => g.Key,
                     g => g.Select(x => x.FormRowId).ToHashSet()
@@ -123,7 +123,7 @@ namespace PriceList.Infrastructure.Repositories.Ef
             // 6a) For each configured type on the form (keep order by DisplayOrder)
             foreach (var t in formTypes)
             {
-                if (!rowsByType.TryGetValue(t.ProductTypeId, out var rowSet) || rowSet.Count == 0)
+                if (!rowsByType.TryGetValue(t.ProductGroupId, out var rowSet) || rowSet.Count == 0)
                     continue; // No rows of this type in the current page
 
                 var rows = pageRowIds
@@ -141,7 +141,7 @@ namespace PriceList.Infrastructure.Repositories.Ef
                     groups.Add(new GridGroupByType
                     {
                         TypeName = t.TypeName,
-                        typeId = t.ProductTypeId,
+                        typeId = t.ProductGroupId,
                         Color = t.Color,
                         Rows = rows
                     });
@@ -166,7 +166,7 @@ namespace PriceList.Infrastructure.Repositories.Ef
 
                 groups.Add(new GridGroupByType
                 {
-                    TypeName = "بدون نوع محصول",
+                    TypeName = "بدون دسته‌بندی",
                     typeId = -1,
                     Color = "#1d6646",
                     Rows = rows

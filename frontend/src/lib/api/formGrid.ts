@@ -1,5 +1,5 @@
 import api from "@/lib/api";
-import type {  GridResponse, TypeItemDto } from "@/types";
+import type {  GridResponse, GroupItemDto } from "@/types";
 
 // ---------- Types for responses ----------
 interface UploadImageResponse { imageUrl: string }   // <-- match backend casing
@@ -42,7 +42,7 @@ export interface removeHeaderDefRequest {
 
 export interface AddTypeToRowsRequest {
   formId: string | number;
-  typeId: string | undefined;
+  groupId: string | undefined;
   rowIds: number[];
   displayOrder: string;
   color?: string;
@@ -101,11 +101,11 @@ export async function AddColDef(payload: AddColDefPayload) {
   return api.post(`/api/Form/CreateColDef`, payload);
 }
 
-export async function getTypeList(
+export async function getGroupList(
   formId: number | string,
   signal?: AbortSignal
-): Promise<TypeItemDto[]> {
-  const { data } = await api.get<TypeItemDto[]>(`/api/ProductType/by-form`,
+): Promise<GroupItemDto[]> {
+  const { data } = await api.get<GroupItemDto[]>(`/api/ProductGroup/by-form`,
     { params: { formId }, signal }
   );
   return data;
@@ -115,7 +115,7 @@ export async function getTypeList(
 export async function addTypeToRows(
   payload: AddTypeToRowsRequest,
   signal?: AbortSignal) {
-  return api.post(`/api/ProductType/assignments`
+  return api.post(`/api/ProductGroup/assignments`
     , payload
     , { signal });
 }

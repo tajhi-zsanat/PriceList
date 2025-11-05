@@ -19,12 +19,10 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
   const [displayOrder, setDisplayOrder] = useState<number>(0);
 
   const [openCategory, setOpenCategory] = useState(false);
-  const [openGroup, setOpenGroup] = useState(false);
   // const [openType, setOpenType] = useState(false);
   const [openBrand, setOpenBrand] = useState(false);
 
   const [selectedCategory, setSelectedCategory] = useState<Item | null>(null);
-  const [selectedGroup, setSelectedGroup] = useState<Item | null>(null);
   // const [selectedType, setSelectedType] = useState<Item | null>(null);
   const [selectedBrand, setSelectedBrand] = useState<Item | null>(null);
 
@@ -39,7 +37,6 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
       setDisplayOrder(0);
 
       setSelectedCategory(null);
-      setSelectedGroup(null);
       // setSelectedType(null);
       setSelectedBrand(null);
 
@@ -47,7 +44,6 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
       setLoading(false);
 
       setOpenCategory(false);
-      setOpenGroup(false);
       // setOpenType(false);
       setOpenBrand(false);
     }
@@ -78,8 +74,6 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
       formTitle: title.trim(),
       columns: allCols,
       categoryId: selectedCategory?.id ?? null,
-      groupId: selectedGroup?.id,
-      // typeId: selectedType?.id,
       brandId: selectedBrand?.id,
       rows,
       displayOrder,
@@ -112,15 +106,6 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
     });
     return r.data;
   }, []);
-
-  const loadGroups: LoadItemsFn<Item> = useCallback(async ({ search, signal }) => {
-    if (!selectedCategory) return [];
-    const r = await api.get<Item[]>("/api/ProductGroup/by-category", {
-      params: { categoryId: selectedCategory.id, q: search || undefined },
-      signal,
-    });
-    return r.data;
-  }, [selectedCategory]);
 
   // const loadTypes: LoadItemsFn<Item> = useCallback(async ({ search, signal }) => {
   //   if (!selectedGroup) return [];
@@ -165,7 +150,6 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
             >
               <span className="truncate">
                 {selectedCategory?.name ?? "انتخاب دسته‌بندی"}
-                {selectedGroup ? ` / ${selectedGroup.name}` : ""}
                 {/* {selectedType ? ` / ${selectedType.name}` : ""} */}
               </span>
               <span>انتخاب</span>
@@ -273,26 +257,11 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
         loadItems={loadCategories}
         onSelect={(cat) => {
           setSelectedCategory(cat);
-          setSelectedGroup(null);
           // setSelectedType(null);
           // open next step
-          setOpenGroup(true);
         }}
       />
 
-      {/* Group Picker (depends on selected category) */}
-      <EntityPickerDialog<Item>
-        open={openGroup}
-        onOpenChange={setOpenGroup}
-        title="انتخاب دسته‌بندی"
-        loadItems={loadGroups}
-        onSelect={(grp) => {
-          setSelectedGroup(grp);
-          // setSelectedType(null);
-          // open next step
-          // setOpenType(true);
-        }}
-      />
 
       {/* Type Picker (depends on selected group) */}
       {/* <EntityPickerDialog<Item>

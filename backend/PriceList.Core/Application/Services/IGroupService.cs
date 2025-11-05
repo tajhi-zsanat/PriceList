@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace PriceList.Core.Application.Services
 {
-    public interface ITypeService
+    public interface IGroupService
     {
-        Task<AddTypeToFormResult> AssignTypeToForm(int formId,
-            int typeId,
+        Task<AddGroupToFormResult> AssignGroupToForm(int formId,
+            int groupId,
             IReadOnlyList<int> rowIds,
             int displayOrder,
             string? color,

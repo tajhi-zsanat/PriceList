@@ -1,9 +1,9 @@
 // components/GridGroup.tsx
-import type { FormHeader, GridGroupByType } from "@/types";
+import type { FormHeader, GridGroup } from "@/types";
 import { GridRow } from "./GridRow";
 
 export function GridGroup({ group, headers, gi, formId, cellValues }: {
-  group: GridGroupByType; headers: FormHeader[]; gi: number; formId: string | null; cellValues: Record<number, string>;
+  group: GridGroup; headers: FormHeader[]; gi: number; formId: string | null; cellValues: Record<number, string>;
 }) {
   const totalCols = headers.length;
   return (

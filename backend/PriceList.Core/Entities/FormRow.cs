@@ -18,7 +18,7 @@ namespace PriceList.Core.Entities
 
         public ICollection<FormCell> Cells { get; set; } = new List<FormCell>();
 
-        public ICollection<FormRowProductType> RowProductTypes { get; set; } = new List<FormRowProductType>();
+        public ICollection<FormRowProductGroup> RowProductGroups { get; set; } = [];
         //public ICollection<FormRowFeature> Features { get; set; } = new List<FormRowFeature>();
     }
 }

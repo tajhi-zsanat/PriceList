@@ -26,8 +26,8 @@ namespace PriceList.Core.Abstractions.Repositories
         IFormCellRepository FormCells { get; }
         IFormColumnDefRepository FormColumns { get; }
         IFormRowRepository FormRows { get; }
-        IFormRowProductTypeRepo FormRowProductTypes { get; }
-        IFormProductTypeRepo FormTypes { get; }
+        IFormRowProductGroupRepo FormRowProductGroups { get; }
+        IFormProductGroupRepo FormGroups { get; }
         //IFormRowFeatureRepository FormRowFeatures { get; }
 
         Task<int> SaveChangesAsync(CancellationToken ct = default);

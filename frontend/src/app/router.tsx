@@ -26,7 +26,7 @@ const router = createBrowserRouter([
   {
     element: <PublicLayout />,
     children: [
-      { index: true, element: Load(<Category />) }, // instead of path: "/"
+      { index: true, element: Load(<Category />) },
       { path: "/Category/:categoryId/groups", element: Load(<ProductGroups />) },
       { path: "/Category/:categoryId/groups/:groupId/types", element: Load(<ProductTypes />) },
       { path: "/Category/:categoryId/groups/:groupId/types/:typeId/brands", element: Load(<Brands />) },

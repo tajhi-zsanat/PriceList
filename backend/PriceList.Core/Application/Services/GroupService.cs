@@ -9,46 +9,46 @@ using System.Threading.Tasks;
 
 namespace PriceList.Core.Application.Services
 {
-    public sealed class TypeService(IUnitOfWork uow) : ITypeService
+    public sealed class GroupService(IUnitOfWork uow) : IGroupService
     {
-        public async Task<AddTypeToFormResult> AssignTypeToForm(
+        public async Task<AddGroupToFormResult> AssignGroupToForm(
         int formId,
-        int typeId,
+        int groupId,
         IReadOnlyList<int> rowIds,
         int displayOrder,
         string? color,
         CancellationToken ct)
         {
             if (!await uow.Forms.FormExistsAsync(formId, ct))
-                return new(TypeStatus.FormNotFound);
+                return new(GroupStatus.FormNotFound);
 
             await uow.BeginTransactionAsync(ct);
             try
             {
-                var formTypeExists = await uow.FormTypes.AnyAsync(
-                    predicate: ft => ft.FormId == formId && ft.ProductTypeId == typeId,
+                var formTypeExists = await uow.FormGroups.AnyAsync(
+                    predicate: ft => ft.FormId == formId && ft.ProductGroupId == groupId,
                     ct: ct);
 
                 if (!formTypeExists)
                 {
-                    var displayOrderUsed = await uow.FormTypes.AnyAsync(
+                    var displayOrderUsed = await uow.FormGroups.AnyAsync(
                         predicate: f => f.FormId == formId && f.DisplayOrder == displayOrder,
                         ct: ct);
 
                     if (displayOrderUsed)
-                        return new(TypeStatus.DisplayOrderConflict);
+                        return new(GroupStatus.DisplayOrderConflict);
 
                     await uow.ProductTypes.AddFormTypeAsync(
                         formId: formId,
-                        typeId: typeId,
+                        typeId: groupId,
                         displayOrder: displayOrder,
                         color: color,
                         ct: ct);
                 }
 
-                var existingRowIds = await uow.FormRowProductTypes.ListAsync(
+                var existingRowIds = await uow.FormRowProductGroups.ListAsync(
                     predicate: frt => frt.FormId == formId
-                                      && frt.ProductTypeId == typeId
+                                      && frt.ProductGroupId == groupId
                                       && rowIds.Contains(frt.FormRowId),
                     selector: frt => frt.FormRowId,
                     ct: ct);
@@ -56,10 +56,10 @@ namespace PriceList.Core.Application.Services
                 var toAdd = rowIds.Except(existingRowIds).ToArray();
                 if (toAdd.Length > 0)
                 {
-                    await uow.FormRowProductTypes.AddFormRowTypeAsync(
+                    await uow.FormRowProductGroups.AddFormRowTypeAsync(
                         formId: formId,
                         rowIds: toAdd,
-                        typeId: typeId,
+                        typeId: groupId,
                         displayOrder: displayOrder,
                         color: color,
                         ct: ct);
@@ -70,8 +70,8 @@ namespace PriceList.Core.Application.Services
 
                 // If there was nothing to add and formType already existed, it's still fine (idempotent)
                 return toAdd.Length == 0 && formTypeExists
-                    ? new(TypeStatus.AlreadyAssigned)
-                    : new(TypeStatus.NoContent);
+                    ? new(GroupStatus.AlreadyAssigned)
+                    : new(GroupStatus.NoContent);
             }
             catch
             {

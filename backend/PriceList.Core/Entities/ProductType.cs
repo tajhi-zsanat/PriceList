@@ -32,8 +32,5 @@ namespace PriceList.Core.Entities
         //public ICollection<Supplier> Suppliers { get; set; } = new List<Supplier>();
 
         //public ICollection<Form> Forms { get; set; } = [];
-
-        public ICollection<FormProductType> FormProductTypes { get; set; } = [];
-        public ICollection<FormRowProductType> RowProductTypes { get; set; } = new List<FormRowProductType>();
     }
 }

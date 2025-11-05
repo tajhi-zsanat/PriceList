@@ -10,9 +10,9 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import type { GridGroupByType, TypeItemDto } from "@/types";
+import type { GridGroup, GroupItemDto } from "@/types";
 import { useGridCtx } from "@/pages/admin/products/ctx/GridContext";
-import { addTypeToRows, getTypeList } from "@/lib/api/formGrid";
+import { addTypeToRows, getGroupList } from "@/lib/api/formGrid";
 import { Label } from "@radix-ui/react-label";
 import { Input } from "@/components/ui/input";
 import { uniq } from "@/lib/helpers";
@@ -26,19 +26,19 @@ import {
 
 type Props = {
     trigger: React.ReactNode;
-    cells: GridGroupByType[];
+    cells: GridGroup[];
     formId: number | string;
     onCreated?: () => void;
 };
 
-export default function AddTypeModal({ trigger, cells, formId, onCreated }: Props) {
+export default function AddGroupModal({ trigger, cells, formId, onCreated }: Props) {
     const { rowIds, setRowIds } = useGridCtx();
 
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [err, setErr] = useState<string | null>(null);
 
-    const [typeItems, setTypeItems] = useState<TypeItemDto[]>([]);
+    const [groupItems, setGroupItems] = useState<GroupItemDto[]>([]);
     const [selected, setSelected] = useState<string | undefined>(undefined);
     const [startrow, setStartrow] = useState<number>();
     const [displayOrder, setDisplayOrder] = useState<string>("");
@@ -58,8 +58,8 @@ export default function AddTypeModal({ trigger, cells, formId, onCreated }: Prop
         (async () => {
             try {
                 setLoading(true);
-                const res = await getTypeList(formId, ctrl.signal);
-                setTypeItems(res);
+                const res = await getGroupList(formId, ctrl.signal);
+                setGroupItems(res);
 
             } catch (e: any) {
                 if (e?.name === "CanceledError" || e?.name === "AbortError") return;
@@ -73,7 +73,7 @@ export default function AddTypeModal({ trigger, cells, formId, onCreated }: Prop
         return () => ctrl.abort();
     }, [formId]);
 
-    const fillRowIds = (groups: GridGroupByType[]) => {
+    const fillRowIds = (groups: GridGroup[]) => {
         const map: Record<number, number> = {};
         groups.forEach(g => {
             g.rows.forEach(r => {
@@ -93,7 +93,7 @@ export default function AddTypeModal({ trigger, cells, formId, onCreated }: Prop
         if (endrow < startrow) { toast.warning("تا ردیف باید بزرگتر یا مساوی از ردیف باشد."); return; }
         if (!selected) { toast.warning("لطفاً نوع محصول را وارد نمایید."); return; }
         if (!displayOrder || displayOrder === "") { toast.warning("ترتیب نمایش باید بزرگ تر از 0 باشد."); return; }
-
+        debugger;
         setLoading(true);
         try {
             const range = Array.from({ length: endrow - startrow + 1 }, (_, i) => startrow + i);
@@ -110,13 +110,13 @@ export default function AddTypeModal({ trigger, cells, formId, onCreated }: Prop
             const ctrl = new AbortController();
             await addTypeToRows({
                 formId,
-                typeId: selected,
+                groupId: selected,
                 rowIds: selectedRowIDs,
                 displayOrder,
                 color,
             }, ctrl.signal);
 
-            toast.success("ویژگی‌ها با موفقیت ثبت شدند.");
+            toast.success("دسته‌بندی با موفقیت ثبت شدند.");
             onCreated?.();
             setOpen(false);
         } catch (e: any) {
@@ -133,7 +133,7 @@ export default function AddTypeModal({ trigger, cells, formId, onCreated }: Prop
             <DialogContent dir="rtl" className="sm:max-w-lg w-full">
                 <DialogHeader className="text-start gap-4">
                     <DialogTitle className="border-b border-b-[#CFD8DC] pb-4">
-                        افزودن ویژگی جدید
+                        افزودن دسته‌بندی جدید
                     </DialogTitle>
                 </DialogHeader>
 
@@ -141,7 +141,7 @@ export default function AddTypeModal({ trigger, cells, formId, onCreated }: Prop
                     {err && <p className="text-red-500 text-sm">{err}</p>}
 
                     <div className="flex-1 grid gap-2">
-                        <Label htmlFor="displayOrder" className="text-bold">انتخاب ویژگی</Label>
+                        <Label htmlFor="displayOrder" className="text-bold">انتخاب دسته‌بندی</Label>
                         <Select
                             dir="rtl"
                             value={selected}
@@ -152,7 +152,7 @@ export default function AddTypeModal({ trigger, cells, formId, onCreated }: Prop
                             </SelectTrigger>
 
                             <SelectContent>
-                                {typeItems.map(u => (
+                                {groupItems.map(u => (
                                     <SelectItem key={u.id} value={String(u.id)}>
                                         {u.name}
                                     </SelectItem>
@@ -243,7 +243,7 @@ export default function AddTypeModal({ trigger, cells, formId, onCreated }: Prop
                             type="submit"
                             disabled={loading}
                         >
-                            {loading ? "در حال ثبت..." : "ثبت ویژگی"}
+                            {loading ? "در حال ثبت..." : "ثبت دسته‌بندی"}
                         </Button>
                         <DialogClose asChild>
                             <Button

@@ -7,7 +7,7 @@ import { GridTable } from "@/components/admin/GridTable";
 import AddColDefModal from "@/components/admin/products/AddColDefModal";
 import backwardIcon from "@/assets/img/admin/chevron_backward.png"
 import forwardIcon from "@/assets/img/admin/chevron_forward.png"
-import AddFeatureModal from "@/components/admin/products/AddTypeModal";
+import AddGroupModal from "@/components/admin/products/AddGroupModal";
 
 function ProductsInner() {
   const location = useLocation();
@@ -58,7 +58,7 @@ function ProductsInner() {
       <div className="border border-[#3F414D] rounded-tl-[4px] rounded-tr-[4px]">
         <div className="flex items-center justify-between p-2">
           <div className="flex items-center gap-2">
-            <AddFeatureModal
+            <AddGroupModal
               cells={grid.cells}
               formId={formId}
               onCreated={refetch}

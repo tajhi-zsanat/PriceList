@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PriceList.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using PriceList.Infrastructure.Data;
 namespace PriceList.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251104062725_RemoveGroupIdFromForm")]
+    partial class RemoveGroupIdFromForm
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -226,6 +229,9 @@ namespace PriceList.Infrastructure.Data.Migrations
                         .HasColumnType("int")
                         .HasDefaultValue(5);
 
+                    b.Property<int?>("ProductGroupId")
+                        .HasColumnType("int");
+
                     b.Property<int>("Rows")
                         .HasColumnType("int");
 
@@ -250,6 +256,8 @@ namespace PriceList.Infrastructure.Data.Migrations
                     b.HasIndex("BrandId");
 
                     b.HasIndex("CategoryId");
+
+                    b.HasIndex("ProductGroupId");
 
                     b.HasIndex("SupplierId", "BrandId", "CategoryId")
                         .IsUnique();
@@ -742,6 +750,10 @@ namespace PriceList.Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("PriceList.Core.Entities.ProductGroup", null)
+                        .WithMany("Forms")
+                        .HasForeignKey("ProductGroupId");
+
                     b.HasOne("PriceList.Core.Entities.Supplier", "Supplier")
                         .WithMany("Forms")
                         .HasForeignKey("SupplierId")
@@ -877,6 +889,8 @@ namespace PriceList.Infrastructure.Data.Migrations
             modelBuilder.Entity("PriceList.Core.Entities.ProductGroup", b =>
                 {
                     b.Navigation("FormProductGroups");
+
+                    b.Navigation("Forms");
 
                     b.Navigation("ProductTypes");
 

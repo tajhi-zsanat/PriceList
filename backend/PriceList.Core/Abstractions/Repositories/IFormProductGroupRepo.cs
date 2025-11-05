@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace PriceList.Core.Abstractions.Repositories
 {
-    public interface IFormProductTypeRepo : IGenericRepository<FormProductType>
+    public interface IFormProductGroupRepo : IGenericRepository<FormProductGroup>
     {
     }
 }

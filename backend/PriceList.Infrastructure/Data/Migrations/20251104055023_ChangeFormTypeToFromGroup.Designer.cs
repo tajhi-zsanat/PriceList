@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PriceList.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using PriceList.Infrastructure.Data;
 namespace PriceList.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251104055023_ChangeFormTypeToFromGroup")]
+    partial class ChangeFormTypeToFromGroup
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -226,6 +229,9 @@ namespace PriceList.Infrastructure.Data.Migrations
                         .HasColumnType("int")
                         .HasDefaultValue(5);
 
+                    b.Property<int>("ProductGroupId")
+                        .HasColumnType("int");
+
                     b.Property<int>("Rows")
                         .HasColumnType("int");
 
@@ -251,7 +257,9 @@ namespace PriceList.Infrastructure.Data.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.HasIndex("SupplierId", "BrandId", "CategoryId")
+                    b.HasIndex("ProductGroupId");
+
+                    b.HasIndex("SupplierId", "BrandId", "CategoryId", "ProductGroupId")
                         .IsUnique();
 
                     b.ToTable("Forms", (string)null);
@@ -428,7 +436,7 @@ namespace PriceList.Infrastructure.Data.Migrations
 
                     b.HasIndex("ProductGroupId");
 
-                    b.ToTable("FormProductGroups", (string)null);
+                    b.ToTable("FormProductTypes", (string)null);
                 });
 
             modelBuilder.Entity("PriceList.Core.Entities.FormRow", b =>
@@ -520,7 +528,7 @@ namespace PriceList.Infrastructure.Data.Migrations
 
                     b.HasIndex("ProductGroupId");
 
-                    b.ToTable("FormRowGroups", (string)null);
+                    b.ToTable("FormRowProductGroups", (string)null);
                 });
 
             modelBuilder.Entity("PriceList.Core.Entities.ProductGroup", b =>
@@ -742,6 +750,12 @@ namespace PriceList.Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("PriceList.Core.Entities.ProductGroup", "ProductGroup")
+                        .WithMany("Forms")
+                        .HasForeignKey("ProductGroupId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("PriceList.Core.Entities.Supplier", "Supplier")
                         .WithMany("Forms")
                         .HasForeignKey("SupplierId")
@@ -751,6 +765,8 @@ namespace PriceList.Infrastructure.Data.Migrations
                     b.Navigation("Brand");
 
                     b.Navigation("Category");
+
+                    b.Navigation("ProductGroup");
 
                     b.Navigation("Supplier");
                 });
@@ -877,6 +893,8 @@ namespace PriceList.Infrastructure.Data.Migrations
             modelBuilder.Entity("PriceList.Core.Entities.ProductGroup", b =>
                 {
                     b.Navigation("FormProductGroups");
+
+                    b.Navigation("Forms");
 
                     b.Navigation("ProductTypes");
 

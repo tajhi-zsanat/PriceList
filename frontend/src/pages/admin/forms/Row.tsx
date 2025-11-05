@@ -3,7 +3,7 @@ import more from "@/assets/img/more icon-mobile.png";
 import type { FormListItemDto } from "@/types";
 
 export default function Row({ item, index }: { item: FormListItemDto; index: number }) {
-  const categories = `${item.categoryName}/${item.groupdName}`;
+  const categories = `${item.categoryName}`;
 
   const handleRowClick = () => {
     window.location.href = `/admin/products?formId=${item.id}`;

@@ -125,7 +125,6 @@ export type FormListItemDto = {
   formTitle: string;
   productCount: number;
   categoryName: string;
-  groupdName: string;
   countProduct: string;
   brandName: string;
   updatedDate: string;
@@ -135,7 +134,6 @@ export type FormCreateDto = {
   formTitle: string;
   columns: number;
   categoryId?: number;
-  groupId?: number;
   brandId?: number;
   rows?: number;
   displayOrder?: number;
@@ -235,7 +233,7 @@ export interface GridRow {
   cells: GridCell[];
 }
 
-export interface GridGroupByType {
+export interface GridGroup {
   typeName: string;
   typeId: number;
   color: string | null;
@@ -245,7 +243,7 @@ export interface GridGroupByType {
 
 export interface GridResponse {
   headers: FormHeader[];
-  cells: GridGroupByType[];
+  cells: GridGroup[];
   meta: {
     page: number;
     pageSize: number;
@@ -256,7 +254,7 @@ export interface GridResponse {
   };
 }
 
-export type TypeItemDto = {
+export type GroupItemDto = {
   id: string;
   name: string;
   imagePath: string;

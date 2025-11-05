@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 
 namespace PriceList.Infrastructure.Repositories.Ef
 {
-    public class FormRowTypeRepository : GenericRepository<FormRowProductType>, IFormRowProductTypeRepo
+    public class FormRowTypeRepository : GenericRepository<FormRowProductGroup>, IFormRowProductGroupRepo
     {
-        public FormRowTypeRepository(AppDbContext db, ILogger<FormRowProductType> logger)
+        public FormRowTypeRepository(AppDbContext db, ILogger<FormRowProductGroup> logger)
        : base(db, logger)
         {
         }
@@ -25,14 +25,14 @@ namespace PriceList.Infrastructure.Repositories.Ef
              string? color,
              CancellationToken ct = default)
         {
-            var list = new List<FormRowProductType>(rowIds.Count);
+            var list = new List<FormRowProductGroup>(rowIds.Count);
             foreach (var rowId in rowIds)
             {
-                list.Add(new FormRowProductType
+                list.Add(new FormRowProductGroup
                 {
                     FormId = formId,
                     FormRowId = rowId,
-                    ProductTypeId = typeId,
+                    ProductGroupId = typeId,
                 });
             }
 

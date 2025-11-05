@@ -35,8 +35,7 @@ namespace PriceList.Infrastructure.Configurations
                 .HasForeignKey(x => x.FormId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Useful index when listing forms
-            b.HasIndex(f => new { f.SupplierId, f.BrandId, f.CategoryId, f.ProductGroupId })
+            b.HasIndex(f => new { f.SupplierId, f.BrandId, f.CategoryId })
                 .IsUnique();
         }
     }

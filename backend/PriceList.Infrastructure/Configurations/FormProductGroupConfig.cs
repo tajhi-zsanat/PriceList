@@ -10,22 +10,22 @@ using System.Threading.Tasks;
 
 namespace PriceList.Infrastructure.Configurations
 {
-    internal class FormProductTypeConfig : IEntityTypeConfiguration<FormProductType>
+    internal class FormProductGroupConfig : IEntityTypeConfiguration<FormProductGroup>
     {
-        public void Configure(EntityTypeBuilder<FormProductType> b)
+        public void Configure(EntityTypeBuilder<FormProductGroup> b)
         {
-            b.ToTable("FormProductTypes");
+            b.ToTable("FormProductGroups");
 
-            b.HasKey(x => new { x.FormId, x.ProductTypeId });
+            b.HasKey(x => new { x.FormId, x.ProductGroupId });
 
             b.HasOne(x => x.Form)
-             .WithMany(f => f.FormProductTypes)
+             .WithMany(f => f.FormProductGroups)
              .HasForeignKey(x => x.FormId)
              .OnDelete(DeleteBehavior.Cascade);
 
-            b.HasOne(x => x.ProductType)
-             .WithMany(f => f.FormProductTypes)
-             .HasForeignKey(x => x.ProductTypeId)
+            b.HasOne(x => x.ProductGroup)
+             .WithMany(f => f.FormProductGroups)
+             .HasForeignKey(x => x.ProductGroupId)
              .OnDelete(DeleteBehavior.Restrict);
         }
     }

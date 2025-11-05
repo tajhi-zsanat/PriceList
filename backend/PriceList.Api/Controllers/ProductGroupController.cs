@@ -3,20 +3,24 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PriceList.Api.Dtos;
 using PriceList.Api.Dtos.ProductGroup;
+using PriceList.Api.Dtos.ProductType;
 using PriceList.Api.Helpers;
 using PriceList.Api.Mappings;
 using PriceList.Core.Abstractions.Repositories;
 using PriceList.Core.Abstractions.Storage;
 using PriceList.Core.Application.Dtos.ProductGroup;
+using PriceList.Core.Application.Dtos.ProductType;
 using PriceList.Core.Application.Mappings;
+using PriceList.Core.Application.Services;
 using PriceList.Core.Entities;
+using PriceList.Core.Enums;
 
 namespace PriceList.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     [Produces("application/json")]
-    public class ProductGroupController(IUnitOfWork uow, IFileStorage storage) : ControllerBase
+    public class ProductGroupController(IUnitOfWork uow, IFileStorage storage, IGroupService typeService) : ControllerBase
     {
         [HttpGet("by-category")]
         [ProducesResponseType(typeof(List<ProductGroupListItemDto>), StatusCodes.Status200OK)]
@@ -282,6 +286,89 @@ namespace PriceList.Api.Controllers
 
             return NoContent();
         }
+
+        #region FormRegion
+        [HttpGet("by-form")]
+        [ProducesResponseType(typeof(List<ProductGroupListItemDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<List<ProductGroupListItemDto>>> GetByForm(int formId, CancellationToken ct)
+        {
+            if (formId <= 0) return BadRequest("شناسه فرم کالا نامعتبر است.");
+
+            var isFormExist = await uow.Forms.AnyAsync(
+                predicate: f => f.Id == formId,
+                ct: ct
+                );
+
+            if (!isFormExist)
+                return BadRequest("شناسه فرم کالا نامعتبر است.");
+
+            var categoryId = await uow.Forms.GetByIdAsync(formId,
+                selector: f => f.CategoryId,
+                ct: ct);
+
+            var list = await uow.ProductGroups.ListAsync(
+                predicate: g => g.CategoryId == categoryId,
+                selector: ProductGroupMappings.ToListItem,
+                orderBy: q => q
+                    .OrderBy(c => c.DisplayOrder == 0)
+                    .ThenBy(c => c.DisplayOrder)
+                    .ThenBy(c => c.Name),
+                ct: ct
+                );
+                
+            return Ok(list);
+        }
+
+        [HttpPost("assignments")]
+        [Consumes("application/json")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        public async Task<IActionResult> Create([FromBody] AddGroupToRowsDto dto, CancellationToken ct = default)
+        {
+            if (dto is null) return BadRequest("بدنهٔ درخواست خالی است.");
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+
+            // Basic validation
+            if (dto.FormId <= 0 || dto.GroupId <= 0)
+                return BadRequest("شناسه‌های فرم/نوع نامعتبر است.");
+
+            if (dto.RowIds is null || dto.RowIds.Count == 0)
+                return BadRequest("حداقل یک ردیف لازم است.");
+
+            var rowIds = dto.RowIds.Where(id => id > 0).Distinct().ToArray();
+            if (rowIds.Length == 0)
+                return BadRequest("شناسهٔ ردیف‌ها نامعتبر است.");
+
+            var existingRows = await uow.FormRows.ListAsync(
+                predicate: r => r.FormId == dto.FormId && rowIds.Contains(r.Id),
+                selector: r => r.Id,
+                ct: ct
+            );
+
+            if (existingRows.Count != rowIds.Length)
+                return BadRequest("بعضی از ردیف‌های ارسال‌شده یافت نشد یا متعلق به این فرم نیست.");
+
+            var res = await typeService.AssignGroupToForm(
+                formId: dto.FormId,
+                groupId: dto.GroupId,
+                rowIds: rowIds,
+                displayOrder: dto.DisplayOrder,
+                color: dto.Color,
+                ct: ct);
+
+            return res.Status switch
+            {
+                GroupStatus.FormNotFound => NotFound("شناسهٔ فرم نامعتبر است."),
+                GroupStatus.DisplayOrderConflict => Conflict("ترتیب نمایش در این فرم قبلاً استفاده شده است."),
+                GroupStatus.AlreadyAssigned => NoContent(),
+                GroupStatus.NoContent => NoContent(),
+                _ => Problem(statusCode: 500, title: "ثبت نوع برای ردیف‌ها با خطا مواجه شد.")
+            };
+        }
+        #endregion
     }
 }
 

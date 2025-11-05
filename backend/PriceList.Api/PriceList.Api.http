@@ -13,3 +13,8 @@ Content-Type: application/json
 }
 
 ###
+
+@search=string
+GET {{PriceList.Api_HostAddress}}/api/category?search={{search}}
+
+###

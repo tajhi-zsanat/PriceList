@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace PriceList.Core.Entities
 {
-    public sealed class FormRowProductType : ShamsiAuditableEntity
+    public sealed class FormRowProductGroup : ShamsiAuditableEntity
     {
-        public int FormId { get; set; }     
+        public int FormId { get; set; }
         public int FormRowId { get; set; }
         public FormRow FormRow { get; set; } = null!;
 
-        public int ProductTypeId { get; set; }
-        public ProductType ProductType { get; set; } = null!;
+        public int ProductGroupId { get; set; }
+        public ProductGroup ProductGroup { get; set; } = null!;
     }
 }

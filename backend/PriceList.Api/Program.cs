@@ -9,25 +9,25 @@ using PriceList.Infrastructure.Repositories;
 using PriceList.Infrastructure.Repositories.Ef;
 using PriceList.Infrastructure.Services;
 using PriceList.Infrastructure.Services.Storage;
-using QuestPDF.Drawing;
-using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// ⬇️ Read origin for CORS from config (env var OK)
+var webOrigin = builder.Configuration["Web:Origin"] ?? "http://localhost:5173";
 
 // EF Core
 builder.Services.AddDbContext<AppDbContext>(o =>
     o.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
-    .EnableDetailedErrors()
-    .LogTo(Console.WriteLine, LogLevel.Information));
+     .EnableDetailedErrors()
+     .LogTo(Console.WriteLine, LogLevel.Information)
+);
 
 // CORS (allow React dev server localhost:5173)
 const string CorsPolicy = "FrontendPolicy";
 builder.Services.AddCors(opt =>
 {
     opt.AddPolicy(CorsPolicy, policy =>
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins(webOrigin) // ⬅️ now configurable
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials());
@@ -73,12 +73,6 @@ builder.Services.AddSwaggerGen(c =>
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 //builder.Services.AddOpenApi();
 
-QuestPDF.Settings.License = LicenseType.Community;
-FontManager.RegisterFont(File.OpenRead("Fonts/Vazir-FD-WOL.ttf"));       // Regular
-FontManager.RegisterFont(File.OpenRead("Fonts/Vazir-Bold-FD-WOL.ttf")); // Bold
-FontManager.RegisterFont(File.OpenRead("Fonts/Vazir-Medium-FD-WOL.ttf")); // Medium
-FontManager.RegisterFont(File.OpenRead("Fonts/Vazir-Light-FD-WOL.ttf")); // Light
-FontManager.RegisterFont(File.OpenRead("Fonts/Vazir-Thin-FD-WOL.ttf"));  // Thin
 // ✅ DI: interfaces (Core) → implementations (Infrastructure)
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
@@ -101,13 +95,13 @@ builder.Services.AddScoped<IFormRepository, FormRepository>();
 builder.Services.AddScoped<IFormCellRepository, FormCellRepository>();
 builder.Services.AddScoped<IFormColumnDefRepository, FormColumnDefRepository>();
 builder.Services.AddScoped<IFormRowRepository, FormRowRepository>();
-builder.Services.AddScoped<IFormProductTypeRepo, FormProductTypeRepo>();
-builder.Services.AddScoped<IFormRowProductTypeRepo, FormRowTypeRepository>();
+builder.Services.AddScoped<IFormProductGroupRepo, FormProductTypeRepo>();
+builder.Services.AddScoped<IFormRowProductGroupRepo, FormRowTypeRepository>();
 //builder.Services.AddScoped<IFormRowFeatureRepository, FormRowFeatureRepository>();
 
 //Service
 builder.Services.AddScoped<IFormService, FormService>();
-builder.Services.AddScoped<ITypeService, TypeService>();
+builder.Services.AddScoped<IGroupService, GroupService>();
 
 // Decide where files live (under wwwroot/uploads)
 var webRoot = builder.Environment.WebRootPath
@@ -121,6 +115,13 @@ builder.Services.Configure<FileStorageOptions>(opt =>
 builder.Services.AddSingleton<IFileStorage, LocalFileStorage>();
 
 var app = builder.Build();
+
+// ✅ Auto-apply EF migrations on startup (no CLI step needed)
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

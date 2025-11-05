@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 
 namespace PriceList.Infrastructure.Repositories.Ef
 {
-    public class FormProductTypeRepo : GenericRepository<FormProductType>, IFormProductTypeRepo
+    public class FormProductTypeRepo : GenericRepository<FormProductGroup>, IFormProductGroupRepo
     {
-        public FormProductTypeRepo(AppDbContext db, ILogger<FormProductType> logger)
+        public FormProductTypeRepo(AppDbContext db, ILogger<FormProductGroup> logger)
        : base(db, logger)
         {
         }

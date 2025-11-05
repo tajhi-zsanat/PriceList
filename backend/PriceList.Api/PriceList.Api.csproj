@@ -11,6 +11,7 @@
     <Compile Remove="Controllers\HeaderController.cs" />
     <Compile Remove="Controllers\ProductFeatureController.cs" />
     <Compile Remove="Controllers\ProductsController.cs" />
+    <Compile Remove="Dtos\ProductType\AddTypeToRowsDto.cs" />
     <Compile Remove="Mappings\ProductApiMappers.cs" />
     <Compile Remove="Mappings\ProductHeaderApiMappers.cs" />
     <Compile Remove="Mappings\ProductTypeApiMappers.cs" />

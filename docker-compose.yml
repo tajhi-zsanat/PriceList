@@ -1,0 +1,62 @@
+﻿# (optional) remove this line:
+# version: "3.9"
+
+services:
+  sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: pricelist-sql
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: ${SA_PASSWORD}
+      MSSQL_PID: "Developer"
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-S", "localhost,1433", "-U", "sa", "-P", "${SA_PASSWORD}", "-C", "-Q", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - webnet            # ✅ add this line
+
+  api:
+    build:
+      context: .
+      dockerfile: backend/PriceList.Api/Dockerfile
+    container_name: pricelist-api
+    depends_on:
+      sql:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ConnectionStrings__DefaultConnection: "Server=sql,1433;Database=PriceListMainDB;User Id=sa;Password=${SA_PASSWORD};Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=true"
+      Web__Origin: ${WEB_ORIGIN}
+    volumes:
+      - uploads:/app/wwwroot/uploads
+    ports:
+      - "5000:8080"
+    networks:
+      - webnet
+
+  web:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_BASE_URL: "/api"
+    container_name: pricelist-web
+    depends_on:
+      - api
+    ports:
+      - "8080:80"
+    networks:
+      - webnet
+
+volumes:
+  mssql-data:
+  uploads:
+
+networks:
+  webnet:

@@ -36,8 +36,8 @@ namespace PriceList.Infrastructure.Data
         public DbSet<FormCell> FormCells => Set<FormCell>();
         //public DbSet<FormCellFeatureValue> FormCellFeatureValues => Set<FormCellFeatureValue>();
         public DbSet<FormRow> FormRows => Set<FormRow>();
-        public DbSet<FormProductType> FormProductTypes => Set<FormProductType>();
-        public DbSet<FormRowProductType> FormRowProductTypes => Set<FormRowProductType>();
+        public DbSet<FormProductGroup> FormProductGroups => Set<FormProductGroup>();
+        public DbSet<FormRowProductGroup> FormRowProductGroups => Set<FormRowProductGroup>();
 
         //public DbSet<FormRowFeature> FormRowFeatures => Set<FormRowFeature>();
 

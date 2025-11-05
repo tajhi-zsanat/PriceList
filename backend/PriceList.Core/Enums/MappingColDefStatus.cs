@@ -30,7 +30,7 @@ namespace PriceList.Core.Enums
 
     public sealed record RemoveColDefResult(RemoveColDefStatus Status);
 
-    public enum TypeStatus
+    public enum GroupStatus
     {
         Initial,
         FormNotFound,
@@ -43,5 +43,5 @@ namespace PriceList.Core.Enums
         AlreadyAssigned
     }
 
-    public sealed record AddTypeToFormResult(TypeStatus Status, int? NewColumnIndex = null);
+    public sealed record AddGroupToFormResult(GroupStatus Status, int? NewColumnIndex = null);
 }

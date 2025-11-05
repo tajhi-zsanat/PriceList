@@ -18,9 +18,6 @@ namespace PriceList.Core.Entities
         public int CategoryId { get; set; }
         public Category Category { get; set; } = null!;
 
-        public int ProductGroupId { get; set; }
-        public ProductGroup ProductGroup { get; set; } = null!;
-
         public int SupplierId { get; set; }
         public Supplier Supplier { get; set; } = null!;
 
@@ -31,11 +28,11 @@ namespace PriceList.Core.Entities
         public int MinCols { get; set; } = 5;          
         public int MaxCols { get; set; } = 8;         
 
-        public ICollection<FormColumnDef> Columns { get; set; } = new List<FormColumnDef>();
+        public ICollection<FormColumnDef> Columns { get; set; } = [];
 
-        public ICollection<FormProductType> FormProductTypes { get; set; } = [];
+        public ICollection<FormProductGroup> FormProductGroups { get; set; } = [];
 
-        public ICollection<FormRow> FormRows { get; set; } = new List<FormRow>();
+        public ICollection<FormRow> FormRows { get; set; } = [];
     }
 
     public enum ColumnKind
@@ -58,7 +55,7 @@ namespace PriceList.Core.Entities
         Custom3,
         Text,
         Price,
-        More, // tweak as needed
+        More,
         NotAssign
     }
 }
