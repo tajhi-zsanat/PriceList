@@ -9,7 +9,10 @@
   <ItemGroup>
     <Compile Remove="Abstractions\Repositories\IColorFeatureRepository.cs" />
     <Compile Remove="Abstractions\Repositories\IFeatureRepository.cs" />
+    <Compile Remove="Abstractions\Repositories\IFormProductGroupRepo.cs" />
     <Compile Remove="Abstractions\Repositories\IFormRowFeatureRepository.cs" />
+    <Compile Remove="Abstractions\Repositories\IFormRowProductGroupRepo.cs" />
+    <Compile Remove="Abstractions\Repositories\IFormRowTypeRepository.cs" />
     <Compile Remove="Abstractions\Repositories\IHeaderRepository.cs" />
     <Compile Remove="Abstractions\Repositories\IProductFeatureRepository.cs" />
     <Compile Remove="Abstractions\Repositories\IProductImageRepository.cs" />
@@ -21,7 +24,9 @@
     <Compile Remove="Entities\ColorFeature.cs" />
     <Compile Remove="Entities\Feature.cs" />
     <Compile Remove="Entities\FormCellFeatureValue.cs" />
+    <Compile Remove="Entities\FormProductGroup.cs" />
     <Compile Remove="Entities\FormRowFeature.cs" />
+    <Compile Remove="Entities\FormRowProductGroup.cs" />
     <Compile Remove="Entities\Header.cs" />
     <Compile Remove="Entities\Product.cs" />
     <Compile Remove="Entities\ProductFeature.cs" />

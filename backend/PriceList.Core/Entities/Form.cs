@@ -30,8 +30,6 @@ namespace PriceList.Core.Entities
 
         public ICollection<FormColumnDef> Columns { get; set; } = [];
 
-        public ICollection<FormProductGroup> FormProductGroups { get; set; } = [];
-
         public ICollection<FormRow> FormRows { get; set; } = [];
     }
 

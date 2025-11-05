@@ -9,11 +9,6 @@ namespace PriceList.Core.Application.Services
 {
     public interface IGroupService
     {
-        Task<AddGroupToFormResult> AssignGroupToForm(int formId,
-            int groupId,
-            IReadOnlyList<int> rowIds,
-            int displayOrder,
-            string? color,
-            CancellationToken ct);
+      
     }
 }

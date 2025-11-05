@@ -16,12 +16,17 @@ namespace PriceList.Infrastructure.Configurations
             b.ToTable("FormRows");
             b.HasKey(x => x.Id);
 
-            b.HasIndex(x => new { x.FormId, x.RowIndex })
+            b.HasIndex(x => new { x.FormId, x.RowIndex, x.FormFeatureId })
                 .IsUnique();
 
             b.HasOne(x => x.Form)
               .WithMany(f => f.FormRows)
               .HasForeignKey(x => x.FormId)
+              .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasOne(x => x.FormFeature)
+              .WithMany(f => f.Rows)
+              .HasForeignKey(x => x.FormFeatureId)
               .OnDelete(DeleteBehavior.Cascade);
         }
     }

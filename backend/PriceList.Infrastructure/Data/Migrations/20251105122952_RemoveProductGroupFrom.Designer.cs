@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PriceList.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using PriceList.Infrastructure.Data;
 namespace PriceList.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251105122952_RemoveProductGroupFrom")]
+    partial class RemoveProductGroupFrom
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -179,7 +182,7 @@ namespace PriceList.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ErrorLog", (string)null);
+                    b.ToTable("ErrorLog");
                 });
 
             modelBuilder.Entity("PriceList.Core.Entities.Form", b =>
@@ -384,52 +387,6 @@ namespace PriceList.Infrastructure.Data.Migrations
                     b.ToTable("FormColumnDefs", (string)null);
                 });
 
-            modelBuilder.Entity("PriceList.Core.Entities.FormFeature", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("CreateDate")
-                        .HasMaxLength(10)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(10)");
-
-                    b.Property<DateTime>("CreateDateAndTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreateTime")
-                        .HasMaxLength(4)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(4)");
-
-                    b.Property<int>("DisplayOrder")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UpdateDate")
-                        .HasMaxLength(10)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(10)");
-
-                    b.Property<DateTime>("UpdateDateAndTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UpdateTime")
-                        .HasMaxLength(4)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(4)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("FormFeatures", (string)null);
-                });
-
             modelBuilder.Entity("PriceList.Core.Entities.FormRow", b =>
                 {
                     b.Property<int>("Id")
@@ -450,9 +407,6 @@ namespace PriceList.Infrastructure.Data.Migrations
                         .HasMaxLength(4)
                         .IsUnicode(false)
                         .HasColumnType("varchar(4)");
-
-                    b.Property<int>("FormFeatureId")
-                        .HasColumnType("int");
 
                     b.Property<int>("FormId")
                         .HasColumnType("int");
@@ -475,9 +429,7 @@ namespace PriceList.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("FormFeatureId");
-
-                    b.HasIndex("FormId", "RowIndex", "FormFeatureId")
+                    b.HasIndex("FormId", "RowIndex")
                         .IsUnique();
 
                     b.ToTable("FormRows", (string)null);
@@ -739,12 +691,6 @@ namespace PriceList.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("PriceList.Core.Entities.FormRow", b =>
                 {
-                    b.HasOne("PriceList.Core.Entities.FormFeature", "FormFeature")
-                        .WithMany("Rows")
-                        .HasForeignKey("FormFeatureId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("PriceList.Core.Entities.Form", "Form")
                         .WithMany("FormRows")
                         .HasForeignKey("FormId")
@@ -752,8 +698,6 @@ namespace PriceList.Infrastructure.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Form");
-
-                    b.Navigation("FormFeature");
                 });
 
             modelBuilder.Entity("PriceList.Core.Entities.ProductGroup", b =>
@@ -793,11 +737,6 @@ namespace PriceList.Infrastructure.Data.Migrations
                     b.Navigation("Columns");
 
                     b.Navigation("FormRows");
-                });
-
-            modelBuilder.Entity("PriceList.Core.Entities.FormFeature", b =>
-                {
-                    b.Navigation("Rows");
                 });
 
             modelBuilder.Entity("PriceList.Core.Entities.FormRow", b =>

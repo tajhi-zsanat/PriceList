@@ -11,14 +11,16 @@ namespace PriceList.Core.Entities
     {
         public int Id { get; set; }
 
+        public int RowIndex { get; set; } 
+
         public int FormId { get; set; }
         public Form Form { get; set; } = default!;
 
-        public int RowIndex { get; set; } // 0-based, stable logical row id within a form
+        public int FormFeatureId { get; set; }
+        public FormFeature FormFeature { get; set; } = default!;
+
 
         public ICollection<FormCell> Cells { get; set; } = new List<FormCell>();
 
-        public ICollection<FormRowProductGroup> RowProductGroups { get; set; } = [];
-        //public ICollection<FormRowFeature> Features { get; set; } = new List<FormRowFeature>();
     }
 }

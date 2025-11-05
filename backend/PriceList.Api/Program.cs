@@ -95,9 +95,6 @@ builder.Services.AddScoped<IFormRepository, FormRepository>();
 builder.Services.AddScoped<IFormCellRepository, FormCellRepository>();
 builder.Services.AddScoped<IFormColumnDefRepository, FormColumnDefRepository>();
 builder.Services.AddScoped<IFormRowRepository, FormRowRepository>();
-builder.Services.AddScoped<IFormProductGroupRepo, FormProductTypeRepo>();
-builder.Services.AddScoped<IFormRowProductGroupRepo, FormRowTypeRepository>();
-//builder.Services.AddScoped<IFormRowFeatureRepository, FormRowFeatureRepository>();
 
 //Service
 builder.Services.AddScoped<IFormService, FormService>();

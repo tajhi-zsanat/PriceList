@@ -40,22 +40,22 @@ namespace PriceList.Infrastructure.Repositories.Ef
                     .ToListAsync(ct);
         }
 
-        public async Task AddFormTypeAsync(
-            int formId,
-            int typeId,
-            int displayOrder,
-            string? color,
-            CancellationToken ct = default)
-        {
-            var entity = new FormProductGroup
-            {
-                FormId = formId,
-                ProductGroupId = typeId,
-                DisplayOrder = displayOrder,
-                Color = color
-            };
+        //public async Task AddFormTypeAsync(
+        //    int formId,
+        //    int typeId,
+        //    int displayOrder,
+        //    string? color,
+        //    CancellationToken ct = default)
+        //{
+        //    var entity = new FormProductGroup
+        //    {
+        //        FormId = formId,
+        //        ProductGroupId = typeId,
+        //        DisplayOrder = displayOrder,
+        //        Color = color
+        //    };
 
-            await _db.AddAsync(entity, ct);
-        }
+        //    await _db.AddAsync(entity, ct);
+        //}
     }
 }

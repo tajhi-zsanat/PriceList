@@ -10,7 +10,9 @@
     <Compile Remove="Configurations\ColorFeatureConfiguration.cs" />
     <Compile Remove="Configurations\FeatureConfiguration.cs" />
     <Compile Remove="Configurations\FormCellFeatureValueConfig.cs" />
+    <Compile Remove="Configurations\FormProductGroupConfig.cs" />
     <Compile Remove="Configurations\FormRowFeatureConfiguration.cs" />
+    <Compile Remove="Configurations\FormRowGroupConfiq.cs" />
     <Compile Remove="Configurations\HeaderConfiguration.cs" />
     <Compile Remove="Configurations\ProductConfiguration.cs" />
     <Compile Remove="Configurations\ProductCustomPropertyConfiguration.cs" />
@@ -18,8 +20,10 @@
     <Compile Remove="Configurations\ProductTypeFeatureConfiguration.cs" />
     <Compile Remove="Repositories\Ef\ColorFeatureRepository.cs" />
     <Compile Remove="Repositories\Ef\FeatureRepository.cs" />
+    <Compile Remove="Repositories\Ef\FormProductTypeRepo.cs" />
     <Compile Remove="Repositories\Ef\FormRowFeatureRepository.cs" />
     <Compile Remove="Repositories\Ef\FormRowProductTypeRepo.cs" />
+    <Compile Remove="Repositories\Ef\FormRowTypeRepository.cs" />
     <Compile Remove="Repositories\Ef\HeaderRepository.cs" />
     <Compile Remove="Repositories\Ef\ProductFeatureRepository.cs" />
     <Compile Remove="Repositories\Ef\ProductImageRepository.cs" />

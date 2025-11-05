@@ -320,54 +320,54 @@ namespace PriceList.Api.Controllers
             return Ok(list);
         }
 
-        [HttpPost("assignments")]
-        [Consumes("application/json")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status409Conflict)]
-        public async Task<IActionResult> Create([FromBody] AddGroupToRowsDto dto, CancellationToken ct = default)
-        {
-            if (dto is null) return BadRequest("بدنهٔ درخواست خالی است.");
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+        //[HttpPost("assignments")]
+        //[Consumes("application/json")]
+        //[ProducesResponseType(StatusCodes.Status204NoContent)]
+        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
+        //[ProducesResponseType(StatusCodes.Status404NotFound)]
+        //[ProducesResponseType(StatusCodes.Status409Conflict)]
+        //public async Task<IActionResult> Create([FromBody] AddGroupToRowsDto dto, CancellationToken ct = default)
+        //{
+        //    if (dto is null) return BadRequest("بدنهٔ درخواست خالی است.");
+        //    if (!ModelState.IsValid) return ValidationProblem(ModelState);
 
-            // Basic validation
-            if (dto.FormId <= 0 || dto.GroupId <= 0)
-                return BadRequest("شناسه‌های فرم/نوع نامعتبر است.");
+        //    // Basic validation
+        //    if (dto.FormId <= 0 || dto.GroupId <= 0)
+        //        return BadRequest("شناسه‌های فرم/نوع نامعتبر است.");
 
-            if (dto.RowIds is null || dto.RowIds.Count == 0)
-                return BadRequest("حداقل یک ردیف لازم است.");
+        //    if (dto.RowIds is null || dto.RowIds.Count == 0)
+        //        return BadRequest("حداقل یک ردیف لازم است.");
 
-            var rowIds = dto.RowIds.Where(id => id > 0).Distinct().ToArray();
-            if (rowIds.Length == 0)
-                return BadRequest("شناسهٔ ردیف‌ها نامعتبر است.");
+        //    var rowIds = dto.RowIds.Where(id => id > 0).Distinct().ToArray();
+        //    if (rowIds.Length == 0)
+        //        return BadRequest("شناسهٔ ردیف‌ها نامعتبر است.");
 
-            var existingRows = await uow.FormRows.ListAsync(
-                predicate: r => r.FormId == dto.FormId && rowIds.Contains(r.Id),
-                selector: r => r.Id,
-                ct: ct
-            );
+        //    var existingRows = await uow.FormRows.ListAsync(
+        //        predicate: r => r.FormId == dto.FormId && rowIds.Contains(r.Id),
+        //        selector: r => r.Id,
+        //        ct: ct
+        //    );
 
-            if (existingRows.Count != rowIds.Length)
-                return BadRequest("بعضی از ردیف‌های ارسال‌شده یافت نشد یا متعلق به این فرم نیست.");
+        //    if (existingRows.Count != rowIds.Length)
+        //        return BadRequest("بعضی از ردیف‌های ارسال‌شده یافت نشد یا متعلق به این فرم نیست.");
 
-            var res = await typeService.AssignGroupToForm(
-                formId: dto.FormId,
-                groupId: dto.GroupId,
-                rowIds: rowIds,
-                displayOrder: dto.DisplayOrder,
-                color: dto.Color,
-                ct: ct);
+        //    var res = await typeService.AssignGroupToForm(
+        //        formId: dto.FormId,
+        //        groupId: dto.GroupId,
+        //        rowIds: rowIds,
+        //        displayOrder: dto.DisplayOrder,
+        //        color: dto.Color,
+        //        ct: ct);
 
-            return res.Status switch
-            {
-                GroupStatus.FormNotFound => NotFound("شناسهٔ فرم نامعتبر است."),
-                GroupStatus.DisplayOrderConflict => Conflict("ترتیب نمایش در این فرم قبلاً استفاده شده است."),
-                GroupStatus.AlreadyAssigned => NoContent(),
-                GroupStatus.NoContent => NoContent(),
-                _ => Problem(statusCode: 500, title: "ثبت نوع برای ردیف‌ها با خطا مواجه شد.")
-            };
-        }
+        //    return res.Status switch
+        //    {
+        //        GroupStatus.FormNotFound => NotFound("شناسهٔ فرم نامعتبر است."),
+        //        GroupStatus.DisplayOrderConflict => Conflict("ترتیب نمایش در این فرم قبلاً استفاده شده است."),
+        //        GroupStatus.AlreadyAssigned => NoContent(),
+        //        GroupStatus.NoContent => NoContent(),
+        //        _ => Problem(statusCode: 500, title: "ثبت نوع برای ردیف‌ها با خطا مواجه شد.")
+        //    };
+        //}
         #endregion
     }
 }
