@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PriceList.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using PriceList.Infrastructure.Data;
 namespace PriceList.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251106093752_RemoveUniqeForNameInFeature")]
+    partial class RemoveUniqeForNameInFeature
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -441,8 +444,10 @@ namespace PriceList.Infrastructure.Data.Migrations
                         .IsUnique()
                         .HasFilter("[FormId1] IS NOT NULL");
 
-                    b.HasIndex("FormId", "DisplayOrder", "Name")
+                    b.HasIndex("FormId", "DisplayOrder")
                         .IsUnique();
+
+                    b.HasIndex("FormId", "Name");
 
                     b.ToTable("FormFeatures", (string)null);
                 });

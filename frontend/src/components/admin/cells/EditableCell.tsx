@@ -27,13 +27,12 @@ export function EditableCell({
   const isEditing = editing === cellId;
 
   const startEdit = () => {
-    // keep the raw string so FarsiInput can display Persian digits
     setEditing(cellId);
     setEditValue(current ?? "");
   };
 
   const normalizePrice = (s: string) => {
-    const n = parseFarsiNumber(s); // -> number (English digits)
+    const n = parseFarsiNumber(s); 
     return Number.isFinite(n) ? String(n) : "";
   };
 

@@ -1,5 +1,5 @@
 import api from "@/lib/api";
-import type {  GridResponse, GroupItemDto } from "@/types";
+import type { GridResponse } from "@/types";
 
 // ---------- Types for responses ----------
 interface UploadImageResponse { imageUrl: string }   // <-- match backend casing
@@ -35,14 +35,20 @@ export interface AddColDefPayload {
   customColDef: string[];
 }
 
+export interface AddRowPayload {
+  featureId: number;
+  rowIndex: number;
+  formId: string | null;
+}
+
 export interface removeHeaderDefRequest {
   formId: number;
   index: number;
 }
 
-export interface AddTypeToRowsRequest {
+export interface AddFeatureToRowsRequest {
   formId: string | number;
-  groupId: string | undefined;
+  feature: string | undefined;
   rowIds: number[];
   displayOrder: string;
   color?: string;
@@ -101,21 +107,15 @@ export async function AddColDef(payload: AddColDefPayload) {
   return api.post(`/api/Form/CreateColDef`, payload);
 }
 
-export async function getGroupList(
-  formId: number | string,
-  signal?: AbortSignal
-): Promise<GroupItemDto[]> {
-  const { data } = await api.get<GroupItemDto[]>(`/api/ProductGroup/by-form`,
-    { params: { formId }, signal }
-  );
-  return data;
-}
-
-
-export async function addTypeToRows(
-  payload: AddTypeToRowsRequest,
+export async function addFeatureToRows(
+  payload: AddFeatureToRowsRequest,
   signal?: AbortSignal) {
-  return api.post(`/api/ProductGroup/assignments`
+  return api.post(`/api/Form/assignments`
     , payload
     , { signal });
+}
+
+export async function AddRow(payload: AddRowPayload) {
+  // Axios throws on non-2xx automatically
+  return api.post(`/api/Form/CreateRow`, payload);
 }

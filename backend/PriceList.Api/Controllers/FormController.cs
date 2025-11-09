@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.SqlServer.Server;
+using PriceList.Api.Dtos.Feature;
 using PriceList.Api.Dtos.Form;
 using PriceList.Api.Dtos.Header;
 using PriceList.Api.Dtos.ProductFeature;
@@ -74,7 +75,7 @@ namespace PriceList.Api.Controllers
 
                 // paged rows (only the current slice), still grouped by feature name sets
                 var (groups, totalRows) =
-                    await uow.FormCells.GroupRowsAndCellsByTypePagedAsync(formId, page, pageSize, ct);
+                    await uow.FormFeatures.GroupRowsAndCellsByTypePagedAsync(formId, page, pageSize, ct);
 
                 var totalPages = (int)Math.Ceiling(totalRows / (double)pageSize);
                 var meta = new PaginationMeta(
@@ -414,6 +415,82 @@ namespace PriceList.Api.Controllers
                 return Conflict("ستون‌های سفارشی موردنظر قبلاً وجود دارند.");
 
             return StatusCode(StatusCodes.Status201Created, results);
+        }
+
+        [HttpPost("assignments")]
+        [Consumes("application/json")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        public async Task<IActionResult> Create([FromBody] AddFeatureToRowsDto dto, CancellationToken ct = default)
+        {
+            if (dto is null) return BadRequest("بدنهٔ درخواست خالی است.");
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+
+            // Basic validation
+            if (dto.FormId <= 0)
+                return BadRequest("شناسه‌های فرم/نوع نامعتبر است.");
+
+            if (string.IsNullOrWhiteSpace(dto.Feature))
+                return BadRequest("ویژگی وارد نشده است.");
+
+            if (dto.RowIds is null || dto.RowIds.Count == 0)
+                return BadRequest("حداقل یک ردیف لازم است.");
+
+            var rowIds = dto.RowIds.Where(id => id > 0).Distinct().ToArray();
+            if (rowIds.Length == 0)
+                return BadRequest("شناسهٔ ردیف‌ها نامعتبر است.");
+
+            var existingRows = await uow.FormRows.ListAsync(
+                predicate: r => r.FormId == dto.FormId && rowIds.Contains(r.Id),
+                selector: r => r.Id,
+                ct: ct
+            );
+
+            if (existingRows.Count != rowIds.Length)
+                return BadRequest("بعضی از ردیف‌های ارسال‌شده یافت نشد یا متعلق به این فرم نیست.");
+
+            var res = await formService.AddFeature(
+                dto.FormId,
+                dto.Feature,
+                rowIds: rowIds,
+                dto.DisplayOrder,
+                dto.Color,
+                ct);
+
+            return res.Status switch
+            {
+                FeatureStatus.FormNotFound => NotFound("شناسهٔ فرم نامعتبر است."),
+                FeatureStatus.DisplayOrderConflict => Conflict("ترتیب نمایش در این فرم قبلاً استفاده شده است."),
+                FeatureStatus.AlreadyAssigned => NoContent(),
+                FeatureStatus.NoContent => NoContent(),
+                FeatureStatus.Created => NoContent(),
+                _ => Problem(statusCode: 500, title: "ثبت نوع برای ردیف‌ها با خطا مواجه شد.")
+            };
+        }
+
+        [HttpPost("CreateRow")]
+        [Consumes("application/json")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        public async Task<IActionResult> AddRow([FromBody] AddRowDto dto, CancellationToken ct = default)
+        {
+            if (dto is null) return BadRequest("بدنه درخواست خالی است.");
+
+            var res = await formService.AddRowAndCell(dto.FormId, dto.FeatureId, dto.RowIndex, ct);
+
+            return res.Status switch
+            {
+                FeatureStatus.FormNotFound => NotFound("شناسهٔ فرم نامعتبر است."),
+                FeatureStatus.DisplayOrderConflict => Conflict("ترتیب نمایش در این فرم قبلاً استفاده شده است."),
+                FeatureStatus.AlreadyAssigned => NoContent(),
+                FeatureStatus.NoContent => NoContent(),
+                FeatureStatus.Created => NoContent(),
+                _ => Problem(statusCode: 500, title: "ثبت نوع برای ردیف‌ها با خطا مواجه شد.")
+            };
         }
         #endregion
 

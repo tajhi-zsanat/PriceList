@@ -10,7 +10,7 @@ namespace PriceList.Core.Abstractions.Repositories
 {
     public interface IFormFeatureRepository : IGenericRepository<FormFeature>
     {
-        Task<(List<GridGroupByType> Groups, int TotalRows)> GroupRowsAndCellsByTypePagedAsync(
+        Task<(List<GridGroupByFeature> Groups, int TotalRows)> GroupRowsAndCellsByTypePagedAsync(
             int formId,
             int page,
             int pageSize,

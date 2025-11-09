@@ -27,7 +27,7 @@ namespace PriceList.Infrastructure.Configurations
             b.HasOne(x => x.FormFeature)
               .WithMany(f => f.Rows)
               .HasForeignKey(x => x.FormFeatureId)
-              .OnDelete(DeleteBehavior.Cascade);
+              .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

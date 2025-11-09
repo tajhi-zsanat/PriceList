@@ -5,9 +5,7 @@ using PriceList.Core.Abstractions.Storage;
 using PriceList.Core.Application.Services;
 using PriceList.Core.Entities;
 using PriceList.Infrastructure.Data;
-using PriceList.Infrastructure.Repositories;
 using PriceList.Infrastructure.Repositories.Ef;
-using PriceList.Infrastructure.Services;
 using PriceList.Infrastructure.Services.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -95,6 +93,7 @@ builder.Services.AddScoped<IFormRepository, FormRepository>();
 builder.Services.AddScoped<IFormCellRepository, FormCellRepository>();
 builder.Services.AddScoped<IFormColumnDefRepository, FormColumnDefRepository>();
 builder.Services.AddScoped<IFormRowRepository, FormRowRepository>();
+builder.Services.AddScoped<IFormFeatureRepository, FormFeatureRepository>();
 
 //Service
 builder.Services.AddScoped<IFormService, FormService>();

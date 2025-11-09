@@ -8,5 +8,5 @@ namespace PriceList.Core.Application.Dtos.Form;
 
 public record FormCellsResponseDto(
     List<FormColumnDefDto> Headers,
-    List<GridGroupByType> Cells
+    List<GridGroupByFeature> Cells
 );

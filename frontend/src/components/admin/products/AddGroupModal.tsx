@@ -10,19 +10,12 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import type { GridGroup, GroupItemDto } from "@/types";
+import type { GridGroup } from "@/types";
 import { useGridCtx } from "@/pages/admin/products/ctx/GridContext";
-import { addTypeToRows, getGroupList } from "@/lib/api/formGrid";
 import { Label } from "@radix-ui/react-label";
 import { Input } from "@/components/ui/input";
 import { uniq } from "@/lib/helpers";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
+import { addFeatureToRows } from "@/lib/api/formGrid";
 
 type Props = {
     trigger: React.ReactNode;
@@ -38,8 +31,7 @@ export default function AddGroupModal({ trigger, cells, formId, onCreated }: Pro
     const [loading, setLoading] = useState(false);
     const [err, setErr] = useState<string | null>(null);
 
-    const [groupItems, setGroupItems] = useState<GroupItemDto[]>([]);
-    const [selected, setSelected] = useState<string | undefined>(undefined);
+    const [feature, setFeature] = useState<string>("");
     const [startrow, setStartrow] = useState<number>();
     const [displayOrder, setDisplayOrder] = useState<string>("");
     const [endrow, setendrow] = useState<number>();
@@ -50,28 +42,6 @@ export default function AddGroupModal({ trigger, cells, formId, onCreated }: Pro
     useEffect(() => {
         fillRowIds(cells);
     }, [cells]);
-
-    useEffect(() => {
-        const ctrl = new AbortController();
-        setErr(null);
-
-        (async () => {
-            try {
-                setLoading(true);
-                const res = await getGroupList(formId, ctrl.signal);
-                setGroupItems(res);
-
-            } catch (e: any) {
-                if (e?.name === "CanceledError" || e?.name === "AbortError") return;
-                const msg = e?.response?.data || e?.message || "خطای نامشخص رخ داد";
-                setErr(msg);
-            } finally {
-                setLoading(false);
-            }
-        })();
-
-        return () => ctrl.abort();
-    }, [formId]);
 
     const fillRowIds = (groups: GridGroup[]) => {
         const map: Record<number, number> = {};
@@ -91,9 +61,9 @@ export default function AddGroupModal({ trigger, cells, formId, onCreated }: Pro
         if (startrow == null) { toast.warning("از ردیف وارد نشده است."); return; }
         if (endrow == null) { toast.warning("تا ردیف وارد نشده است."); return; }
         if (endrow < startrow) { toast.warning("تا ردیف باید بزرگتر یا مساوی از ردیف باشد."); return; }
-        if (!selected) { toast.warning("لطفاً نوع محصول را وارد نمایید."); return; }
+        if (feature == "") { toast.warning("ویژگی وارد نشده است."); return; }
         if (!displayOrder || displayOrder === "") { toast.warning("ترتیب نمایش باید بزرگ تر از 0 باشد."); return; }
-        debugger;
+
         setLoading(true);
         try {
             const range = Array.from({ length: endrow - startrow + 1 }, (_, i) => startrow + i);
@@ -106,11 +76,11 @@ export default function AddGroupModal({ trigger, cells, formId, onCreated }: Pro
                 toast.warning("هیچ ردیفی با این محدوده یافت نشد.");
                 return;
             }
-       
+
             const ctrl = new AbortController();
-            await addTypeToRows({
+            await addFeatureToRows({
                 formId,
-                groupId: selected,
+                feature: feature,
                 rowIds: selectedRowIDs,
                 displayOrder,
                 color,
@@ -133,7 +103,7 @@ export default function AddGroupModal({ trigger, cells, formId, onCreated }: Pro
             <DialogContent dir="rtl" className="sm:max-w-lg w-full">
                 <DialogHeader className="text-start gap-4">
                     <DialogTitle className="border-b border-b-[#CFD8DC] pb-4">
-                        افزودن دسته‌بندی جدید
+                        افزودن ویژگی جدید
                     </DialogTitle>
                 </DialogHeader>
 
@@ -142,23 +112,16 @@ export default function AddGroupModal({ trigger, cells, formId, onCreated }: Pro
 
                     <div className="flex-1 grid gap-2">
                         <Label htmlFor="displayOrder" className="text-bold">انتخاب دسته‌بندی</Label>
-                        <Select
-                            dir="rtl"
-                            value={selected}
-                            onValueChange={setSelected}
-                        >
-                            <SelectTrigger className="w-full">
-                                <SelectValue placeholder="-- انتخاب نوع محصول --" />
-                            </SelectTrigger>
-
-                            <SelectContent>
-                                {groupItems.map(u => (
-                                    <SelectItem key={u.id} value={String(u.id)}>
-                                        {u.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <Input
+                            id="FeatureName"
+                            type="text"
+                            value={feature ?? ""}
+                            placeholder="نام ویژگی"
+                            onChange={(e) => {
+                                const v = e.currentTarget.value;
+                                setFeature(v);
+                            }}
+                        />
                     </div>
                     <div className="flex-1 grid gap-2">
                         <Label htmlFor="displayOrder" className="text-bold">ترتیب نمایش</Label>

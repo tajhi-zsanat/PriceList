@@ -6,7 +6,5 @@ using System.Threading.Tasks;
 
 namespace PriceList.Core.Application.Dtos.Form;
 
-public sealed record FormCellsPageResponseDto(
-    IReadOnlyList<FormColumnDefDto> Headers,
-    IReadOnlyList<GridGroupByFeature> Cells,
-    PaginationMeta Meta);
+public record AddRowToForm(int FormId,
+    int RowId);

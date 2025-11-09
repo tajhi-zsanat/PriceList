@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { EditableCell } from "../cells/EditableCell";
 import { ImageCell } from "../cells/ImageCell";
 import { FileCell } from "../cells/FileCell";
+import { MoreCell } from "./MoreCell";
 
 type Props = {
   header: { type: string; key?: string; };
@@ -12,9 +13,12 @@ type Props = {
   current: string;
   rowCount?: number;
   moreIcon?: string;
+  featureId: number;
+  rowIndex: number;
+  onAdded: () => Promise<void>;
 };
 
-export function GridCellTd({ header, cell, formId, current, rowCount, moreIcon }: Props) {
+export function GridCellTd({ header, cell, formId, current, rowCount, moreIcon, featureId, rowIndex, onAdded }: Props) {
   const isImage = header.type === "Image";
   const isFile = header.type === "File";
   const isDesc = header.key === "description";
@@ -52,6 +56,7 @@ export function GridCellTd({ header, cell, formId, current, rowCount, moreIcon }
         errorFlash && "shake-x"
       )}
     >
+
       {/* sweep success layer */}
       {sweep && <div className="absolute inset-0 pointer-events-none sweep-success rounded" />}
 
@@ -70,7 +75,7 @@ export function GridCellTd({ header, cell, formId, current, rowCount, moreIcon }
       <div className="z-10">
         {isCheckbox && <input type="checkbox" className="size-4 align-middle" />}
         {isRowno && <span>{rowCount}</span>}
-        {isMore && moreIcon && <img className="m-auto" src={moreIcon} alt="بیشتر" />}
+        {isMore && moreIcon && <MoreCell moreIcon={moreIcon} featureId={featureId} formId={formId} rowIndex={rowIndex} onAdded={onAdded} />}
 
         {cell && (
           <>

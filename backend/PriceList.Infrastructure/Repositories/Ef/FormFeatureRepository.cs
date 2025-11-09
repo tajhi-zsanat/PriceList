@@ -4,6 +4,7 @@ using PriceList.Core.Abstractions.Repositories;
 using PriceList.Core.Application.Dtos.Form;
 using PriceList.Core.Entities;
 using PriceList.Infrastructure.Data;
+using PriceList.Infrastructure.Data.Migrations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,156 +20,113 @@ namespace PriceList.Infrastructure.Repositories.Ef
         {
         }
 
-        public async Task<(List<GridGroupByType> Groups, int TotalRows)>
-            GroupRowsAndCellsByTypePagedAsync(
-                int formId,
-                int page,
-                int pageSize,
-                CancellationToken ct)
+        public async Task<(List<GridGroupByFeature> Groups, int TotalRows)>
+    GroupRowsAndCellsByTypePagedAsync(
+        int formId,
+        int page,
+        int pageSize,
+        CancellationToken ct)
         {
-            //// --- 1) Total rows for pagination
-            //var totalRows = await _db.FormRows
-            //    .AsNoTracking()
-            //    .Where(r => r.FormId == formId)
-            //    .CountAsync(ct);
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
 
-            //if (totalRows == 0)
-            //    return (new List<GridGroupByType>(), 0);
+            // 1) Count all rows
+            var totalRows = await _db.FormRows
+                .AsNoTracking()
+                .Where(r => r.FormId == formId)
+                .CountAsync(ct);
 
-            //// --- 2) Page math and stable row ordering
-            //var skip = (page - 1) * pageSize;
-            //var startRowNumber = skip + 1;
+            if (totalRows == 0)
+                return (new List<GridGroupByFeature>(), 0);
 
-            //var pageRowIds = await _db.FormRows
-            //    .AsNoTracking()
-            //    .Where(r => r.FormId == formId)
-            //    .OrderBy(r => r.RowIndex)
-            //    .ThenBy(r => r.Id)
-            //    .Skip(skip)
-            //    .Take(pageSize)
-            //    .Select(r => r.Id)
-            //    .ToListAsync(ct);
+            var skip = (page - 1) * pageSize;
 
-            //// Short-circuit (unlikely because totalRows > 0)
-            //if (pageRowIds.Count == 0)
-            //    return (new List<GridGroupByType>(), totalRows);
+            // 2) Build the ordered, paged list of rows with their feature metadata.
+            //    Left-join to features; null-feature gets DisplayOrder = int.MaxValue to push it last.
+            var baseQuery =
+                from r in _db.FormRows.AsNoTracking().Where(r => r.FormId == formId)
+                join fraw in _db.FormFeature.AsNoTracking().Where(f => f.FormId == formId)
+                    on r.FormFeatureId equals (int?)fraw.Id into gj
+                from f in gj.DefaultIfEmpty()
+                select new
+                {
+                    r.Id,
+                    r.RowIndex,
+                    FeatureId = r.FormFeatureId,                  // nullable int
+                    FeatureName = f != null ? f.Name : "بدون ویژگی",
+                    FeatureColor = f != null ? f.Color : "#206e4e",
+                    FeatureOrder = f != null ? f.DisplayOrder : int.MaxValue
+                };
 
-            //// --- 3) Load cells for rows in page (batched)
-            //var cellsByRow = await _db.FormCells
-            //    .AsNoTracking()
-            //    .Where(c => pageRowIds.Contains(c.RowId))
-            //    .Select(c => new
-            //    {
-            //        c.Id,
-            //        c.RowId,
-            //        c.ColIndex,
-            //        c.Value
-            //    })
-            //    .ToListAsync(ct);
+            var pageRows = await baseQuery
+                .OrderBy(x => x.FeatureOrder)
+                .ThenBy(x => x.FeatureName)    // tie-breaker for stability
+                .ThenBy(x => x.RowIndex)
+                .ThenBy(x => x.Id)
+                .Skip(skip)
+                .Take(pageSize)
+                .ToListAsync(ct);
 
-            //var rowCellsMap = cellsByRow
-            //    .GroupBy(x => x.RowId)
-            //    .ToDictionary(
-            //        g => g.Key,
-            //        g => g.Select(c => new CellDto
-            //        {
-            //            Id = c.Id,
-            //            ColIndex = c.ColIndex,
-            //            Value = c.Value
-            //        }).ToList()
-            //    );
+            if (pageRows.Count == 0)
+                return (new List<GridGroupByFeature>(), totalRows);
 
-            //// --- 4) Load all product types configured for this form (ordered)
-            //var formTypes = await _db.FormProductGroups
-            //    .AsNoTracking()
-            //    .Where(ft => ft.FormId == formId)
-            //    .OrderBy(ft => ft.DisplayOrder)
-            //    .Select(ft => new
-            //    {
-            //        ft.ProductGroupId,
-            //        TypeName = ft.ProductGroup.Name,
-            //        ft.Color
-            //    })
-            //    .ToListAsync(ct);
+            // 3) Fetch the cells for just these rows (1 extra round-trip).
+            var rowIds = pageRows.Select(x => x.Id).ToList();
 
-            //var typeIdsForForm = formTypes.Select(t => t.ProductGroupId).ToHashSet();
+            var cells = await _db.FormCells.AsNoTracking()
+                .Where(c => rowIds.Contains(c.RowId))
+                .OrderBy(c => c.ColIndex)
+                .Select(c => new
+                {
+                    c.RowId,
+                    Cell = new CellDto
+                    {
+                        Id = c.Id,
+                        ColIndex = c.ColIndex,
+                        Value = c.Value
+                    }
+                })
+                .ToListAsync(ct);
 
-            //// --- 5) Load which page rows have which types (batched)
-            //var pageRowTypes = await _db.FormRowProductGroups
-            //    .AsNoTracking()
-            //    .Where(frt => frt.FormId == formId && pageRowIds.Contains(frt.FormRowId))
-            //    .Select(frt => new { frt.FormRowId, frt.ProductGroupId })
-            //    .ToListAsync(ct);
+            var cellsByRow = cells
+                .GroupBy(x => x.RowId)
+                .ToDictionary(g => g.Key, g => g.Select(x => x.Cell).ToList());
 
-            //// Map: typeId -> HashSet<rowId> (only for rows in this page)
-            //var rowsByType = pageRowTypes
-            //    .GroupBy(x => x.ProductGroupId)
-            //    .ToDictionary(
-            //        g => g.Key,
-            //        g => g.Select(x => x.FormRowId).ToHashSet()
-            //    );
+            // 4) Materialize groups
+            var groups = pageRows
+                .GroupBy(r => new
+                {
+                    FeatureId = r.FeatureId ?? 0,       // 0 => "no feature" for DTO
+                    r.FeatureName,
+                    r.FeatureColor,
+                    r.FeatureOrder
+                })
+                .OrderBy(g => g.Key.FeatureOrder)       // null-feature (int.MaxValue) last
+                .ThenBy(g => g.Key.FeatureName)
+                .Select(g => new GridGroupByFeature
+                {
+                    FeatureId = g.Key.FeatureId,
+                    FeatureName = g.Key.FeatureName,
+                    Color = g.Key.FeatureColor,
+                    Rows = g.OrderBy(r => r.RowIndex).ThenBy(r => r.Id)
+                            .Select(r => new RowWithCellsDto
+                            {
+                                RowId = r.Id,
+                                RowIndex = r.RowIndex,
+                                RowCount = 0, // set in step 5
+                                Cells = cellsByRow.TryGetValue(r.Id, out var list) ? list : new List<CellDto>()
+                            })
+                            .ToList()
+                })
+                .ToList();
 
-            //// --- 6) Build groups in memory
-            //var groups = new List<GridGroupByType>();
-            //var assignedRowIds = new HashSet<int>();
+            // 5) Continuous RowCount across the *page*
+            var n = skip;
+            foreach (var g in groups)
+                foreach (var row in g.Rows)
+                    row.RowCount = ++n;
 
-            //int currentRowNumber = startRowNumber;
-
-            //// 6a) For each configured type on the form (keep order by DisplayOrder)
-            //foreach (var t in formTypes)
-            //{
-            //    if (!rowsByType.TryGetValue(t.ProductGroupId, out var rowSet) || rowSet.Count == 0)
-            //        continue; // No rows of this type in the current page
-
-            //    var rows = pageRowIds
-            //        .Where(id => rowSet.Contains(id)) // keep the page order
-            //        .Select(id => new RowWithCellsDto
-            //        {
-            //            RowId = id,
-            //            RowCount = currentRowNumber++,
-            //            Cells = rowCellsMap.TryGetValue(id, out var cells) ? cells : new List<CellDto>()
-            //        })
-            //        .ToList();
-
-            //    if (rows.Count > 0)
-            //    {
-            //        groups.Add(new GridGroupByType
-            //        {
-            //            TypeName = t.TypeName,
-            //            typeId = t.ProductGroupId,
-            //            Color = t.Color,
-            //            Rows = rows
-            //        });
-
-            //        foreach (var id in rows.Select(r => r.RowId))
-            //            assignedRowIds.Add(id);
-            //    }
-            //}
-
-            //// 6b) Rows with NO type (within this page)
-            //var withoutTypeIds = pageRowIds.Where(id => !assignedRowIds.Contains(id)).ToList();
-            //if (withoutTypeIds.Count > 0)
-            //{
-            //    var rows = withoutTypeIds
-            //        .Select(id => new RowWithCellsDto
-            //        {
-            //            RowId = id,
-            //            RowCount = currentRowNumber++,
-            //            Cells = rowCellsMap.TryGetValue(id, out var cells) ? cells : new List<CellDto>()
-            //        })
-            //        .ToList();
-
-            //    groups.Add(new GridGroupByType
-            //    {
-            //        TypeName = "بدون دسته‌بندی",
-            //        typeId = -1,
-            //        Color = "#1d6646",
-            //        Rows = rows
-            //    });
-            //}
-
-            //return (groups, totalRows);
-            return (new List<GridGroupByType>(), 0);
+            return (groups, totalRows);
         }
     }
 }

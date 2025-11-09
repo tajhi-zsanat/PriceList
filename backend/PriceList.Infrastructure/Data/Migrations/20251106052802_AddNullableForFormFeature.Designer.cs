@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PriceList.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using PriceList.Infrastructure.Data;
 namespace PriceList.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251106052802_AddNullableForFormFeature")]
+    partial class AddNullableForFormFeature
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -392,10 +395,6 @@ namespace PriceList.Infrastructure.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Color")
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
-
                     b.Property<string>("CreateDate")
                         .HasMaxLength(10)
                         .IsUnicode(false)
@@ -412,15 +411,9 @@ namespace PriceList.Infrastructure.Data.Migrations
                     b.Property<int>("DisplayOrder")
                         .HasColumnType("int");
 
-                    b.Property<int>("FormId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("FormId1")
-                        .HasColumnType("int");
-
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UpdateDate")
                         .HasMaxLength(10)
@@ -436,13 +429,6 @@ namespace PriceList.Infrastructure.Data.Migrations
                         .HasColumnType("varchar(4)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("FormId1")
-                        .IsUnique()
-                        .HasFilter("[FormId1] IS NOT NULL");
-
-                    b.HasIndex("FormId", "DisplayOrder", "Name")
-                        .IsUnique();
 
                     b.ToTable("FormFeatures", (string)null);
                 });
@@ -755,27 +741,12 @@ namespace PriceList.Infrastructure.Data.Migrations
                     b.Navigation("Form");
                 });
 
-            modelBuilder.Entity("PriceList.Core.Entities.FormFeature", b =>
-                {
-                    b.HasOne("PriceList.Core.Entities.Form", "Form")
-                        .WithMany("FormFeatures")
-                        .HasForeignKey("FormId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PriceList.Core.Entities.Form", null)
-                        .WithOne("Feature")
-                        .HasForeignKey("PriceList.Core.Entities.FormFeature", "FormId1");
-
-                    b.Navigation("Form");
-                });
-
             modelBuilder.Entity("PriceList.Core.Entities.FormRow", b =>
                 {
                     b.HasOne("PriceList.Core.Entities.FormFeature", "FormFeature")
                         .WithMany("Rows")
                         .HasForeignKey("FormFeatureId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("PriceList.Core.Entities.Form", "Form")
                         .WithMany("FormRows")
@@ -823,10 +794,6 @@ namespace PriceList.Infrastructure.Data.Migrations
             modelBuilder.Entity("PriceList.Core.Entities.Form", b =>
                 {
                     b.Navigation("Columns");
-
-                    b.Navigation("Feature");
-
-                    b.Navigation("FormFeatures");
 
                     b.Navigation("FormRows");
                 });

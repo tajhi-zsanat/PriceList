@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PriceList.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using PriceList.Infrastructure.Data;
 namespace PriceList.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251106083922_AddFormToFeature")]
+    partial class AddFormToFeature
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -415,9 +418,6 @@ namespace PriceList.Infrastructure.Data.Migrations
                     b.Property<int>("FormId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("FormId1")
-                        .HasColumnType("int");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -437,11 +437,13 @@ namespace PriceList.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("FormId1")
-                        .IsUnique()
-                        .HasFilter("[FormId1] IS NOT NULL");
+                    b.HasIndex("FormId")
+                        .IsUnique();
 
-                    b.HasIndex("FormId", "DisplayOrder", "Name")
+                    b.HasIndex("FormId", "DisplayOrder")
+                        .IsUnique();
+
+                    b.HasIndex("FormId", "Name")
                         .IsUnique();
 
                     b.ToTable("FormFeatures", (string)null);
@@ -758,14 +760,10 @@ namespace PriceList.Infrastructure.Data.Migrations
             modelBuilder.Entity("PriceList.Core.Entities.FormFeature", b =>
                 {
                     b.HasOne("PriceList.Core.Entities.Form", "Form")
-                        .WithMany("FormFeatures")
-                        .HasForeignKey("FormId")
+                        .WithOne("Feature")
+                        .HasForeignKey("PriceList.Core.Entities.FormFeature", "FormId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("PriceList.Core.Entities.Form", null)
-                        .WithOne("Feature")
-                        .HasForeignKey("PriceList.Core.Entities.FormFeature", "FormId1");
 
                     b.Navigation("Form");
                 });
@@ -825,8 +823,6 @@ namespace PriceList.Infrastructure.Data.Migrations
                     b.Navigation("Columns");
 
                     b.Navigation("Feature");
-
-                    b.Navigation("FormFeatures");
 
                     b.Navigation("FormRows");
                 });

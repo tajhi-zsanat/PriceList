@@ -1,4 +1,5 @@
-﻿using PriceList.Core.Entities;
+﻿using PriceList.Core.Application.Dtos.Form;
+using PriceList.Core.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,5 +36,31 @@ namespace PriceList.Core.Abstractions.Repositories
         /// Applies a {old -> new} index mapping to all cells of the form in one SQL update.
         /// </summary>
         Task ApplyCellIndexMappingAsync(int formId, IReadOnlyDictionary<int, int> map, CancellationToken ct);
+
+
+        // Add Feature
+        Task<int> CreateFeatureAsync(
+            int formId,
+            string feature,
+            int displayOrder,
+            string color,
+            CancellationToken ct);
+
+        Task<int> UpdateFormRowsAsync(int formId, int featureId, int[] rowIDs, CancellationToken ct);
+
+        Task<bool> AllRowsAlreadyHaveFeatureAsync(
+             int formId, int featureId, int[] rowIds, CancellationToken ct);
+
+        //Task<AddRowToForm> AddRow(
+        //      int formId, int featureId, CancellationToken ct);
+
+        Task ShiftRowsAsync(int formId, int insertAt, CancellationToken ct);
+
+        Task<int> CreateRowAsync(int formId, int featureId, int insertAt, CancellationToken ct);
+
+        Task CreateCellsAsync(int formId, int rowId, CancellationToken ct);
+
+        Task<bool> FeatureExistsAsync(int featureId, CancellationToken ct);
+        Task<bool> RowIndexExistsAsync(int formId, int rowId, CancellationToken ct);
     }
 }

@@ -4,15 +4,17 @@ import type { FormHeader, GridRow as GridRowType } from "@/types";
 import { GridCellTd } from "./cells/GridCellTd";
 
 export function GridRow({
-  row, headers, formId, cellValues
+  row, headers, formId, cellValues, featureId, onAdded
 }: {
   row: GridRowType;
   headers: FormHeader[];
   formId: string | null;
   cellValues: Record<number, string>;
+  featureId: number;
+  onAdded: () => Promise<void>;
 }) {
   const totalCols = headers.length;
-
+  
   return (
     <tr className="h-20" key={row.rowId}>
       {Array.from({ length: totalCols }).map((_, c) => {
@@ -28,7 +30,10 @@ export function GridRow({
             formId={formId}
             current={current}
             rowCount={row.rowCount}
+            rowIndex={row.rowIndex}
             moreIcon={moreIcon}
+            featureId={featureId}
+            onAdded={onAdded}
           />
         );
       })}

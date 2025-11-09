@@ -1,7 +1,9 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.SqlServer.Server;
 using PriceList.Core.Abstractions.Repositories;
+using PriceList.Core.Application.Dtos.Form;
 using PriceList.Core.Common;
 using PriceList.Core.Entities;
 using PriceList.Core.Enums;
@@ -241,5 +243,102 @@ WHERE r.FormId = @formId AND c.ColIndex = @index;";
 
             await _db.Database.ExecuteSqlRawAsync(sql, p, ct);
         }
+
+        public async Task<int> CreateFeatureAsync(int formId, string feature, int displayOrder, string color, CancellationToken ct)
+        {
+            var entity = new FormFeature
+            {
+                FormId = formId,              // ⬅️ important
+                Name = feature.Trim(),
+                DisplayOrder = displayOrder,
+                Color = color
+            };
+
+            _db.FormFeature.Add(entity);
+            await _db.SaveChangesAsync(ct);
+            return entity.Id;
+        }
+
+        public async Task<int> UpdateFormRowsAsync(int formId, int featureId, int[] rowIds, CancellationToken ct)
+        {
+            // Update only rows that belong to the same form + in provided ids
+            var affected = await _db.FormRows
+                .Where(r => r.FormId == formId && rowIds.Contains(r.Id))
+                .ExecuteUpdateAsync(
+                    s => s.SetProperty(r => r.FormFeatureId, featureId),
+                    ct);
+
+            return affected;
+        }
+
+        public async Task<bool> AllRowsAlreadyHaveFeatureAsync(
+             int formId, int featureId, int[] rowIds, CancellationToken ct)
+        {
+            var countWithFeature = await _db.FormRows
+                .Where(r => r.FormId == formId && rowIds.Contains(r.Id) && r.FormFeatureId == featureId)
+                .CountAsync(ct);
+
+            return countWithFeature == rowIds.Length;
+        }
+
+        public async Task ShiftRowsAsync(int formId, int insertAt, CancellationToken ct)
+        {
+            var (utcNow, pDate, pTime) = GetAudit();
+
+            await _db.FormRows
+                .Where(c => c.FormId == formId && c.RowIndex > insertAt)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(c => c.RowIndex, c => c.RowIndex + 1)
+                    .SetProperty(c => c.UpdateDateAndTime, _ => utcNow)
+                    .SetProperty(c => c.UpdateDate, _ => pDate)
+                    .SetProperty(c => c.UpdateTime, _ => pTime)
+                    .SetProperty(c => c.CreateDateAndTime, _ => utcNow)
+                    .SetProperty(c => c.CreateDate, _ => pDate)
+                    .SetProperty(c => c.CreateTime, _ => pTime), ct);
+        }
+
+        public async Task<int> CreateRowAsync(int formId, int featureId, int insertAt, CancellationToken ct)
+        {
+            var formRow = new FormRow
+            {
+                FormId = formId,
+                RowIndex = insertAt + 1,
+                FormFeatureId = featureId == 0 ? null : featureId
+            };
+
+            await _db.FormRows.AddAsync(formRow, ct);
+            await _db.SaveChangesAsync(ct);
+            return formRow.Id;
+        }
+
+        public async Task CreateCellsAsync(int formId, int rowId, CancellationToken ct)
+        {
+            var cellCount = await _db.FormColumnDefs
+                .Where(f => f.FormId == formId)
+                .Select(f => f.Index)
+                .CountAsync(ct);
+
+            List<FormCell> cols = new List<FormCell>();
+
+            for (var i = 2; i < cellCount - 1; i++)
+            {
+                var col = new FormCell
+                {
+                    RowId = rowId,
+                    ColIndex = i
+                };
+
+                cols.Add(col);
+            }
+
+            await _db.FormCells.AddRangeAsync(cols, ct);
+            await _db.SaveChangesAsync(ct);
+        }
+
+        public async Task<bool> FeatureExistsAsync(int featureId, CancellationToken ct)
+             => await _db.FormFeature.AnyAsync(f => f.Id == featureId, ct);
+
+        public async Task<bool> RowIndexExistsAsync(int formId, int rowId, CancellationToken ct)
+             => await _db.FormRows.AnyAsync(f => f.FormId == formId && f.RowIndex == rowId, ct);
     }
 }

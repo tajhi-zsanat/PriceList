@@ -26,8 +26,16 @@ export function GridTable({ grid, formId, cellValues, cellValuesHeader, onDelete
           </tr>
         ) : (
           grid.cells.map((group: any, gi: number) => (
-            <GridGroup key={`g-${gi}`} group={group} gi={gi} headers={grid.headers}
-              formId={formId} cellValues={cellValues} />
+            <GridGroup
+              key={`g-${gi}`}
+              group={group}
+              gi={gi}
+              headers={grid.headers}
+              formId={formId}
+              cellValues={cellValues}
+              featureId={group.featureId}
+              onAdded={onDeleted}
+            />
           ))
         )}
       </tbody>

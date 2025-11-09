@@ -84,7 +84,7 @@ export default function AddColDefModal({ trigger, formId, currentCount, onCreate
                     title="حداکثر تعداد ستون‌ها (11) تکمیل است"
                     disabled
                 >
-                    <span>افزودن ویژگی</span>
+                    <span>افزودن سرگروه</span>
                 </button>
             ) : (
                 <DialogTrigger asChild>{trigger}</DialogTrigger>
@@ -93,7 +93,7 @@ export default function AddColDefModal({ trigger, formId, currentCount, onCreate
             <DialogContent dir="rtl" className="sm:max-w-lg w-full">
                 <DialogHeader className="text-start gap-4">
                     <DialogTitle className="border-b border-b-[#CFD8DC] pb-4">
-                        افزودن ویژگی جدید
+                        افزودن سرگروه جدید
                     </DialogTitle>
                 </DialogHeader>
 

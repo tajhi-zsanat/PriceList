@@ -30,7 +30,7 @@ namespace PriceList.Core.Enums
 
     public sealed record RemoveColDefResult(RemoveColDefStatus Status);
 
-    public enum GroupStatus
+    public enum FeatureStatus
     {
         Initial,
         FormNotFound,
@@ -40,8 +40,10 @@ namespace PriceList.Core.Enums
         InvalidColumn,
         NoContent,
         DisplayOrderConflict,
-        AlreadyAssigned
+        AlreadyAssigned,
+        Created
     }
 
-    public sealed record AddGroupToFormResult(GroupStatus Status, int? NewColumnIndex = null);
+    public sealed record AddFeatureToFormResult(FeatureStatus Status);
+    public sealed record AddRowToFormResult(FeatureStatus Status);
 }

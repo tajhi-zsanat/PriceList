@@ -5,8 +5,8 @@ import { useGridData } from "./hooks/useGridData";
 import { GridProvider, useGridCtx } from "./ctx/GridContext";
 import { GridTable } from "@/components/admin/GridTable";
 import AddColDefModal from "@/components/admin/products/AddColDefModal";
-import backwardIcon from "@/assets/img/admin/chevron_backward.png"
-import forwardIcon from "@/assets/img/admin/chevron_forward.png"
+import backwardIcon from "@/assets/img/admin/chevron_backward.png";
+import forwardIcon from "@/assets/img/admin/chevron_forward.png";
 import AddGroupModal from "@/components/admin/products/AddGroupModal";
 
 function ProductsInner() {
@@ -16,7 +16,7 @@ function ProductsInner() {
 
   const { grid, loading, err, nextPage, prevPage, refetch } = useGridData(formId);
   const { cellValues, cellValuesHeader } = useGridCtx();
-
+ 
   useEffect(() => {
     if (!formId) navigate("/admin/form", { replace: true });
   }, [formId, navigate]);
@@ -67,7 +67,7 @@ function ProductsInner() {
                   type="button"
                   className="flex items-center gap-2 bg-white text-[#636363] p-2 rounded-lg border border-[#636363] cursor-pointer transition hover:bg-[#f2f5f7]"
                 >
-                  <span>انتخاب دسته بندی</span>
+                  <span>انتخاب ویژگی</span>
                 </button>
               }
             />
@@ -80,7 +80,7 @@ function ProductsInner() {
                   type="button"
                   className="flex items-center gap-2 bg-white text-[#636363] p-2 rounded-lg border border-[#636363] cursor-pointer transition hover:bg-[#f2f5f7]"
                 >
-                  <span>افزودن ویژگی</span>
+                  <span>افزودن سرگروه</span>
                 </button>
               }
             />

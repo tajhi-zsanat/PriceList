@@ -16,8 +16,8 @@ namespace PriceList.Core.Entities
         public int FormId { get; set; }
         public Form Form { get; set; } = default!;
 
-        public int FormFeatureId { get; set; }
-        public FormFeature FormFeature { get; set; } = default!;
+        public int? FormFeatureId { get; set; }
+        public FormFeature? FormFeature { get; set; } = default!;
 
 
         public ICollection<FormCell> Cells { get; set; } = new List<FormCell>();

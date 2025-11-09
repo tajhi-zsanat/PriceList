@@ -10,6 +10,7 @@ namespace PriceList.Core.Application.Dtos.Form
     {
         public int RowId { get; set; }
         public int RowCount { get; set; }
+        public int RowIndex { get; set; }
         public List<CellDto> Cells { get; set; } = new();
     }
 }

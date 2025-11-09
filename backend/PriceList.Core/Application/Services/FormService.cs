@@ -87,5 +87,61 @@ namespace PriceList.Core.Application.Services
                 throw;
             }
         }
+
+        public async Task<AddFeatureToFormResult> AddFeature(
+                int formId, string feature, int[] rowIds, int displayOrder, string? color, CancellationToken ct)
+        {
+            if (!await uow.Forms.FormExistsAsync(formId, ct))
+                return new(FeatureStatus.FormNotFound);
+
+            await uow.BeginTransactionAsync(ct);
+            try
+            {
+                var featureId = await uow.Forms.CreateFeatureAsync(formId, feature, displayOrder, color, ct);
+
+                if (await uow.Forms.AllRowsAlreadyHaveFeatureAsync(formId, featureId, rowIds, ct))
+                {
+                    await uow.RollbackTransactionAsync(ct); // nothing to do
+                    return new(FeatureStatus.AlreadyAssigned);
+                }
+
+                var affected = await uow.Forms.UpdateFormRowsAsync(formId, featureId, rowIds, ct);
+
+                await uow.CommitTransactionAsync(ct);
+                return affected > 0 ? new(FeatureStatus.Created) : new(FeatureStatus.NoContent);
+            }
+            catch
+            {
+                await uow.RollbackTransactionAsync(ct);
+                throw;
+            }
+        }
+
+        public async Task<AddRowToFormResult> AddRowAndCell(int formId, int featureId, int rowIndex, CancellationToken ct)
+        {
+            if (!await uow.Forms.FormExistsAsync(formId, ct))
+                return new(FeatureStatus.FormNotFound);
+
+            if (featureId != 0 && !await uow.Forms.FeatureExistsAsync(featureId, ct))
+                return new(FeatureStatus.FormNotFound);
+
+            if (!await uow.Forms.RowIndexExistsAsync(formId, rowIndex, ct))
+                return new(FeatureStatus.FormNotFound);
+
+            await uow.BeginTransactionAsync(ct);
+            try
+            {
+                await uow.Forms.ShiftRowsAsync(formId, rowIndex, ct);
+                var rowId = await uow.Forms.CreateRowAsync(formId, featureId, rowIndex, ct);
+                await uow.Forms.CreateCellsAsync(formId, rowId, ct);
+                await uow.CommitTransactionAsync(ct);
+                return new(FeatureStatus.NoContent);
+            }
+            catch
+            {
+                await uow.RollbackTransactionAsync(ct);
+                throw; // ⬅️ let the middleware map exceptions to ProblemDetails/HTTP
+            }
+        }
     }
 }

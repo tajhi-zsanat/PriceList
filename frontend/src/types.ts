@@ -230,12 +230,13 @@ export interface GridCell {
 export interface GridRow {
   rowId: number;
   rowCount: number;
+  rowIndex: number;
   cells: GridCell[];
 }
 
 export interface GridGroup {
-  typeName: string;
-  typeId: number;
+  featureName: string;
+  featureId: number;
   color: string | null;
   rows: GridRow[];
   count: number;
@@ -253,12 +254,6 @@ export interface GridResponse {
     hasNext: boolean;
   };
 }
-
-export type GroupItemDto = {
-  id: string;
-  name: string;
-  imagePath: string;
-};
 
 // convenience
 // Nice typed key like "12-5"

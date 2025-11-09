@@ -11,7 +11,11 @@ namespace PriceList.Core.Entities
     {
         public int Id { get; set; }
 
+        public int FormId { get; set; }
+        public Form Form { get; set; } = default!;
+
         public required string Name { get; set; }
+        public string? Color { get; set; }
 
         public int DisplayOrder { get; set; }
 
