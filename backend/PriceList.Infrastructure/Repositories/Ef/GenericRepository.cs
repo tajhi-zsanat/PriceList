@@ -104,6 +104,15 @@ namespace PriceList.Infrastructure.Repositories.Ef
         public void Update(T entity) => Set.Update(entity);
         public void Remove(T entity) => Set.Remove(entity);
 
+        public async Task<int> ExecuteDeleteAsync(
+            Expression<Func<T, bool>> predicate,
+            CancellationToken ct = default)
+        {
+            return await _db.Set<T>()
+                .Where(predicate)
+                .ExecuteDeleteAsync(ct);
+        }
+
         public Task<bool> AnyAsync(Expression<Func<T, bool>> predicate, CancellationToken ct = default)
             => Set.AsNoTracking().AnyAsync(predicate, ct);
 

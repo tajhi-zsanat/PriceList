@@ -41,6 +41,11 @@ export interface AddRowPayload {
   formId: string | null;
 }
 
+export interface RemoveRowPayload {
+  formId: string | null;
+  rowIndex: number;
+}
+
 export interface removeHeaderDefRequest {
   formId: number;
   index: number;
@@ -118,4 +123,8 @@ export async function addFeatureToRows(
 export async function AddRow(payload: AddRowPayload) {
   // Axios throws on non-2xx automatically
   return api.post(`/api/Form/CreateRow`, payload);
+}
+
+export async function RemoveRow(payload: RemoveRowPayload) {
+  return api.delete(`/api/Form/DeleteRow`, { data: payload });
 }

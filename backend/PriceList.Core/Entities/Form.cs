@@ -32,8 +32,6 @@ namespace PriceList.Core.Entities
 
         public ICollection<FormRow> FormRows { get; set; } = [];
         public ICollection<FormFeature> FormFeatures { get; set; } = [];
-
-        public FormFeature? Feature { get; set; }
     }
 
     public enum ColumnKind

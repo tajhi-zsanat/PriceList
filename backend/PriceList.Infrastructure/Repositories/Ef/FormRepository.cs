@@ -248,7 +248,7 @@ WHERE r.FormId = @formId AND c.ColIndex = @index;";
         {
             var entity = new FormFeature
             {
-                FormId = formId,              // ⬅️ important
+                FormId = formId,            
                 Name = feature.Trim(),
                 DisplayOrder = displayOrder,
                 Color = color
@@ -340,5 +340,19 @@ WHERE r.FormId = @formId AND c.ColIndex = @index;";
 
         public async Task<bool> RowIndexExistsAsync(int formId, int rowId, CancellationToken ct)
              => await _db.FormRows.AnyAsync(f => f.FormId == formId && f.RowIndex == rowId, ct);
+
+        public async Task ShiftMinusRowsAsync(int formId, int removeAt, CancellationToken ct)
+        {
+            var (utcNow, pDate, pTime) = GetAudit();
+
+            await _db.FormRows
+                .Where(c => c.FormId == formId && c.RowIndex > removeAt) // <-- strictly greater
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(c => c.RowIndex, c => c.RowIndex - 1)
+                    .SetProperty(c => c.UpdateDateAndTime, _ => utcNow)
+                    .SetProperty(c => c.UpdateDate, _ => pDate)
+                    .SetProperty(c => c.UpdateTime, _ => pTime),
+                    ct);
+        }
     }
 }

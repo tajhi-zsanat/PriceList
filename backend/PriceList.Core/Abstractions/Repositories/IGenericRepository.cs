@@ -46,6 +46,10 @@ namespace PriceList.Core.Abstractions.Repositories
         void Update(T entity);
         void Remove(T entity);
 
+        Task<int> ExecuteDeleteAsync(
+            Expression<Func<T, bool>> predicate,
+            CancellationToken ct = default);
+
         Task<bool> AnyAsync(Expression<Func<T, bool>> predicate, CancellationToken ct = default);
         Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null, CancellationToken ct = default);
 

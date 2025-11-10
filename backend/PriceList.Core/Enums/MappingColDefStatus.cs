@@ -41,9 +41,14 @@ namespace PriceList.Core.Enums
         NoContent,
         DisplayOrderConflict,
         AlreadyAssigned,
-        Created
+        Created,
+        IsExistFeature,
+        InvalidRow,
+        FormRowNotFound,
+        FeatureRowNotFound,
     }
 
     public sealed record AddFeatureToFormResult(FeatureStatus Status);
     public sealed record AddRowToFormResult(FeatureStatus Status);
+    public sealed record RemoveRowResult(FeatureStatus Status);
 }

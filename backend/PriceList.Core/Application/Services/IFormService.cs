@@ -27,5 +27,10 @@ namespace PriceList.Core.Application.Services
             int featureId,
             int rowIndex,
             CancellationToken ct);
+
+        Task<RemoveRowResult> RemoveRow(
+            int formId,
+            int rowIndex,
+            CancellationToken ct);
     }
 }

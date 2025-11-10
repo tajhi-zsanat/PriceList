@@ -50,7 +50,7 @@ namespace PriceList.Core.Common
             }
 
             // price
-            cols.Add(Col(formId, priceIndex, ColumnKind.Fixed, ColumnType.Price, "price", "قیمت", required: true));
+            cols.Add(Col(formId, priceIndex, ColumnKind.Fixed, ColumnType.Price, "price", "قیمت(ریال)", required: true));
             // more (UI only)
             cols.Add(Col(formId, lastIndex, ColumnKind.Static, ColumnType.More, "more", "عملیات"));
 

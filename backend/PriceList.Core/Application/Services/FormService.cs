@@ -97,6 +97,14 @@ namespace PriceList.Core.Application.Services
             await uow.BeginTransactionAsync(ct);
             try
             {
+                var IsExistFeature = await uow.FormFeatures.AnyAsync(
+                    predicate: f => f.Name.Trim() == feature.Trim(),
+                    ct: ct
+                    );
+
+                if (IsExistFeature)
+                    return new(FeatureStatus.IsExistFeature);
+
                 var featureId = await uow.Forms.CreateFeatureAsync(formId, feature, displayOrder, color, ct);
 
                 if (await uow.Forms.AllRowsAlreadyHaveFeatureAsync(formId, featureId, rowIds, ct))
@@ -143,5 +151,63 @@ namespace PriceList.Core.Application.Services
                 throw; // ⬅️ let the middleware map exceptions to ProblemDetails/HTTP
             }
         }
+
+        public async Task<RemoveRowResult> RemoveRow(int formId, int rowIndex, CancellationToken ct)
+        {
+            if (!await uow.Forms.FormExistsAsync(formId, ct))
+                return new(FeatureStatus.FormNotFound);
+
+            // Single fetch
+            var formRow = await uow.FormRows.FirstOrDefaultAsync(
+                predicate: r => r.FormId == formId && r.RowIndex == rowIndex,
+                selector: r => r,
+                ct: ct);
+
+            if (formRow is null)
+                return new(FeatureStatus.FormRowNotFound);
+
+            if (formRow.FormFeatureId != null)
+            {
+                var rowCount = await uow.FormRows.CountAsync(
+                    predicate: r => r.FormId == formId && r.FormFeatureId == formRow.FormFeatureId,
+                    ct: ct
+                    );
+
+                if (rowCount == 1)
+                {
+                    var feature = await uow.FormFeatures.FirstOrDefaultAsync(
+                        predicate: f => f.FormId == formId && f.Id == formRow.FormFeatureId,
+                        selector: f => f,
+                        ct: ct
+                        );
+
+                    if(feature == null)
+                        return new(FeatureStatus.FeatureRowNotFound);
+
+                    uow.FormFeatures.Remove(feature);
+                }
+            }
+
+            await uow.BeginTransactionAsync(ct);
+            try
+            {
+                uow.FormRows.Remove(formRow);
+
+                await uow.SaveChangesAsync(ct);
+
+                await uow.Forms.ShiftMinusRowsAsync(formId, rowIndex, ct);
+
+                await uow.SaveChangesAsync(ct);
+
+                await uow.CommitTransactionAsync(ct);
+                return new(FeatureStatus.NoContent);
+            }
+            catch
+            {
+                await uow.RollbackTransactionAsync(ct);
+                throw;
+            }
+        }
+
     }
 }

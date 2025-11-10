@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PriceList.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using PriceList.Infrastructure.Data;
 namespace PriceList.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251109111819_SetNullFeatureId")]
+    partial class SetNullFeatureId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -415,6 +418,9 @@ namespace PriceList.Infrastructure.Data.Migrations
                     b.Property<int>("FormId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("FormId1")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -433,6 +439,10 @@ namespace PriceList.Infrastructure.Data.Migrations
                         .HasColumnType("varchar(4)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("FormId1")
+                        .IsUnique()
+                        .HasFilter("[FormId1] IS NOT NULL");
 
                     b.HasIndex("FormId", "DisplayOrder", "Name")
                         .IsUnique();
@@ -753,8 +763,12 @@ namespace PriceList.Infrastructure.Data.Migrations
                     b.HasOne("PriceList.Core.Entities.Form", "Form")
                         .WithMany("FormFeatures")
                         .HasForeignKey("FormId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired();
+
+                    b.HasOne("PriceList.Core.Entities.Form", null)
+                        .WithOne("Feature")
+                        .HasForeignKey("PriceList.Core.Entities.FormFeature", "FormId1");
 
                     b.Navigation("Form");
                 });
@@ -764,7 +778,7 @@ namespace PriceList.Infrastructure.Data.Migrations
                     b.HasOne("PriceList.Core.Entities.FormFeature", "FormFeature")
                         .WithMany("Rows")
                         .HasForeignKey("FormFeatureId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("PriceList.Core.Entities.Form", "Form")
                         .WithMany("FormRows")
@@ -812,6 +826,8 @@ namespace PriceList.Infrastructure.Data.Migrations
             modelBuilder.Entity("PriceList.Core.Entities.Form", b =>
                 {
                     b.Navigation("Columns");
+
+                    b.Navigation("Feature");
 
                     b.Navigation("FormFeatures");
 

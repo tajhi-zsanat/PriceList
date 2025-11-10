@@ -35,6 +35,11 @@ namespace PriceList.Infrastructure.Configurations
                 .HasForeignKey(x => x.FormId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            b.HasMany(x => x.FormRows)
+                .WithOne(x => x.Form)
+                .HasForeignKey(x => x.FormId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             b.HasIndex(f => new { f.SupplierId, f.BrandId, f.CategoryId })
                 .IsUnique();
         }

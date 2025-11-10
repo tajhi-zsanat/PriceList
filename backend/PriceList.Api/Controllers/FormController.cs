@@ -451,7 +451,10 @@ namespace PriceList.Api.Controllers
             if (existingRows.Count != rowIds.Length)
                 return BadRequest("بعضی از ردیف‌های ارسال‌شده یافت نشد یا متعلق به این فرم نیست.");
 
-            var res = await formService.AddFeature(
+            if (string.IsNullOrEmpty(dto.Color))
+                return BadRequest("لطفاً رنگ ویژگی را وارد نمایید.");
+
+           var res = await formService.AddFeature(
                 dto.FormId,
                 dto.Feature,
                 rowIds: rowIds,
@@ -463,6 +466,7 @@ namespace PriceList.Api.Controllers
             {
                 FeatureStatus.FormNotFound => NotFound("شناسهٔ فرم نامعتبر است."),
                 FeatureStatus.DisplayOrderConflict => Conflict("ترتیب نمایش در این فرم قبلاً استفاده شده است."),
+                FeatureStatus.IsExistFeature => NotFound("ویژگی با این نام قبلاً برای این فرم ایجاد شده است."),
                 FeatureStatus.AlreadyAssigned => NoContent(),
                 FeatureStatus.NoContent => NoContent(),
                 FeatureStatus.Created => NoContent(),
@@ -511,6 +515,27 @@ namespace PriceList.Api.Controllers
             {
                 RemoveColDefStatus.FormNotFound => NotFound("شناسه فرم نامعتبر می‌باشد."),
                 RemoveColDefStatus.NoContent => NoContent(),
+                _ => Problem(statusCode: 500, title: "حذف ستون با خطا مواجه شد.")
+            };
+        }
+
+        [HttpDelete("DeleteRow")]
+        [Consumes("application/json")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> DeleteRow([FromBody] RemoveRowDto dto, CancellationToken ct = default)
+        {
+            if (dto is null) return BadRequest("بدنه درخواست خالی است.");
+
+            var res = await formService.RemoveRow(dto.FormId, dto.RowIndex, ct);
+
+            return res.Status switch
+            {
+                FeatureStatus.FormNotFound => NotFound("شناسه فرم نامعتبر می‌باشد."),
+                FeatureStatus.InvalidRow => NotFound("ردیف وارد شده نامعتبر می‌باشد."),
+                FeatureStatus.FeatureRowNotFound => NotFound("شناسه فرم وارد شده نامعتبر می‌باشد."),
+                FeatureStatus.NoContent => NoContent(),
                 _ => Problem(statusCode: 500, title: "حذف ستون با خطا مواجه شد.")
             };
         }
