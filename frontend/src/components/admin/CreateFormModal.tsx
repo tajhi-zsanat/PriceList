@@ -19,10 +19,11 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
   const [displayOrder, setDisplayOrder] = useState<number>(0);
 
   const [openCategory, setOpenCategory] = useState(false);
-  // const [openType, setOpenType] = useState(false);
+  const [openGroup, setOpenGroup] = useState(false);
   const [openBrand, setOpenBrand] = useState(false);
 
   const [selectedCategory, setSelectedCategory] = useState<Item | null>(null);
+  const [selectedGroup, setSelectedGroup] = useState<Item | null>(null);
   // const [selectedType, setSelectedType] = useState<Item | null>(null);
   const [selectedBrand, setSelectedBrand] = useState<Item | null>(null);
 
@@ -37,14 +38,14 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
       setDisplayOrder(0);
 
       setSelectedCategory(null);
-      // setSelectedType(null);
+      setSelectedGroup(null);
       setSelectedBrand(null);
 
       setError(null);
       setLoading(false);
 
       setOpenCategory(false);
-      // setOpenType(false);
+      setOpenGroup(false);
       setOpenBrand(false);
     }
   }, [open]);
@@ -54,6 +55,11 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
     setError(null);
 
     if (!selectedCategory) {
+      setError("دسته‌بندی را انتخاب کنید.");
+      return;
+    }
+
+    if (!selectedGroup) {
       setError("دسته‌بندی را انتخاب کنید.");
       return;
     }
@@ -74,6 +80,7 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
       formTitle: title.trim(),
       columns: allCols,
       categoryId: selectedCategory?.id ?? null,
+      groupId: selectedGroup?.id ?? null,
       brandId: selectedBrand?.id,
       rows,
       displayOrder,
@@ -107,14 +114,15 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
     return r.data;
   }, []);
 
-  // const loadTypes: LoadItemsFn<Item> = useCallback(async ({ search, signal }) => {
-  //   if (!selectedGroup) return [];
-  //   const r = await api.get<Item[]>("/api/ProductType/by-group", {
-  //     params: { groupId: selectedGroup.id, q: search || undefined },
-  //     signal,
-  //   });
-  //   return r.data;
-  // }, [selectedGroup]);
+  const loadGroups: LoadItemsFn<Item> = useCallback(async ({ search, signal }) => {
+    debugger;
+    if (!selectedCategory) return [];
+    const r = await api.get<Item[]>("/api/ProductGroup/by-category", {
+      params: { categoryId: selectedCategory.id, q: search || undefined },
+      signal,
+    });
+    return r.data;
+  }, [selectedCategory]);
 
   const loadBrands: LoadItemsFn<Item> = useCallback(async ({ search, signal }) => {
     const r = await api.get<Item[]>("/api/Brand", {
@@ -150,7 +158,7 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
             >
               <span className="truncate">
                 {selectedCategory?.name ?? "انتخاب دسته‌بندی"}
-                {/* {selectedType ? ` / ${selectedType.name}` : ""} */}
+                {selectedGroup ? ` / ${selectedGroup.name}` : ""}
               </span>
               <span>انتخاب</span>
             </div>
@@ -256,7 +264,9 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
         title="انتخاب دسته‌بندی"
         loadItems={loadCategories}
         onSelect={(cat) => {
+          debugger;
           setSelectedCategory(cat);
+          setOpenGroup(true);
           // setSelectedType(null);
           // open next step
         }}
@@ -264,16 +274,16 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
 
 
       {/* Type Picker (depends on selected group) */}
-      {/* <EntityPickerDialog<Item>
-        open={openType}
-        onOpenChange={setOpenType}
-        title="انتخاب نوع"
-        loadItems={loadTypes}
+      {<EntityPickerDialog<Item>
+        open={openGroup}
+        onOpenChange={setOpenGroup}
+        title="انتخاب دسته بندی"
+        loadItems={loadGroups}
         onSelect={(typ) => {
-          setSelectedType(typ);
+          setSelectedGroup(typ);
           // finish chain
         }}
-      /> */}
+      />}
 
       {/* Brand Picker (Load All Brands) */}
       <EntityPickerDialog<Item>

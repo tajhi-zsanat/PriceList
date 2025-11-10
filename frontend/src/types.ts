@@ -125,6 +125,7 @@ export type FormListItemDto = {
   formTitle: string;
   productCount: number;
   categoryName: string;
+  groupName: string;
   countProduct: string;
   brandName: string;
   updatedDate: string;
@@ -134,6 +135,7 @@ export type FormCreateDto = {
   formTitle: string;
   columns: number;
   categoryId?: number;
+  groupId?: number;
   brandId?: number;
   rows?: number;
   displayOrder?: number;

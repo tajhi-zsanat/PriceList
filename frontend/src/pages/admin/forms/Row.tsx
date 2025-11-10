@@ -4,6 +4,7 @@ import type { FormListItemDto } from "@/types";
 
 export default function Row({ item, index }: { item: FormListItemDto; index: number }) {
   const categories = `${item.categoryName}`;
+  const groups = `${item.groupName}`;
 
   const handleRowClick = () => {
     window.location.href = `/admin/products?formId=${item.id}`;
@@ -30,7 +31,7 @@ export default function Row({ item, index }: { item: FormListItemDto; index: num
       </span>
 
       <span className="col-span-1">{index + 1}</span>
-      <span className="col-span-3">{categories}</span>
+      <span className="col-span-3">{categories}/{groups}</span>
       <span className="col-span-3">{item.brandName}</span>
       <span className="col-span-1">
         <FarsiText>{item.countProduct}</FarsiText>

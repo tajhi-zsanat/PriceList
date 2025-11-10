@@ -312,10 +312,12 @@ namespace PriceList.Api.Controllers
             // Load lookups
             var brand = await uow.Brands.GetByIdAsync(dto.BrandId, ct);
             var category = await uow.Categories.GetByIdAsync(dto.CategoryId, ct);
+            var group = await uow.ProductGroups.GetByIdAsync(dto.GroupId, ct);
             //var type = await uow.ProductTypes.GetByIdAsync(dto.TypeId, ct);
 
             if (brand is null) return NotFound("برند یافت نشد.");
             if (category is null) return NotFound("دسته‌بندی یافت نشد.");
+            if (group is null) return NotFound("دسته‌بندی یافت نشد.");
 
             // Resolve supplier from auth/tenant (TODO)
             const int supplierId = 1;
@@ -324,7 +326,8 @@ namespace PriceList.Api.Controllers
             var existsCombo = await uow.Forms.AnyAsync(f =>
                 f.SupplierId == supplierId &&
                 f.BrandId == dto.BrandId &&
-                f.CategoryId == dto.CategoryId);
+                f.CategoryId == dto.CategoryId &&
+                f.ProductGroupId == dto.GroupId);
 
             if (existsCombo)
                 return Conflict("فرم با این ترکیب قبلاً ایجاد شده است.");
@@ -345,7 +348,7 @@ namespace PriceList.Api.Controllers
                 SupplierId = supplierId,
                 BrandId = dto.BrandId,
                 CategoryId = dto.CategoryId,
-                //ProductTypeId = dto.TypeId,
+                ProductGroupId = dto.GroupId,
                 FormTitle = string.IsNullOrWhiteSpace(dto.FormTitle) ? null : dto.FormTitle.Trim(),
                 Rows = dto.Rows,
                 DisplayOrder = dto.DisplayOrder

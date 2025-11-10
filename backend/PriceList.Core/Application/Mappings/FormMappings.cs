@@ -15,6 +15,7 @@ namespace PriceList.Core.Application.Mappings
             f => new FormListItemDto(f.Id,
                 f.FormTitle,
                 f.Category.Name,
+                f.ProductGroup.Name,
                 f.Rows.ToString(),
                 f.Brand.Name,
                 f.UpdateDate);

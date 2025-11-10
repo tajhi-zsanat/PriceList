@@ -40,7 +40,7 @@ namespace PriceList.Infrastructure.Configurations
                 .HasForeignKey(x => x.FormId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            b.HasIndex(f => new { f.SupplierId, f.BrandId, f.CategoryId })
+            b.HasIndex(f => new { f.SupplierId, f.BrandId, f.CategoryId, f.ProductGroupId })
                 .IsUnique();
         }
     }

@@ -18,6 +18,9 @@ namespace PriceList.Core.Entities
         public int CategoryId { get; set; }
         public Category Category { get; set; } = null!;
 
+        public int ProductGroupId { get; set; }
+        public ProductGroup ProductGroup { get; set; } = null!;
+
         public int SupplierId { get; set; }
         public Supplier Supplier { get; set; } = null!;
 
@@ -25,8 +28,8 @@ namespace PriceList.Core.Entities
         public Brand Brand { get; set; } = null!;
 
         public int Rows { get; set; }
-        public int MinCols { get; set; } = 5;          
-        public int MaxCols { get; set; } = 8;         
+        public int MinCols { get; set; } = 5;
+        public int MaxCols { get; set; } = 8;
 
         public ICollection<FormColumnDef> Columns { get; set; } = [];
 

@@ -52,6 +52,7 @@ export function MoreCell({ moreIcon, featureId, formId, rowIndex, onAdded }: {
                 className="absolute -bottom-1.5 left-0 z-10 cursor-pointer
                  transition-all duration-300 ease-out opacity-0 group-hover:opacity-100"
                 src={addColIcon}
+                title="افزودن سطر"
                 onClick={() => addRow(featureId, rowIndex)}
             />
             <DropdownMenu modal={false} dir="rtl">
