@@ -18,3 +18,13 @@ Content-Type: application/json
 GET {{PriceList.Api_HostAddress}}/api/category?search={{search}}
 
 ###
+
+@id=0
+GET {{PriceList.Api_HostAddress}}/api/brand/{id:int}?id={{id}}
+
+###
+
+GET {{PriceList.Api_HostAddress}}/api/p
+roductgroup
+
+###

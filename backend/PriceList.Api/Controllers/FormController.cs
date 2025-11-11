@@ -44,7 +44,6 @@ namespace PriceList.Api.Controllers
 
                 return Ok(list);
             }
-
             catch (OperationCanceledException) when (ct.IsCancellationRequested)
             {
                 HttpContext.Response.StatusCode = 499;
@@ -457,13 +456,13 @@ namespace PriceList.Api.Controllers
             if (string.IsNullOrEmpty(dto.Color))
                 return BadRequest("لطفاً رنگ ویژگی را وارد نمایید.");
 
-           var res = await formService.AddFeature(
-                dto.FormId,
-                dto.Feature,
-                rowIds: rowIds,
-                dto.DisplayOrder,
-                dto.Color,
-                ct);
+            var res = await formService.AddFeature(
+                 dto.FormId,
+                 dto.Feature,
+                 rowIds: rowIds,
+                 dto.DisplayOrder,
+                 dto.Color,
+                 ct);
 
             return res.Status switch
             {
