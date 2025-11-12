@@ -1,7 +1,11 @@
-import { Outlet, Navigate } from "react-router-dom";
-import { useAuth } from "../AuthProvider";
+// src/app/guards/RoleGuard.tsx
+import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "@/app/AuthProvider";
+import type { Role } from "@/app/auth.api";
 
-export default function RoleGuard({ roles }: { roles: Array<"Admin" | "Editor" | "User"> }) {
+export default function RoleGuard({ roles }: { roles: Role[] }) {
   const { hasRole } = useAuth();
-  return hasRole(roles) ? <Outlet /> : <Navigate to="/403" replace />;
+  const ok = roles.some(r => hasRole(r));
+  if (!ok) return <Navigate to="/403" replace />;
+  return <Outlet />;
 }

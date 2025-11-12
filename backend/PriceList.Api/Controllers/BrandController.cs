@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PriceList.Api.Dtos;
@@ -17,34 +18,6 @@ namespace PriceList.Api.Controllers
     [Produces("application/json")]
     public class BrandController(IUnitOfWork uow) : ControllerBase
     {
-        [HttpGet("by-categories")]
-        [ProducesResponseType(typeof(List<BrandListItemDto>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<List<BrandListItemDto>>> GetByCategories(
-            [FromQuery] int categoryId,
-            [FromQuery] int groupId,
-            [FromQuery] int typeId,         
-            CancellationToken ct = default)
-        {
-            //if (categoryId <= 0) return BadRequest("شناسه دسته بندی نامعتبر است.");
-            //if (groupId <= 0) return BadRequest("شناسه گروه کالا نامعتبر است.");
-            //if (typeId <= 0) return BadRequest("شناسه نوع کالا نامعتبر است.");
-
-            //var list = await uow.Brands.ListAsync(
-            //    predicate: b => b.Products.Any(p =>
-            //        p.CategoryId == categoryId &&
-            //        p.ProductGroupId == groupId &&
-            //        p.ProductTypeId == typeId),
-            //    selector: BrandMappings.ToListItem,
-            //    orderBy: q => q
-            //        .OrderBy(b => b.DisplayOrder == 0) 
-            //        .ThenBy(b => b.DisplayOrder)
-            //        .ThenBy(b => b.Name),
-            //    ct: ct);
-
-            return Ok();
-        }
-
         [HttpGet]
         [ProducesResponseType(typeof(List<BrandListItemDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<List<BrandListItemDto>>> GetAll(

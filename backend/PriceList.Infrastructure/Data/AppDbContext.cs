@@ -1,6 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using PriceList.Core.Common;
 using PriceList.Core.Entities;
+using PriceList.Infrastructure.Identity;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -12,9 +15,11 @@ using System.Threading.Tasks;
 
 namespace PriceList.Infrastructure.Data
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+
+        public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
         public DbSet<Category> Categories => Set<Category>();
         public DbSet<ProductGroup> ProductGroups => Set<ProductGroup>();
@@ -35,6 +40,16 @@ namespace PriceList.Infrastructure.Data
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
             modelBuilder.ApplyShamsiAuditConventions();
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<RefreshToken>(e =>
+            {
+                e.HasIndex(x => x.Token).IsUnique();
+                e.Property(x => x.Token).IsRequired().HasMaxLength(256);
+                e.HasOne(x => x.User)
+                    .WithMany()
+                    .HasForeignKey(x => x.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
         }
 
         public override Task<int> SaveChangesAsync(CancellationToken ct = default)
