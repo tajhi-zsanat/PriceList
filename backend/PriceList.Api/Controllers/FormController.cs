@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.SqlServer.Server;
@@ -15,7 +17,9 @@ using PriceList.Core.Application.Services;
 using PriceList.Core.Common;
 using PriceList.Core.Entities;
 using PriceList.Core.Enums;
+using PriceList.Infrastructure.Identity;
 using System;
+using System.Security.Claims;
 using System.Text.RegularExpressions;
 
 namespace PriceList.Api.Controllers
@@ -33,8 +37,13 @@ namespace PriceList.Api.Controllers
         {
             try
             {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized("آیدی یافت نشد.");
+
                 var list = await uow.Forms.ListAsync(
-                predicate: (f => f.SupplierId == 1),
+                predicate: (f => f.SupplierId == int.Parse(userId)),
                         selector: FormMappings.ToListItem,
                         asNoTracking: true,
                         orderBy: q => q
@@ -319,11 +328,14 @@ namespace PriceList.Api.Controllers
             if (group is null) return NotFound("دسته‌بندی یافت نشد.");
 
             // Resolve supplier from auth/tenant (TODO)
-            const int supplierId = 1;
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized("آیدی یافت نشد.");
 
             // Duplicate check (composite)
             var existsCombo = await uow.Forms.AnyAsync(f =>
-                f.SupplierId == supplierId &&
+                f.SupplierId == int.Parse(userId) &&
                 f.BrandId == dto.BrandId &&
                 f.CategoryId == dto.CategoryId &&
                 f.ProductGroupId == dto.GroupId);
@@ -336,7 +348,7 @@ namespace PriceList.Api.Controllers
             {
                 var title = dto.FormTitle.Trim();
                 var existsTitle = await uow.Forms.AnyAsync(
-                    f => f.SupplierId == supplierId && f.FormTitle == title, ct);
+                    f => f.SupplierId == int.Parse(userId) && f.FormTitle == title, ct);
                 if (existsTitle)
                     return Conflict("عنوان فرم تکراری می‌باشد.");
             }
@@ -344,7 +356,7 @@ namespace PriceList.Api.Controllers
             // Create entity
             var entity = new Form
             {
-                SupplierId = supplierId,
+                SupplierId = int.Parse(userId),
                 BrandId = dto.BrandId,
                 CategoryId = dto.CategoryId,
                 ProductGroupId = dto.GroupId,

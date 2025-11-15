@@ -15,7 +15,7 @@ namespace PriceList.Infrastructure.Auth
     public class TokenService(IConfiguration cfg) : ITokenService
     {
         public string CreateAccessToken(AppUser user, IList<string> roles, IList<Claim> userClaims)
-        {
+            {
             var jwt = cfg.GetSection("Jwt");
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["Key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

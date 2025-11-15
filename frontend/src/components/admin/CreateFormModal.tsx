@@ -115,7 +115,6 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
   }, []);
 
   const loadGroups: LoadItemsFn<Item> = useCallback(async ({ search, signal }) => {
-    debugger;
     if (!selectedCategory) return [];
     const r = await api.get<Item[]>("/api/ProductGroup/by-category", {
       params: { categoryId: selectedCategory.id, q: search || undefined },
@@ -264,7 +263,6 @@ export default function CreateFormModal({ open, onOpenChange, trigger, onCreated
         title="انتخاب دسته‌بندی"
         loadItems={loadCategories}
         onSelect={(cat) => {
-          debugger;
           setSelectedCategory(cat);
           setOpenGroup(true);
           // setSelectedType(null);

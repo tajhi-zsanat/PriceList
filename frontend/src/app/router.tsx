@@ -20,7 +20,7 @@ const AdminProducts = lazy(() => import("@/pages/admin/products/Products"));
 const Forms = lazy(() => import("@/pages/admin/forms/Forms"));
 
 const Forbidden = () => <div>403 — دسترسی ندارید</div>;
-const NotFound = () => <div>404</div>;
+const NotFound = () => <div>صفحه یافت نشد</div>;
 
 const Load = (el: React.ReactElement) => <Suspense fallback={null}>{el}</Suspense>;
 

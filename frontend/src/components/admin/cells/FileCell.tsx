@@ -1,6 +1,6 @@
 import { useRef } from "react";
-import pdfIcon from "@/assets/img/PDFRed.png";
-import uploadIcon from "@/assets/img/admin/solar_upload-linear.png";
+import pdfIcon from "@/assets/img/admin/download-PDF.png";
+import uploadIcon from "@/assets/img/admin/upload-PDF.png";
 import deleteIcon from "@/assets/img/admin/delete.png";
 import check from "@/assets/img/admin/check_small.png";
 import { resolveImgSrc, isBlobUrl } from "@/lib/helpers";

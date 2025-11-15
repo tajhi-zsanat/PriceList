@@ -1,12 +1,12 @@
 import { createContext, useContext, useMemo, useState, useEffect, type ReactNode } from "react";
-import { loginApi, logoutApi, type AuthUser, type LoginDto } from "./auth.api";
+import { loginApi, logoutApi, /*type AuthUser,*/ type LoginDto } from "./auth.api";
 import { clearAccessToken, decodeJwt, getAccessToken, setAccessToken } from "./token";
 
 export type Role = "Admin" | "Editor" | "User";
-type AuthUserOrNull = AuthUser | null;
+// type AuthUserOrNull = AuthUser | null;
 
 type AuthCtx = {
-  user: AuthUserOrNull;
+  // user: AuthUserOrNull;
   accessToken: string | null;
   login: (dto: LoginDto) => Promise<void>;
   logout: () => Promise<void>;
@@ -17,39 +17,10 @@ type AuthCtx = {
 
 const Ctx = createContext<AuthCtx | null>(null);
 
-const LS_USER_KEY = "pl_user";
-
-function loadUserFromStorage(): AuthUserOrNull {
-  try {
-    const raw = localStorage.getItem(LS_USER_KEY);
-    return raw ? (JSON.parse(raw) as AuthUser) : null;
-  } catch {
-    return null;
-  }
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   // Hydrate synchronously on the first render
   const [accessToken, setTokenState] = useState<string | null>(() => getAccessToken());
-  const [user, setUser] = useState<AuthUserOrNull>(() => {
-    // 1) Prefer persisted user
-    const u = loadUserFromStorage();
-    if (u) return u;
-
-    // 2) Fallback: try infer minimal user from token (only if your token has claims)
-    const token = getAccessToken();
-    if (token) {
-      const payload = decodeJwt<any>(token);
-      if (payload?.name && payload?.roles) {
-        return {
-          id: Number(payload.sub) || 0,
-          name: payload.name,
-          roles: payload.roles as Role[],
-        };
-      }
-    }
-    return null;
-  });
+  // const [user, setUser] = useState<AuthUserOrNull>(null);
 
   // authReady becomes true after the very first effect tick. This gives time
   // for any browser specifics, and is a good place to kick a /me call if you add one.
@@ -63,37 +34,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // persist token + user
     setAccessToken(res.accessToken);
     setTokenState(res.accessToken);
-    setUser(res.user);
-    localStorage.setItem(LS_USER_KEY, JSON.stringify(res.user));
+    // setUser(res.user);
+    // localStorage.setItem(LS_USER_KEY, JSON.stringify(res.user));
   };
 
   const logout = async () => {
-    await logoutApi().catch(() => {});
+    await logoutApi().catch(() => { });
     clearAccessToken();
     setTokenState(null);
-    setUser(null);
-    localStorage.removeItem(LS_USER_KEY);
+    // setUser(null);
+    // localStorage.removeItem(LS_USER_KEY);
   };
 
   const hasRole = (r: Role | Role[]) => {
-    if (!user) return false;
-    const needed = Array.isArray(r) ? r : [r];
-    return needed.some(role => user.roles.includes(role));
-  };
+    const token = getAccessToken();
+    if (!accessToken) return false;
 
+    const payload = decodeJwt<any>(token);
+    if (!payload) return false;
+
+    const roleClaim =
+      "http://schemas.microsoft.com/ws/2008/06/identity/claims/role";
+
+    const claimValue = payload[roleClaim];
+    const roles: string[] = claimValue
+      ? Array.isArray(claimValue)
+        ? claimValue
+        : [claimValue]
+      : [];
+
+    const needed = Array.isArray(r) ? r : [r];
+    return needed.some((role) => roles.includes(role));
+  };
+  
   // If you want “token-only” pages to work even before user is known,
   // you can loosen this to: const isAuthenticated = !!accessToken;
-  const isAuthenticated = !!user && !!accessToken;
+  const isAuthenticated = !!accessToken;
 
   const value = useMemo<AuthCtx>(() => ({
-    user,
+    // user,
     accessToken,
     login,
     logout,
     hasRole,
     isAuthenticated,
     authReady,
-  }), [user, accessToken, authReady]);
+  }), [/*user,*/ accessToken, authReady]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

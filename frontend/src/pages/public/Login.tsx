@@ -30,7 +30,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-[60vh] flex items-center justify-center p-4">
+    <div className="min-h-[60vh] flex items-center mx-auto justify-center p-4">
       <form onSubmit={onSubmit} className="w-full max-w-sm space-y-4 border rounded-xl p-6">
         <h1 className="text-xl font-bold text-center">ورود</h1>
 

@@ -1,8 +1,12 @@
 ﻿// PriceList.Api/Controllers/AuthController.cs
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using PriceList.Core.Application.Dtos.Auth;
 using PriceList.Core.Application.Services;
+using PriceList.Infrastructure.Identity;
+using System.ComponentModel.DataAnnotations;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -37,15 +41,15 @@ public class AuthController(IAuthService auth) : ControllerBase
 
         return Ok(new { accessToken = r.AccessToken, user = r.User });
     }
-
-    [AllowAnonymous]
+  
+    //[AllowAnonymous]
     [HttpPost("refresh")]
     public async Task<IActionResult> Refresh(CancellationToken ct)
     {
         // CSRF guard: require same-site JS to send a header
         if (!Request.Headers.ContainsKey(RefreshCsrfHeader))
             return Unauthorized();
-
+       
         var cookie = Request.Cookies[RefreshCookieName];
         if (string.IsNullOrEmpty(cookie)) return Unauthorized();
 
@@ -81,7 +85,7 @@ public class AuthController(IAuthService auth) : ControllerBase
             SameSite = SameSiteMode.None,
             Expires = expiresAtUtc,
             IsEssential = true,
-            Path = "/api/auth" // optionally narrow path
+           // Path = "/api/auth" // optionally narrow path
         });
     }
 }

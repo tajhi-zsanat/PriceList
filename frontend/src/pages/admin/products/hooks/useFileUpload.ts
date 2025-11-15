@@ -8,14 +8,15 @@ export function useFileUpload(formId: string | null) {
 
   const clearPendingFor = (id: number) => {
     const prev = cellValues[id];
-    if (isBlobUrl(prev)) { try { URL.revokeObjectURL(prev); } catch {}
+    if (isBlobUrl(prev)) {
+      try { URL.revokeObjectURL(prev); } catch { }
     }
     setFiles(p => { const c = { ...p }; delete c[id]; return c; });
   };
 
   const setPreview = (id: number, f: File) => {
     const prev = cellValues[id];
-    if (isBlobUrl(prev)) { try { URL.revokeObjectURL(prev); } catch {} }
+    if (isBlobUrl(prev)) { try { URL.revokeObjectURL(prev); } catch { } }
     const url = URL.createObjectURL(f);
     setFiles(p => ({ ...p, [id]: f }));
     setCellValues(p => ({ ...p, [id]: url }));
@@ -30,7 +31,7 @@ export function useFileUpload(formId: string | null) {
     try {
       const url = await uploadImage(id, f);
       const prev = cellValues[id];
-      if (isBlobUrl(prev)) { try { URL.revokeObjectURL(prev); } catch {} }
+      if (isBlobUrl(prev)) { try { URL.revokeObjectURL(prev); } catch { } }
       setCellValues(p => ({ ...p, [id]: url }));
       clearPendingFor(id);
       toast.success("تصویر بارگذاری شد.");
@@ -43,7 +44,7 @@ export function useFileUpload(formId: string | null) {
     try {
       const url = await uploadPDF(id, f);
       const prev = cellValues[id];
-      if (isBlobUrl(prev)) { try { URL.revokeObjectURL(prev); } catch {} }
+      if (isBlobUrl(prev)) { try { URL.revokeObjectURL(prev); } catch { } }
       setCellValues(p => ({ ...p, [id]: url }));
       clearPendingFor(id);
       toast.success("فایل بارگذاری شد.");
@@ -57,7 +58,7 @@ export function useFileUpload(formId: string | null) {
     setCellValues(p => ({ ...p, [id]: "" })); // خوش‌بینانه
     try {
       if (!isBlobUrl(prev)) await RemoveCellMedia({ id, value: current });
-      if (isBlobUrl(prev)) { try { URL.revokeObjectURL(prev!); } catch {} }
+      if (isBlobUrl(prev)) { try { URL.revokeObjectURL(prev!); } catch { } }
       toast.success("حذف شد.");
     } catch {
       setCellValues(p => ({ ...p, [id]: prev ?? "" }));
