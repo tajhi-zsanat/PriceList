@@ -69,7 +69,8 @@ namespace PriceList.Api.Controllers
         {
             try
             {
-                // clamp user input a bit
+                //
+                //clamp user input a bit
                 page = Math.Max(1, page);
                 pageSize = Math.Clamp(pageSize, 10, 200);
 
@@ -95,7 +96,14 @@ namespace PriceList.Api.Controllers
                     HasNext: page < totalPages
                 );
 
-                return Ok(new FormCellsPageResponseDto(headers, groups, meta));
+                var formTittle = await uow.Forms.FirstOrDefaultAsync(
+                    predicate: f => f.Id == formId,
+                    selector: f => string.IsNullOrWhiteSpace(f.FormTitle) ? "--" : f.FormTitle,
+                    asNoTracking: true,
+                    ct
+                    );
+
+                return Ok(new FormCellsPageResponseDto(formTittle, headers, groups, meta));
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested)
             {
@@ -118,6 +126,9 @@ namespace PriceList.Api.Controllers
             if (dto is null)
                 return BadRequest("بدنه درخواست خالی است.");
 
+            if(!await uow.Forms.FormExistsAsync(dto.FormId, ct))
+                return BadRequest("آیدی نامعتبر می‌باشد");
+
             // Load tracked entity (NO projection)
             var existing = await uow.FormCells.FirstOrDefaultAsync<FormCell>(
                 predicate: c => c.Id == dto.Id,
@@ -132,6 +143,9 @@ namespace PriceList.Api.Controllers
             existing.Value = string.IsNullOrWhiteSpace(dto.Value) ? null : dto.Value;
 
             uow.FormCells.Update(existing);
+
+            await uow.Forms.DoUpdateDateAndTimeAsync(dto.FormId, ct);
+
             await uow.SaveChangesAsync(ct);
 
             return StatusCode(StatusCodes.Status201Created);
@@ -166,6 +180,9 @@ namespace PriceList.Api.Controllers
             try { await storage.DeleteAsync(dto.Value, ct); } catch { }
 
             uow.FormCells.Update(existing);
+
+            await uow.Forms.DoUpdateDateAndTimeAsync(dto.FormId, ct);
+
             await uow.SaveChangesAsync(ct);
 
             return StatusCode(StatusCodes.Status201Created);
@@ -205,6 +222,9 @@ namespace PriceList.Api.Controllers
 
 
             uow.FormCells.Update(existing);
+
+            await uow.Forms.DoUpdateDateAndTimeAsync(dto.FormId, ct);
+
             await uow.SaveChangesAsync(ct);
 
             var res = new ImageUrlDto(newPath);
@@ -245,6 +265,9 @@ namespace PriceList.Api.Controllers
 
 
             uow.FormCells.Update(existing);
+
+            await uow.Forms.DoUpdateDateAndTimeAsync(dto.FormId, ct);
+
             await uow.SaveChangesAsync(ct);
 
             var res = new FileUrlDto(newPath);

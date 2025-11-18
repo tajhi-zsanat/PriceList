@@ -1,5 +1,6 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.Extensions.Logging;
 using Microsoft.SqlServer.Server;
 using PriceList.Core.Abstractions.Repositories;
@@ -248,7 +249,7 @@ WHERE r.FormId = @formId AND c.ColIndex = @index;";
         {
             var entity = new FormFeature
             {
-                FormId = formId,            
+                FormId = formId,
                 Name = feature.Trim(),
                 DisplayOrder = displayOrder,
                 Color = color
@@ -353,6 +354,30 @@ WHERE r.FormId = @formId AND c.ColIndex = @index;";
                     .SetProperty(c => c.UpdateDate, _ => pDate)
                     .SetProperty(c => c.UpdateTime, _ => pTime),
                     ct);
+        }
+
+        public async Task DoUpdateDateAndTimeAsync(int formId, CancellationToken ct)
+        {
+            var form = await _db.Forms
+                .Where(f => f.Id == formId)
+                .FirstOrDefaultAsync();
+
+            if (form == null)
+                return;
+
+            var utcNow = DateTime.UtcNow;
+
+            var iranTz = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? TimeZoneInfo.FindSystemTimeZoneById("Iran Standard Time")
+                : TimeZoneInfo.FindSystemTimeZoneById("Asia/Tehran");
+            var local = TimeZoneInfo.ConvertTimeFromUtc(utcNow, iranTz);
+            var pc = new PersianCalendar();
+            string persianDate = $"{pc.GetYear(local):0000}/{pc.GetMonth(local):00}/{pc.GetDayOfMonth(local):00}";
+            string hhmm = local.ToString("HHmm");
+
+            form.UpdateDateAndTime = utcNow;
+            form.UpdateDate = persianDate;
+            form.UpdateTime = hhmm;
         }
     }
 }

@@ -1,18 +1,19 @@
-import { useRef } from "react";
-import pdfIcon from "@/assets/img/admin/download-PDF.png";
-import uploadIcon from "@/assets/img/admin/upload-PDF.png";
+import { useRef, useState } from "react";
+import pdfIcon from "@/assets/img/admin/download-PDF_new_new_new.png";
+import uploadIcon from "@/assets/img/admin/upload-PDF_new_new.png";
 import deleteIcon from "@/assets/img/admin/delete.png";
 import check from "@/assets/img/admin/check_small.png";
 import { resolveImgSrc, isBlobUrl } from "@/lib/helpers";
 import { useGridCtx } from "@/pages/admin/products/ctx/GridContext";
 import { useFileUpload } from "@/pages/admin/products/hooks/useFileUpload";
 
-export function FileCell({ cellId, current, formId }:{
+export function FileCell({ cellId, current, formId }: {
   cellId: number; current: string; formId: string | null;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const { files, setFiles, cellValues, setCellValues } = useGridCtx();
   const { setPreview, doUploadPDF, removeMedia } = useFileUpload(formId);
+  const [isBusy, setIsBusy] = useState(false);
 
   const onPick = () => inputRef.current?.click();
   const onChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
@@ -32,7 +33,7 @@ export function FileCell({ cellId, current, formId }:{
     <div className="w-16 h-16 flex items-center justify-center m-auto">
       <input ref={inputRef} type="file" accept="application/pdf" className="hidden" onChange={onChange} />
       {current ? (
-        <a className="m-auto" href={resolveImgSrc(current)}>
+        <a className="m-auto" target="_blank" href={resolveImgSrc(current)}>
           <img src={pdfIcon} className="m-auto cursor-pointer" alt="دانلود PDF" />
         </a>
       ) : !files[cellId] && (
@@ -43,8 +44,8 @@ export function FileCell({ cellId, current, formId }:{
 
       {files[cellId] && (
         <>
-          <button type="button" onClick={() => doUploadPDF(cellId)}
-            className="absolute top-1 left-1" title="ارسال">
+          <button type="button" onClick={() => doUploadPDF(cellId, setIsBusy)} disabled={isBusy}
+            className={`absolute top-1 left-1 ${isBusy ? 'opacity-50' : ''}`} title="ارسال">
             <img src={check} alt="send" className="cursor-pointer" />
           </button>
           <button type="button" onClick={cancelPending}

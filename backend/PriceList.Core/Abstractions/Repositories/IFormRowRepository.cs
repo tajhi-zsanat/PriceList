@@ -9,5 +9,7 @@ namespace PriceList.Core.Abstractions.Repositories
 {
     public interface IFormRowRepository : IGenericRepository<FormRow>
     {
+        Task<int> GetFormByMaxRow(List<int> ids, CancellationToken ct);
+        Task<int> GetCountRow(List<int> ids, CancellationToken ct);
     }
 }

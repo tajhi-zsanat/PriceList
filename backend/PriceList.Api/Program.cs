@@ -143,6 +143,7 @@ builder.Services.AddScoped<IFormFeatureRepository, FormFeatureRepository>();
 
 //Service
 builder.Services.AddScoped<IFormService, FormService>();
+builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IGroupService, GroupService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 

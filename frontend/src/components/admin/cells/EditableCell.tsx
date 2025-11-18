@@ -12,9 +12,10 @@ import FarsiInput, { parseFarsiNumber } from "@/components/FarsiInput";
 import { Input } from "@/components/ui/input";
 
 export function EditableCell({
-  cellId, current, isDesc, isPrice, isUnit,
+  formId, cellId, current, isDesc, isPrice, isUnit,
   onSaved, onError,
 }: {
+  formId: string | null;
   cellId: number;
   current: string;
   isDesc?: boolean;
@@ -32,7 +33,7 @@ export function EditableCell({
   };
 
   const normalizePrice = (s: string) => {
-    const n = parseFarsiNumber(s); 
+    const n = parseFarsiNumber(s);
     return Number.isFinite(n) ? String(n) : "";
   };
 
@@ -45,7 +46,7 @@ export function EditableCell({
     setEditValue("");
 
     try {
-      await upsertCell({ id: cellId, value: valueToSend });
+      await upsertCell({ formId: formId, id: cellId, value: valueToSend });
       toast.success("ذخیره شد.");
       onSaved?.();
     } catch {
@@ -119,8 +120,8 @@ export function EditableCell({
             value={editValue}
             onValueChange={(val) => { setEditValue(val); save(val); }}
           >
-            <SelectTrigger 
-            className="w-full text-center bg-white">
+            <SelectTrigger
+              className="w-full text-center bg-white">
               <SelectValue placeholder="انتخاب واحد" />
             </SelectTrigger>
             <SelectContent>

@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import api from "@/lib/api";
-import type { FeatureBucketsResponse, UseInfiniteProductsArgs } from "@/types";
+import type { FormCellsScrollResponseDto, GridGroup, UseInfiniteProductsArgs } from "@/types";
 
 export function useInfiniteProducts({ params, take = 1 }: UseInfiniteProductsArgs) {
-    const [data, setData] = useState<FeatureBucketsResponse | null>(null);
+    const [data, setData] = useState<FormCellsScrollResponseDto | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [skip, setSkip] = useState(0);
@@ -24,45 +24,78 @@ export function useInfiniteProducts({ params, take = 1 }: UseInfiniteProductsArg
 
 
     const fetchPage = useCallback(async (nextSkip: number) => {
-        const { categoryId, groupId, typeId, brandId } = params;
+        const { categoryId, groupId, brandId } = params;
         if (loadingRef.current || !hasMoreRef.current) return;
-        if (!categoryId || !groupId || !typeId || !brandId) return;
-
+        if (!categoryId || !groupId || !brandId) return;
 
         cancel();
         const controller = new AbortController();
         ctrlRef.current = controller;
 
-
         loadingRef.current = true;
         setLoading(true);
         setError(null);
 
-
         try {
-            const res = await api.get<FeatureBucketsResponse>("/api/Products/by-categories", {
-                params: { categoryId, groupId, typeId, brandId, skip: nextSkip, take },
+            const res = await api.get<FormCellsScrollResponseDto>("/api/Product", {
+                params: { categoryId, groupId, brandId, skip: nextSkip, take },
                 signal: controller.signal,
             });
 
-
             const page = res.data;
-            setData(prev => prev ? {
-                ...page,
-                items: [...prev.items, ...page.items],
-                returnedCount: (prev.returnedCount ?? 0) + (page.returnedCount ?? page.items.length ?? 0),
-                totalProductCount: page.totalProductCount ?? prev.totalProductCount,
-            } : page);
 
+            setData(prev => {
+                if (!prev) return page;
 
-            const batchCount = (page.returnedCount ?? page.items.length ?? 0);
-            const newSkip = nextSkip + batchCount;
+                const groupsById = new Map<number, GridGroup>();
+                for (const g of prev.cells) {
+                    groupsById.set(g.featureId, { ...g, rows: [...g.rows] });
+                }
+                for (const g of page.cells) {
+                    const existing = groupsById.get(g.featureId);
+                    if (!existing) {
+                        groupsById.set(g.featureId, g);
+                    } else {
+                        const existingRowIds = new Set(existing.rows.map(r => r.rowId));
+                        const mergedRows = [
+                            ...existing.rows,
+                            ...g.rows.filter(r => !existingRowIds.has(r.rowId)),
+                        ];
+                        existing.rows = mergedRows;
+                        existing.count = mergedRows.length;
+                    }
+                }
+                const mergedCells = Array.from(groupsById.values());
+
+                const pageRowCount = page.cells.reduce(
+                    (sum, grp) => sum + grp.rows.length,
+                    0
+                );
+                const prevRowCount = prev.cells.reduce(
+                    (sum, grp) => sum + grp.rows.length,
+                    0
+                );
+
+                return {
+                    ...prev,
+                    headers: prev.headers,
+                    cells: mergedCells,
+                    meta: {
+                        ...prev.meta,
+                        ...page.meta,
+                        returnedCount: prevRowCount + pageRowCount,
+                    },
+                };
+            });
+
+            const pageRowCount = page.cells.reduce(
+                (sum, grp) => sum + grp.rows.length,
+                0
+            );
+            const newSkip = nextSkip + pageRowCount;
             setSkip(newSkip);
 
-
-            const noMore = page.hasMore === false || batchCount === 0 || batchCount < take ||
-                (typeof page.totalCount === "number" && newSkip >= page.totalCount);
-            setHasMore(!noMore);
+            setHasMore(page.meta.hasMore);
         } catch (e: any) {
             if (e?.code !== "ERR_CANCELED" && e?.name !== "CanceledError") {
                 setError(e?.response?.data ?? e?.message ?? "Failed to load");
@@ -72,7 +105,8 @@ export function useInfiniteProducts({ params, take = 1 }: UseInfiniteProductsArg
             loadingRef.current = false;
             if (ctrlRef.current === controller) ctrlRef.current = null;
         }
-    }, [params.categoryId, params.groupId, params.typeId, params.brandId, take]);
+    }, [params.categoryId, params.groupId, params.brandId, take]);
+
 
 
     // reset & first load on param change

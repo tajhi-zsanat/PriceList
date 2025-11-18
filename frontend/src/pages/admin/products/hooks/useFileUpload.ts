@@ -22,33 +22,43 @@ export function useFileUpload(formId: string | null) {
     setCellValues(p => ({ ...p, [id]: url }));
   };
 
-  const doUploadImage = async (id: number) => {
+  const doUploadImage = async (id: number, setIsBusy: React.Dispatch<React.SetStateAction<boolean>>) => {
     if (!formId) return toast.error("شناسه فرم نامشخص است.");
     const f = files[id]; if (!f) return toast.warning("فایلی انتخاب نشده است.");
     const sizeMB = f.size / (1024 * 1024);
     if (sizeMB > 2) return toast.warning("سایز تصویر بیش از ۲MB است.");
 
     try {
-      const url = await uploadImage(id, f);
+      setIsBusy(true);
+      const url = await uploadImage(formId, id, f);
       const prev = cellValues[id];
       if (isBlobUrl(prev)) { try { URL.revokeObjectURL(prev); } catch { } }
       setCellValues(p => ({ ...p, [id]: url }));
       clearPendingFor(id);
       toast.success("تصویر بارگذاری شد.");
-    } catch { toast.error("خطا در بارگذاری تصویر."); }
+    } catch {
+      toast.error("خطا در بارگذاری تصویر.");
+    } finally {
+      setIsBusy(false);
+    }
   };
 
-  const doUploadPDF = async (id: number) => {
+  const doUploadPDF = async (id: number, setIsBusy: React.Dispatch<React.SetStateAction<boolean>>) => {
     if (!formId) return toast.error("شناسه فرم نامشخص است.");
     const f = files[id]; if (!f) return toast.warning("فایلی انتخاب نشده است.");
     try {
-      const url = await uploadPDF(id, f);
+      setIsBusy(true);
+      const url = await uploadPDF(formId, id, f);
       const prev = cellValues[id];
       if (isBlobUrl(prev)) { try { URL.revokeObjectURL(prev); } catch { } }
       setCellValues(p => ({ ...p, [id]: url }));
       clearPendingFor(id);
       toast.success("فایل بارگذاری شد.");
-    } catch { toast.error("خطا در بارگذاری فایل."); }
+    } catch {
+      toast.error("خطا در بارگذاری فایل.");
+    } finally {
+      setIsBusy(false);
+    }
   };
 
   const removeMedia = async (id: number, current: string | null) => {
@@ -57,7 +67,7 @@ export function useFileUpload(formId: string | null) {
     const prev = cellValues[id];
     setCellValues(p => ({ ...p, [id]: "" })); // خوش‌بینانه
     try {
-      if (!isBlobUrl(prev)) await RemoveCellMedia({ id, value: current });
+      if (!isBlobUrl(prev)) await RemoveCellMedia({formId, id, value: current });
       if (isBlobUrl(prev)) { try { URL.revokeObjectURL(prev!); } catch { } }
       toast.success("حذف شد.");
     } catch {

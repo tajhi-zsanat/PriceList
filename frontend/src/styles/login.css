@@ -1,0 +1,47 @@
+.container-login-input {
+    min-width: 22.8rem;
+}
+
+.image-login {
+    position: relative;
+}
+
+.image-login img:nth-of-type(2) {
+    position: absolute;
+    right: -2.5rem;
+    top: 9rem;
+}
+
+.login-btn-submit {
+    background-color: var(--color-blue);
+    border-radius: 10px;
+    border: none;
+    padding: 10px 0;
+    font-weight: 500;
+}
+
+.form-input-icon {
+    position: absolute;
+    top: 41px;
+    right: 15px;
+    /*transform: translateY(-60%);*/
+    color: #999;
+    pointer-events: none;
+}
+
+.form-input-icon-end {
+    position: absolute;
+    top: 41px;
+    left: 15px;
+    /*transform: translateY(-50%);*/
+    color: #999;
+    cursor: pointer;
+}
+
+.form-control {
+    border-radius: 10px;
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}

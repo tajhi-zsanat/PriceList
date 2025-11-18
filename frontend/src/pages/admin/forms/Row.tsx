@@ -2,7 +2,7 @@ import FarsiText from "@/components/FarsiText";
 import more from "@/assets/img/more icon-mobile.png";
 import type { FormListItemDto } from "@/types";
 
-export default function Row({ item, index }: { item: FormListItemDto; index: number }) {
+export default function Row({ item }: { item: FormListItemDto }) {
   const categories = `${item.categoryName}`;
   const groups = `${item.groupName}`;
 
@@ -30,7 +30,7 @@ export default function Row({ item, index }: { item: FormListItemDto; index: num
         />
       </span>
 
-      <span className="col-span-1">{index + 1}</span>
+      <span className="col-span-1"><FarsiText>{item.id}</FarsiText></span>
       <span className="col-span-3">{categories}/{groups}</span>
       <span className="col-span-3">{item.brandName}</span>
       <span className="col-span-1">

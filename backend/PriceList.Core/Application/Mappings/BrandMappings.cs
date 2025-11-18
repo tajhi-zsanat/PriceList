@@ -14,5 +14,8 @@ namespace PriceList.Core.Application.Mappings
         // ✅ Use inside IQueryable.Select(...)
         public static readonly Expression<Func<Brand, BrandListItemDto>> ToListItem =
             b => new BrandListItemDto(b.Id, b.Name, b.ImagePath);
+
+        public static readonly Expression<Func<Form, BrandListItemDto>> ToListItemFromForm =
+              f => new BrandListItemDto(f.Brand.Id, f.Brand.Name, f.Brand.ImagePath);
     }
 }

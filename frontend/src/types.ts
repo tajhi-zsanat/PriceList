@@ -51,14 +51,21 @@ export interface FeatureBucketDto {
   featureColor: string | null;    // you check for null in UI
 }
 
-export interface FeatureBucketsResponse {
-  items: FeatureBucketDto[];
+export type Meta = {
+  lastUpdate: string;
+  totalRows: number;
   skip: number;
   take: number;
   returnedCount: number;
   totalCount: number | null;      // matches ScrollResult<T>.TotalCount?
   totalProductCount: number;      // you show this in the header
   hasMore: boolean;
+}
+
+export interface FormCellsScrollResponseDto {
+  headers: FormHeader[];
+  cells: GridGroup[];
+  meta: Meta
 }
 
 export type UseInfiniteProductsArgs = {
@@ -75,7 +82,7 @@ export type PriceToolbarProps = {
 };
 
 export type FeatureChipsProps = {
-  data: FeatureBucketsResponse | null
+  data: FormCellsScrollResponseDto | null
 };
 
 export type SearchInputProps = {
@@ -226,7 +233,7 @@ export interface FormHeader {
 export interface GridCell {
   id: number;
   colIndex: number;
-  value: string | number | boolean | null;
+  value: string | null;
 }
 
 export interface GridRow {
@@ -245,6 +252,7 @@ export interface GridGroup {
 }
 
 export interface GridResponse {
+  formTitle: string;
   headers: FormHeader[];
   cells: GridGroup[];
   meta: {

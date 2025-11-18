@@ -20,6 +20,7 @@ export async function getGrid(
 }
 
 export interface UpsertCellRequest {
+  formId: string | null;
   id: number;
   value: string | number | boolean | null;
 }
@@ -81,10 +82,11 @@ export async function removeDef(payload: removeHeaderDefRequest): Promise<void> 
 }
 
 // ---------- Uploads (always return string) ----------
-export async function uploadImage(id: number, file: File): Promise<string> {
+export async function uploadImage(formId: string | null, id: number, file: File): Promise<string> {
   const fd = new FormData();
   fd.append("file", file);
   fd.append("id", String(id));
+  fd.append("formId", String(formId));
 
   const { data } = await api.put<UploadImageResponse>(`/api/Form/UploadImage`, fd, {
     headers: { "Content-Type": "multipart/form-data" },
@@ -94,10 +96,11 @@ export async function uploadImage(id: number, file: File): Promise<string> {
   return data.imageUrl;
 }
 
-export async function uploadPDF(id: number, file: File): Promise<string> {
+export async function uploadPDF(formId: string | null, id: number, file: File): Promise<string> {
   const fd = new FormData();
   fd.append("file", file);
   fd.append("id", String(id));
+  fd.append("formId", String(formId));
 
   const { data } = await api.put<UploadPdfResponse>(`/api/Form/UploadFile`, fd, {
     headers: { "Content-Type": "multipart/form-data" },

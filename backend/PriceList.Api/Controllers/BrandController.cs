@@ -8,6 +8,7 @@ using PriceList.Api.Helpers;
 using PriceList.Api.Mappings;
 using PriceList.Core.Abstractions.Repositories;
 using PriceList.Core.Application.Dtos.Brand;
+using PriceList.Core.Application.Dtos.ProductGroup;
 using PriceList.Core.Application.Mappings;
 using PriceList.Core.Entities;
 
@@ -31,6 +32,49 @@ namespace PriceList.Api.Controllers
                     .OrderBy(c => c.DisplayOrder == 0)
                     .ThenBy(c => c.DisplayOrder)
                     .ThenBy(c => c.Name),
+                ct);
+
+            return Ok(list);
+        }
+
+        [HttpGet("by-categories")]
+        [ProducesResponseType(typeof(List<BrandListItemDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<List<BrandListItemDto>>> GetByCategory(
+           [FromQuery] int categoryId,
+           [FromQuery] int groupId,
+           [FromQuery(Name = "q")] string? search,
+           CancellationToken ct = default)
+        {
+            if (categoryId <= 0 || groupId <= 0) return BadRequest("شناسه دسته‌بندی نامعتبر است.");
+
+            var isCategoryExist = await uow.ProductGroups.AnyAsync(
+                predicate: b => b.Id == groupId,
+                ct: ct
+                );
+
+            var isGroupExist = await uow.ProductGroups.AnyAsync(
+                predicate: b => b.Id == groupId,
+                ct: ct
+                );
+
+            if (!isCategoryExist || !isGroupExist)
+                return BadRequest("شناسه دسته بندی نامعتبر می‌باشد.");
+
+            var list = await uow.Forms.ListAsync(
+                predicate: (f => f.CategoryId == categoryId && f.ProductGroupId == groupId),
+                selector: BrandMappings.ToListItemFromForm,
+                //selector: f => new
+                //{
+                //    f.Brand.Id,
+                //    f.Brand.Name,
+                //    f.Brand.DisplayOrder
+                //},
+                asNoTracking: true,
+                orderBy: q => q
+                    .OrderBy(f => f.Brand.DisplayOrder == 0)
+                    .ThenBy(f => f.Brand.DisplayOrder)
+                    .ThenBy(f => f.Brand.Name),
                 ct);
 
             return Ok(list);
@@ -138,7 +182,7 @@ namespace PriceList.Api.Controllers
             }
 
             var result = BrandApiMappers.ToListItemDto(entity);
-            return Ok(result); 
+            return Ok(result);
         }
 
         [HttpDelete("{id:int}")]

@@ -8,6 +8,7 @@ import AddColDefModal from "@/components/admin/products/AddColDefModal";
 import backwardIcon from "@/assets/img/admin/chevron_backward.png";
 import forwardIcon from "@/assets/img/admin/chevron_forward.png";
 import AddGroupModal from "@/components/admin/products/AddGroupModal";
+import FarsiText from "@/components/FarsiText";
 
 function ProductsInner() {
   const location = useLocation();
@@ -16,7 +17,7 @@ function ProductsInner() {
 
   const { grid, loading, err, nextPage, prevPage, refetch } = useGridData(formId);
   const { cellValues, cellValuesHeader } = useGridCtx();
- 
+
   useEffect(() => {
     if (!formId) navigate("/admin/form", { replace: true });
   }, [formId, navigate]);
@@ -30,11 +31,14 @@ function ProductsInner() {
   return (
     <div className="flex-1">
       <div className="flex justify-between items-center py-6">
-        <div className="flex items-center gap-2">
-          <h3>فرم 343</h3>
-          <span className="text-[#636363] text-sm">
-            ({grid.meta.totalRows}محصول)
-          </span>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <h3>{grid.formTitle}</h3>
+            <span className="text-sm">
+              ({grid.meta.totalRows}محصول)
+            </span>
+          </div>
+          <h6 className="text-base text-[#636363]">فرم <FarsiText>{4038}</FarsiText></h6>
         </div>
         <div className="flex items-center gap-2">
           <button type="button" className="button-outline">
@@ -65,7 +69,7 @@ function ProductsInner() {
               trigger={
                 <button
                   type="button"
-                  className="flex items-center gap-2 bg-white text-[#636363] p-2 rounded-lg border border-[#636363] cursor-pointer transition hover:bg-[#f2f5f7]"
+                  className="flex items-center gap-2 bg-white text-[#000000] p-2 rounded-lg border border-[#000000] cursor-pointer transition hover:bg-[#f2f5f7]"
                 >
                   <span>انتخاب ویژگی</span>
                 </button>
@@ -78,7 +82,7 @@ function ProductsInner() {
               trigger={
                 <button
                   type="button"
-                  className="flex items-center gap-2 bg-white text-[#636363] p-2 rounded-lg border border-[#636363] cursor-pointer transition hover:bg-[#f2f5f7]"
+                  className="flex items-center gap-2 bg-white text-[#000000] p-2 rounded-lg border border-[#000000] cursor-pointer transition hover:bg-[#f2f5f7]"
                 >
                   <span>افزودن سرگروه</span>
                 </button>
@@ -119,7 +123,8 @@ function ProductsInner() {
         onDeleted={refetch}
       />
       <div className="flex flex-col gap-2 border border-[#CFD8DC] border-t-0 rounded-b-[8px] p-3">
-        <span className="text-[#636363]">توضیحات</span>
+        <span className="text-[#636363]">توضیحات: </span>
+        <p className="text-base font-medium">{grid.formTitle}</p>
       </div>
     </div>
   );

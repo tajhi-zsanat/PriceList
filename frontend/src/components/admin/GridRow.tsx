@@ -16,7 +16,7 @@ export function GridRow({
   const totalCols = headers.length;
   
   return (
-    <tr className="h-20" key={row.rowId}>
+    <tr className="h-20 text-base font-medium" key={row.rowId}>
       {Array.from({ length: totalCols }).map((_, c) => {
         const header = headers[c];
         const cell = row.cells.find((x: any) => x.colIndex === c) ?? null;

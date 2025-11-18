@@ -8,13 +8,13 @@ import FarsiText from "@/components/FarsiText";
 import FeatureChips from "@/components/products/FeatureChips";
 import PriceToolbar from "@/components/products/PriceToolbar";
 import SearchInput from "@/components/products/SearchInput";
-import ProductTable from "@/components/products/ProductTable";
 import InfiniteSentinel from "@/components/products/InfiniteSentinel";
 import { useInfiniteProducts } from "@/hook/useInfiniteProducts";
-import { useHeaders } from "@/hook/useHeaders";
+// import { useHeaders } from "@/hook/useHeaders";
+import ProductHeader from "@/components/products/ProductHeader";
 
 
-const TAKE = 1;
+const TAKE = 10;
 
 
 export default function ProductsBySupplier() {
@@ -22,10 +22,7 @@ export default function ProductsBySupplier() {
     const loc = useLocation() as { state?: { brandName?: string } };
     const { brandName } = loc.state || {};
 
-
     const { data, loading, error, hasMore, loadMore } = useInfiniteProducts({ params: { categoryId, groupId, typeId, brandId }, take: TAKE });
-    const headers = useHeaders(brandId, typeId);
-
 
     return (
         <div className="flex-1">
@@ -36,11 +33,16 @@ export default function ProductsBySupplier() {
                         <p className="mb-2 text-xl font-[400]">
                             لیست قیمت محصولات {brandName}{" "}
                             {data && (
-                                <span className="text-sm text-[#636363]">(<FarsiText>{data.totalProductCount}</FarsiText> محصول)</span>
+                                <span className="text-sm text-[#636363]">(<FarsiText>{data.meta.totalRows}</FarsiText> محصول)</span>
                             )}
                         </p>
                         <div className="flex items-center gap-4 mb-8">
-                            <div className="flex items-center gap-2"><img src={time} alt="time" /><p className="text-[#636363]"><FarsiText>آخرین به روز رسانی 23 تیر 1404</FarsiText></p></div>
+                            <div className="flex items-center gap-2"><img src={time} alt="time" />
+                                <p className="text-[#636363]">
+                                    تاریخ آخرین بروزرسانی:
+                                    <FarsiText> {data?.meta.lastUpdate}</FarsiText>
+                                </p>
+                            </div>
                             <div className="bg-[#636363] w-[1px] h-4" />
                             <div className="flex items-center gap-2"><img src={warning} alt="warning" /><p className="text-[#636363]">کد تامین کننده : <FarsiText>45</FarsiText></p></div>
                         </div>
@@ -57,8 +59,8 @@ export default function ProductsBySupplier() {
                     </div>
 
 
-                    {data?.items?.length ? (
-                        <ProductTable buckets={data.items as any} headers={headers} />
+                    {data?.cells?.length ? (
+                        <ProductHeader formHeaders={data.headers} groupCells={data.cells} />
                     ) : (!loading && <div className="p-8 text-center text-[#636363]">محصولی یافت نشد.</div>)}
 
 

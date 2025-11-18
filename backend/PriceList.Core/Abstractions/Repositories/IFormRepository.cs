@@ -20,6 +20,7 @@ namespace PriceList.Core.Abstractions.Repositories
         Task ShiftCellsAsync(int formId, int insertAt, CancellationToken ct);
         Task InsertCellsForColumnAsync(int formId, int insertAt, CancellationToken ct);
 
+        Task DoUpdateDateAndTimeAsync(int formId, CancellationToken ct);
 
         //Delete Section
         Task RemoveColumnDefByIndexAsync(int formId, int index, CancellationToken ct);

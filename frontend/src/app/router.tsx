@@ -26,14 +26,18 @@ const Load = (el: React.ReactElement) => <Suspense fallback={null}>{el}</Suspens
 
 const router = createBrowserRouter([
   {
+    path: "/login",
+    element: <Login />,
+  },
+  {
     element: <PublicLayout />,
     children: [
       { index: true, element: Load(<Category />) },
       { path: "/Category/:categoryId/groups", element: Load(<ProductGroups />) },
       { path: "/Category/:categoryId/groups/:groupId/types", element: Load(<ProductTypes />) },
-      { path: "/Category/:categoryId/groups/:groupId/types/:typeId/brands", element: Load(<Brands />) },
-      { path: "/Category/:categoryId/groups/:groupId/types/:typeId/brands/:brandId/products", element: Load(<ProductsBySupplier />) },
-      { path: "/login", element: <Login /> },
+      { path: "/Category/:categoryId/groups/:groupId/brands", element: Load(<Brands />) },
+      { path: "/Category/:categoryId/groups/:groupId/brands/:brandId/products", element: Load(<ProductsBySupplier />) },
+      // { path: "/login", element: <Login /> },
       { path: "/403", element: <Forbidden /> },
     ],
   },

@@ -83,6 +83,7 @@ export function GridCellTd({ header, cell, formId, current, rowCount, moreIcon, 
             {isFile && <FileCell cellId={cell.id} current={current} formId={formId} />}
             {!isImage && !isFile && !isStatic && (
               <EditableCell
+                formId={formId}
                 cellId={cell.id}
                 current={current}
                 isDesc={isDesc}

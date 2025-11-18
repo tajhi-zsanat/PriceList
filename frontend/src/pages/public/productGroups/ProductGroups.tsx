@@ -11,14 +11,18 @@ export default function ProductGroups() {
   const { categoryId } = useParams();
   const loc = useLocation() as { state?: { categoryName?: string } };
   const categoryName = loc.state?.categoryName;
-  
+
   const [data, setData] = useState<ProductGroupListItemDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
     if (!categoryId) return;
-    api.get<ProductGroupListItemDto[]>(`/api/ProductGroup/by-category/${categoryId}`)
+    api.get<ProductGroupListItemDto[]>("/api/ProductGroup/by-category", {
+      params: {
+        categoryId: categoryId
+      }
+    })
       .then(r => setData(r.data))
       .catch(e => setErr(e?.response?.data ?? e.message))
       .finally(() => setLoading(false));
@@ -40,7 +44,7 @@ export default function ProductGroups() {
         {!loading && !err && (
           data.length === 0 ? (
             <div className="text-gray-500 text-center py-8">
-              هیچ گروهی برای این دسته‌بندی پیدا نشد.
+              هیچ دسته بندی برای این دسته‌بندی پیدا نشد.
             </div>
           ) : (
             <ul className="card-grid">
@@ -50,7 +54,7 @@ export default function ProductGroups() {
                   className="card-item"
                 >
                   <Link
-                    to={`/category/${categoryId}/groups/${g.id}/types`}
+                    to={`/category/${categoryId}/groups/${g.id}/brands`}
                     state={{ categoryName, groupName: g.name }}
                     className="card-link"
                   >

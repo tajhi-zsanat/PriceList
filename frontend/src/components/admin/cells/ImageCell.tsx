@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { resolveImgSrc, isBlobUrl } from "@/lib/helpers";
 import check from "@/assets/img/admin/check_small.png";
 import uploadIcon from "@/assets/img/admin/solar_upload-linear.png";
@@ -12,6 +12,7 @@ export function ImageCell({ cellId, current, formId }: {
   const inputRef = useRef<HTMLInputElement>(null);
   const { files, setFiles, cellValues, setCellValues } = useGridCtx();
   const { setPreview, doUploadImage, removeMedia } = useFileUpload(formId);
+  const [isBusy, setIsBusy] = useState(false);
 
   const onPick = () => inputRef.current?.click();
   const onChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
@@ -45,8 +46,8 @@ export function ImageCell({ cellId, current, formId }: {
 
       {files[cellId] && (
         <>
-          <button type="button" onClick={() => doUploadImage(cellId)}
-            className="absolute top-1 left-1" title="ارسال">
+          <button type="button" onClick={() => doUploadImage(cellId, setIsBusy)} disabled={isBusy}
+            className={`absolute top-1 left-1 ${isBusy ? 'opacity-50' : ''}`} title="ارسال">
             <img src={check} alt="send" className="cursor-pointer" />
           </button>
           <button type="button" onClick={cancelPending}

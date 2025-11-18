@@ -15,5 +15,11 @@ namespace PriceList.Core.Abstractions.Repositories
             int page,
             int pageSize,
             CancellationToken ct);
+
+        Task<(IReadOnlyList<GridGroupByFeature> Groups, int TotalRows)> GroupRowsAndCellsByTypeScrollAsync(
+            int formId,
+            int skip,
+            int take,
+            CancellationToken ct);
     }
 }

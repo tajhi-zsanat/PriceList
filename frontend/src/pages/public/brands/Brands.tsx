@@ -8,25 +8,25 @@ import loadingImage from '@/assets/img/loading.gif';
 import Breadcrumbs from "@/components/Breadcrumbs";
 
 export default function Brands() {
-  const { categoryId, groupId, typeId } = useParams();
+  const { categoryId, groupId } = useParams();
   const loc = useLocation() as {
-    state?: { categoryName?: string; groupName?: string; typeName?: string };
+    state?: { categoryName?: string; groupName?: string;};
   };
-  const { categoryName, groupName, typeName } = loc.state || {};
+  const { categoryName, groupName } = loc.state || {};
 
   const [data, setData] = useState<BrandListItemDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!categoryId || !groupId || !typeId) return;
+    if (!categoryId || !groupId) return;
     api.get<BrandListItemDto[]>("/api/Brand/by-categories", {
-      params: { categoryId, groupId, typeId },
+      params: { categoryId, groupId },
     })
       .then(r => setData(r.data))
       .catch(e => setErr(e?.response?.data ?? e.message))
       .finally(() => setLoading(false));
-  }, [categoryId, groupId, typeId]);
+  }, [categoryId, groupId]);
 
   return (
     <div className="flex-1 bg-[#F5F5F5]">
@@ -54,8 +54,8 @@ export default function Brands() {
                   <li key={b.id} className="card-item"
                   >
                     <Link
-                      to={`/Category/${categoryId}/groups/${groupId}/types/${typeId}/brands/${b.id}/products`}
-                      state={{ categoryName, groupName, typeName, brandName: b.name }}
+                      to={`/Category/${categoryId}/groups/${groupId}/brands/${b.id}/products`}
+                      state={{ categoryName, groupName, brandName: b.name }}
                       className="card-link"
                     >
                       <div className="flex items-center justify-center w-full h-28 overflow-hidden">

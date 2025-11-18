@@ -46,41 +46,66 @@ api.interceptors.response.use(
     const originalRequest = error.config as InternalAxiosRequestConfig & {
       _retry?: boolean;
     };
+    
+    if (!status) return Promise.reject(error);
 
+    const url = originalRequest.url ?? "";
+
+    // ❌ Don't try refresh for auth endpoints
+    if (
+      url.includes("/api/Auth/login") ||
+      url.includes("/api/Auth/register") ||
+      url.includes("/api/Auth/refresh")
+    ) {
+      return Promise.reject(error);
+    }
+
+    // ❌ Don't try refresh if already retried
     if (status !== 401 || originalRequest._retry) {
       return Promise.reject(error);
     }
-    
+
+    // ❌ If there is no access token, user is not logged in → go to login
+    if (!getAccessToken()) {
+      clearAccessToken();
+      // optional: redirect to login if not already there
+      if (!window.location.pathname.startsWith("/login")) {
+        window.location.href = "/login";
+      }
+      return Promise.reject(error);
+    }
+
     originalRequest._retry = true;
 
     if (!isRefreshing) {
       isRefreshing = true;
       try {
-        // 🔁 Call your refresh endpoint
-        // Backend should read refresh token from HttpOnly cookie
-        // and return { accessToken: "..." }
         const { data } = await refreshClient.post<{ accessToken: string }>(
           "/api/Auth/refresh",
           null,
           {
             headers: {
-              "X-PL-Refresh-CSRF": "1", // <-- use your RefreshCsrfHeader name here, value can be anything
+              "X-PL-Refresh-CSRF": "1",
             },
           }
         );
+
         setAccessToken(data.accessToken);
         onRefreshed(data.accessToken);
       } catch (e) {
-        // Refresh failed → clear token
         clearAccessToken();
         onRefreshed(null);
         isRefreshing = false;
+
+        if (!window.location.pathname.startsWith("/login")) {
+          window.location.href = "/login";
+        }
+
         return Promise.reject(error);
       }
       isRefreshing = false;
     }
 
-    // All callers wait here until refresh is done
     return new Promise((resolve, reject) => {
       subscribeTokenRefresh((newToken) => {
         if (!newToken) {
@@ -90,11 +115,11 @@ api.interceptors.response.use(
 
         originalRequest.headers = originalRequest.headers ?? {};
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
-
         resolve(api(originalRequest));
       });
     });
   }
 );
+
 
 export default api;
