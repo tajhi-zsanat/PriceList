@@ -2,6 +2,14 @@
 import { clearAccessToken, getAccessToken, setAccessToken } from "@/app/token";
 import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
 
+const LS_USER_KEY = "pl_user_key";
+
+function clearStoredUser() {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem(LS_USER_KEY);
+  }
+}
+
 // IMPORTANT: set base URL from env (e.g., VITE_API_BASE_URL="https://localhost:7034")
 export const baseURL = import.meta.env.VITE_API_BASE_URL || "";
 
@@ -68,6 +76,7 @@ api.interceptors.response.use(
     // ❌ If there is no access token, user is not logged in → go to login
     if (!getAccessToken()) {
       clearAccessToken();
+      clearStoredUser();
       // optional: redirect to login if not already there
       if (!window.location.pathname.startsWith("/login")) {
         window.location.href = "/login";
@@ -94,6 +103,7 @@ api.interceptors.response.use(
         onRefreshed(data.accessToken);
       } catch (e) {
         clearAccessToken();
+        clearStoredUser();
         onRefreshed(null);
         isRefreshing = false;
 

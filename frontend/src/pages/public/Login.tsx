@@ -52,11 +52,11 @@ export default function Login() {
           <i className="fa-solid fa-arrow-right text-inherit"></i>
           <span className="text-inherit">بازگشت</span>
         </Link>
-        <div className="mb-5 text-center md:text-left mt-4">
+        <div className="mb-5 text-center md:text-left mt-8">
           <img src={pikatak} className="mb-3 mx-auto md:mx-0" width="150" />
         </div>
 
-        <p className="text-center font-bold mb-4">
+        <p className="text-center text-base font-medium mb-4">
           لطفاً اطلاعات حساب کاربری خود را وارد کنید
         </p>
 
@@ -70,9 +70,10 @@ export default function Login() {
             {/* USERNAME */}
             <div className="relative">
               <Input
+                id="username"
                 value={username}
                 onChange={e => setUsername(e.target.value)}
-                className="w-full border rounded px-5 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full border rounded-xl px-5 py-5 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="نام کاربری"
               />
               <i className="fas fa-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
@@ -81,10 +82,11 @@ export default function Login() {
             {/* PASSWORD */}
             <div className="relative">
               <Input
+                id="password"
                 type={showPass ? "text" : "password"}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className="w-full border rounded px-5 pr-10 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full border rounded-xl px-5 pr-10 py-5 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="رمز عبور"
               />
 
@@ -102,7 +104,7 @@ export default function Login() {
           <Button
             type="submit"
             disabled={busy}
-            className="bg-[#1F78AE] w-full mt-8 py-2 text-white rounded"
+            className="bg-[#1F78AE] w-full mt-8 py-5 text-white rounded-xl"
           >
             {busy ? "صبور باشید..." : "ورود"}
           </Button>

@@ -18,6 +18,8 @@ const Login = lazy(() => import("@/pages/public/Login"));
 const Dashboard = lazy(() => import("@/pages/admin/dashboard/Dashboard"));
 const AdminProducts = lazy(() => import("@/pages/admin/products/Products"));
 const Forms = lazy(() => import("@/pages/admin/forms/Forms"));
+const Setting = lazy(() => import("@/pages/admin/setting/Setting"));
+const Tariff = lazy(() => import("@/pages/admin/tariff/Tariff"));
 
 const Forbidden = () => <div>403 — دسترسی ندارید</div>;
 const NotFound = () => <div>صفحه یافت نشد</div>;
@@ -54,6 +56,8 @@ const router = createBrowserRouter([
               { index: true, element: Load(<Dashboard />) },
               { path: "forms", element: Load(<Forms />) },
               { path: "products", element: Load(<AdminProducts />) },
+              { path: "setting", element: Load(<Setting />) },
+              { path: "tariff", element: Load(<Tariff />) },
             ],
           },
         ],

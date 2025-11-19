@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import arrow from "@/assets/img/admin/arrow_forward.png"
 import logo from "@/assets/img/pikatak.png";
 import SearchInput from "@/components/products/SearchInput";
@@ -8,9 +8,11 @@ import plus from "@/assets/img/admin/tabler_plus.png";
 import CreateFormModal from "@/components/admin/CreateFormModal";
 import { useState } from "react";
 import type { AdminHeaderProps } from "@/types";
+import { useAuth } from "@/app/AuthProvider";
 
 export default function AdminHeader({ onFormCreated }: AdminHeaderProps) {
     const [modalOpen, setModalOpen] = useState(false);
+    const { user } = useAuth();
 
     return (
         <header>
@@ -35,7 +37,7 @@ export default function AdminHeader({ onFormCreated }: AdminHeaderProps) {
                         <div className="flex">
                             <div className="flex justify-center items-center bg-[#CFE2FF] rounded-tr-[10px] rounded-br-[10px] pr-2.5 pl-5 -translate-x-2.5
               ">
-                                <span className="text-[#1B1B1E] font-medium">محمد چراغ زاده</span>
+                                <span className="text-[#1B1B1E] font-medium">{user?.displayName}</span>
                             </div>
                             <div className="flex justify-center items-center rounded-[10px] w-10 h-10 bg-[#CFE2FF] border border-[#1F78AE] z-10
               ">
@@ -45,12 +47,48 @@ export default function AdminHeader({ onFormCreated }: AdminHeaderProps) {
                     </div>
                 </div>
                 <div className="flex justify-between items-center mt-4">
-                    <ul className="flex items-center gap-12 text-[#1B1B1E] mt-4">
-                        <li className="cursor-pointer text-base">پیشخوان</li>
-                        <li className="text-[#1F78AE] cursor-pointer text-base">فرم‌های من</li>
-                        <li className="cursor-pointer text-base">تنظیمات</li>
-                        <li className="cursor-pointer text-base">تعرفه‌ها</li>
-                    </ul>
+                    <nav className="flex items-center gap-12 text-[#1B1B1E] mt-4">
+                        <NavLink
+                            to="/admin"
+                            end
+                            className={({ isActive }) =>
+                                `cursor-pointer text-base ${isActive ? "text-[#1F78AE] font-bold" : ""
+                                }`
+                            }
+                        >
+                            پیشخوان
+                        </NavLink>
+                        <NavLink
+                            to="/admin/forms"
+                            end
+                            className={({ isActive }) =>
+                                `cursor-pointer text-base ${isActive ? "text-[#1F78AE] font-bold" : ""
+                                }`
+                            }
+                        >
+                            فرم‌های من
+                        </NavLink>
+                        <NavLink
+                            to="/admin/setting"
+                            end
+                            className={({ isActive }) =>
+                                `cursor-pointer text-base ${isActive ? "text-[#1F78AE] font-bold" : ""
+                                }`
+                            }
+                        >
+                            تنظیمات
+                        </NavLink>
+                        <NavLink
+                            to="/admin/Tariff"
+                            end
+                            className={({ isActive }) =>
+                                `cursor-pointer text-base ${isActive ? "text-[#1F78AE] font-bold" : ""
+                                }`
+                            }
+                        >
+                            تعرفه‌ها
+                        </NavLink>
+                    </nav>
                     <CreateFormModal
                         open={modalOpen}
                         onOpenChange={setModalOpen}

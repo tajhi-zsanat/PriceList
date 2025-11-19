@@ -10,7 +10,8 @@ export type LoginDto = {
 
 export type AuthUser = {
     id: number;
-    name: string;
+    userName: string;
+    displayName: string;
     roles: Role[];
 };
 
