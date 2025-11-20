@@ -18,6 +18,7 @@
     <Compile Remove="Abstractions\Repositories\IProductImageRepository.cs" />
     <Compile Remove="Abstractions\Repositories\IProductRepository.cs" />
     <Compile Remove="Abstractions\Repositories\IProductTypeFeaturesRepository.cs" />
+    <Compile Remove="Abstractions\Repositories\ISupplierRepository.cs" />
     <Compile Remove="Abstractions\Services\IProductPdfService.cs" />
     <Compile Remove="Application\Mappings\ProductHeaderMappings.cs" />
     <Compile Remove="Application\Mappings\ProductMappings.cs" />
@@ -33,6 +34,7 @@
     <Compile Remove="Entities\ProductHeader.cs" />
     <Compile Remove="Entities\ProductImage.cs" />
     <Compile Remove="Entities\ProductTypeFeature.cs" />
+    <Compile Remove="Entities\Supplier.cs" />
   </ItemGroup>
 
   <ItemGroup>

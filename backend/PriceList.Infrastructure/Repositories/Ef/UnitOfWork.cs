@@ -21,7 +21,7 @@ namespace PriceList.Infrastructure.Repositories.Ef
         public IBrandRepository Brands { get; }
         public IErrorLogRepository Errors { get; }
         public IUnitRepository Units { get; }
-        public ISupplierRepository Suppliers { get; }
+        //public ISupplierRepository Suppliers { get; }
         public IFormRepository Forms { get; }
         public IFormCellRepository FormCells { get; }
         public IFormColumnDefRepository FormColumns { get; }
@@ -35,7 +35,7 @@ namespace PriceList.Infrastructure.Repositories.Ef
             IBrandRepository brands,
             IErrorLogRepository errors,
             IUnitRepository units,
-            ISupplierRepository suppliers,
+            //ISupplierRepository suppliers,
             IFormRepository form,
             IFormCellRepository formCells,
             IFormColumnDefRepository formColumns,
@@ -49,7 +49,7 @@ namespace PriceList.Infrastructure.Repositories.Ef
             Brands = brands;
             Errors = errors;
             Units = units;
-            Suppliers = suppliers;
+            //Suppliers = suppliers;
             Forms = form;
             FormCells = formCells;
             FormColumns = formColumns;

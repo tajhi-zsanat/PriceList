@@ -10,12 +10,9 @@ import PriceToolbar from "@/components/products/PriceToolbar";
 import SearchInput from "@/components/products/SearchInput";
 import InfiniteSentinel from "@/components/products/InfiniteSentinel";
 import { useInfiniteProducts } from "@/hook/useInfiniteProducts";
-// import { useHeaders } from "@/hook/useHeaders";
 import ProductHeader from "@/components/products/ProductHeader";
 
-
 const TAKE = 10;
-
 
 export default function ProductsBySupplier() {
     const { categoryId, groupId, typeId, brandId } = useParams();
@@ -33,7 +30,9 @@ export default function ProductsBySupplier() {
                         <p className="mb-2 text-xl font-[400]">
                             لیست قیمت محصولات {brandName}{" "}
                             {data && (
-                                <span className="text-sm text-[#636363]">(<FarsiText>{data.meta.totalRows}</FarsiText> محصول)</span>
+                                <span className="text-sm text-[#636363]">
+                                    (<FarsiText>{data.meta.totalRows}</FarsiText> محصول)
+                                </span>
                             )}
                         </p>
                         <div className="flex items-center gap-4 mb-8">
@@ -49,7 +48,6 @@ export default function ProductsBySupplier() {
                         <PriceToolbar />
                     </div>
 
-
                     <div className="flex items-center justify-between bg-[#ECEFF1] py-4 px-8">
                         <FeatureChips data={data ?? null} />
                         <div className="flex items-center gap-3">
@@ -60,7 +58,7 @@ export default function ProductsBySupplier() {
 
 
                     {data?.cells?.length ? (
-                        <ProductHeader formHeaders={data.headers} groupCells={data.cells} />
+                        <ProductHeader formHeaders={data.headers} groupCells={data.cells} formName={data.meta.formName} />
                     ) : (!loading && <div className="p-8 text-center text-[#636363]">محصولی یافت نشد.</div>)}
 
 

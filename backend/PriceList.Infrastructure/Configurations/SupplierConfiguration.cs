@@ -26,10 +26,10 @@ namespace PriceList.Infrastructure.Configurations
             b.Property(x => x.DisplayOrder)
              .HasDefaultValue(0);
 
-            b.HasMany(c => c.Forms)
-             .WithOne(p => p.Supplier)
-             .HasForeignKey(p => p.SupplierId)
-             .OnDelete(DeleteBehavior.Restrict);
+            //b.HasMany(c => c.Forms)
+            // .WithOne(p => p.Supplier)
+            // .HasForeignKey(p => p.SupplierId)
+            // .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

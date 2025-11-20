@@ -134,7 +134,7 @@ builder.Services.AddScoped<IProductTypeRepository, ProductTypeRepository>();
 builder.Services.AddScoped<IBrandRepository, BrandRepository>();
 builder.Services.AddScoped<IErrorLogRepository, ErrorLogRepository>();
 builder.Services.AddScoped<IUnitRepository, UnitRepository>();
-builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
+//builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
 builder.Services.AddScoped<IFormRepository, FormRepository>();
 builder.Services.AddScoped<IFormCellRepository, FormCellRepository>();
 builder.Services.AddScoped<IFormColumnDefRepository, FormColumnDefRepository>();

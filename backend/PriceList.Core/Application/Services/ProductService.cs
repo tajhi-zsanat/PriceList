@@ -38,7 +38,7 @@ namespace PriceList.Core.Application.Services
 
             var formId = await _uow.FormRows.GetFormByMaxRow(formIds, ct);
 
-            if (formId == null)
+            if (formId == 0)
             {
                 return new FormCellsScrollResponseDto(
                     Status: Product.NoContent,
@@ -72,7 +72,14 @@ namespace PriceList.Core.Application.Services
                 ct: ct
                 );
 
+            var formName = await _uow.Forms.FirstOrDefaultAsync(
+               predicate: f => f.Id == formId,
+               selector: f => f.FormTitle ?? "--",
+               ct: ct
+               );
+
             var meta = new ScrollMeta(
+                formName,
                 lastUpdate,
                 totalRows,
                 rowCount,

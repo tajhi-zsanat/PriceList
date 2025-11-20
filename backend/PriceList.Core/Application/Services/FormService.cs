@@ -141,6 +141,7 @@ namespace PriceList.Core.Application.Services
             {
                 await uow.Forms.ShiftRowsAsync(formId, rowIndex, ct);
                 var rowId = await uow.Forms.CreateRowAsync(formId, featureId, rowIndex, ct);
+                await uow.Forms.UpdateFormAsync(formId, StatusForm.Add, ct);
                 await uow.Forms.CreateCellsAsync(formId, rowId, ct);
                 await uow.CommitTransactionAsync(ct);
                 return new(FeatureStatus.NoContent);
@@ -192,6 +193,7 @@ namespace PriceList.Core.Application.Services
             try
             {
                 uow.FormRows.Remove(formRow);
+                await uow.Forms.UpdateFormAsync(formId, StatusForm.Remove, ct);
 
                 await uow.SaveChangesAsync(ct);
 

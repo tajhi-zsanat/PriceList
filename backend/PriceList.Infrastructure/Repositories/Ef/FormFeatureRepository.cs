@@ -25,6 +25,7 @@ namespace PriceList.Infrastructure.Repositories.Ef
         public async Task<(List<GridGroupByFeature> Groups, int TotalRows)>
       GroupRowsAndCellsByTypePagedAsync(
         int formId,
+        int userId,
         int page,
         int pageSize,
         CancellationToken ct)
@@ -35,7 +36,7 @@ namespace PriceList.Infrastructure.Repositories.Ef
             // 1) Count all rows
             var totalRows = await _db.FormRows
                 .AsNoTracking()
-                .Where(r => r.FormId == formId)
+                .Where(r => r.FormId == formId && r.Form.UserId == userId)
                 .CountAsync(ct);
 
             if (totalRows == 0)
@@ -46,7 +47,7 @@ namespace PriceList.Infrastructure.Repositories.Ef
             // 2) Build the ordered, paged list of rows with their feature metadata.
             //    Left-join to features; null-feature gets DisplayOrder = int.MaxValue to push it last.
             var baseQuery =
-                from r in _db.FormRows.AsNoTracking().Where(r => r.FormId == formId)
+                from r in _db.FormRows.AsNoTracking().Where(r => r.FormId == formId && r.Form.UserId == userId)
                 join fraw in _db.FormFeature.AsNoTracking().Where(f => f.FormId == formId)
                     on r.FormFeatureId equals (int?)fraw.Id into gj
                 from f in gj.DefaultIfEmpty()

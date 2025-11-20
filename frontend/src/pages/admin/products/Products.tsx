@@ -35,10 +35,10 @@ function ProductsInner() {
           <div className="flex items-center gap-2">
             <h3>{grid.formTitle}</h3>
             <span className="text-sm">
-              ({grid.meta.totalRows}محصول)
+              ({grid.meta.totalRows} محصول)
             </span>
           </div>
-          <h6 className="text-base text-[#636363]">فرم <FarsiText>{4038}</FarsiText></h6>
+          <h6 className="text-base text-[#636363]">فرم <FarsiText>{formId}</FarsiText></h6>
         </div>
         <div className="flex items-center gap-2">
           <button type="button" className="button-outline">

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PriceList.Core.Entities;
+using PriceList.Infrastructure.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,6 +31,14 @@ namespace PriceList.Infrastructure.Configurations
                 .HasDefaultValue(15)
                 .IsRequired();
 
+            b.Property(x => x.IsDeleted)
+                .HasDefaultValue(0)
+                .IsRequired();
+
+            b.Property(x => x.Status)
+                .HasDefaultValue(FormStatus.PendingApproval)
+                .IsRequired();
+
             b.HasMany(x => x.Columns)
                 .WithOne(x => x.Form)
                 .HasForeignKey(x => x.FormId)
@@ -40,7 +49,12 @@ namespace PriceList.Infrastructure.Configurations
                 .HasForeignKey(x => x.FormId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            b.HasIndex(f => new { f.SupplierId, f.BrandId, f.CategoryId, f.ProductGroupId })
+            b.HasOne<AppUser>()
+                .WithMany()
+                 .HasForeignKey(f => f.UserId)
+                 .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasIndex(f => new { f.UserId, f.BrandId, f.CategoryId, f.ProductGroupId })
                 .IsUnique();
         }
     }

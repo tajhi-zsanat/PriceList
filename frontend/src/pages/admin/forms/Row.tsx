@@ -1,13 +1,15 @@
 import FarsiText from "@/components/FarsiText";
 import more from "@/assets/img/more icon-mobile.png";
 import type { FormListItemDto } from "@/types";
+import { useNavigate } from "react-router-dom";
 
 export default function Row({ item }: { item: FormListItemDto }) {
+  const navigate = useNavigate();
   const categories = `${item.categoryName}`;
   const groups = `${item.groupName}`;
 
   const handleRowClick = () => {
-    window.location.href = `/admin/products?formId=${item.id}`;
+    navigate(`/admin/products?formId=${item.id}`);
   };
 
   return (

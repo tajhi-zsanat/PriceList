@@ -43,7 +43,7 @@ namespace PriceList.Api.Controllers
                     return Unauthorized("آیدی یافت نشد.");
 
                 var list = await uow.Forms.ListAsync(
-                predicate: (f => f.SupplierId == int.Parse(userId)),
+                predicate: (f => f.UserId == int.Parse(userId)),
                         selector: FormMappings.ToListItem,
                         asNoTracking: true,
                         orderBy: q => q
@@ -69,7 +69,11 @@ namespace PriceList.Api.Controllers
         {
             try
             {
-                //
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized("آیدی یافت نشد.");
+
                 //clamp user input a bit
                 page = Math.Max(1, page);
                 pageSize = Math.Clamp(pageSize, 10, 200);
@@ -84,7 +88,7 @@ namespace PriceList.Api.Controllers
 
                 // paged rows (only the current slice), still grouped by feature name sets
                 var (groups, totalRows) =
-                    await uow.FormFeatures.GroupRowsAndCellsByTypePagedAsync(formId, page, pageSize, ct);
+                    await uow.FormFeatures.GroupRowsAndCellsByTypePagedAsync(formId, int.Parse(userId), page, pageSize, ct);
 
                 var totalPages = (int)Math.Ceiling(totalRows / (double)pageSize);
                 var meta = new PaginationMeta(
@@ -97,7 +101,7 @@ namespace PriceList.Api.Controllers
                 );
 
                 var formTittle = await uow.Forms.FirstOrDefaultAsync(
-                    predicate: f => f.Id == formId,
+                    predicate: f => f.Id == formId && f.UserId == int.Parse(userId),
                     selector: f => string.IsNullOrWhiteSpace(f.FormTitle) ? "--" : f.FormTitle,
                     asNoTracking: true,
                     ct
@@ -126,7 +130,7 @@ namespace PriceList.Api.Controllers
             if (dto is null)
                 return BadRequest("بدنه درخواست خالی است.");
 
-            if(!await uow.Forms.FormExistsAsync(dto.FormId, ct))
+            if (!await uow.Forms.FormExistsAsync(dto.FormId, ct))
                 return BadRequest("آیدی نامعتبر می‌باشد");
 
             // Load tracked entity (NO projection)
@@ -320,6 +324,13 @@ namespace PriceList.Api.Controllers
         public async Task<IActionResult> Create([FromBody] FormCreateDto dto, CancellationToken ct = default)
         {
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
+
+            // Resolve supplier from auth/tenant (TODO)
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized("آیدی یافت نشد.");
+
             if (dto is null) return BadRequest("بدنه درخواست خالی است.");
 
             // Validate columns and rows
@@ -350,15 +361,9 @@ namespace PriceList.Api.Controllers
             if (category is null) return NotFound("دسته‌بندی یافت نشد.");
             if (group is null) return NotFound("دسته‌بندی یافت نشد.");
 
-            // Resolve supplier from auth/tenant (TODO)
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (string.IsNullOrEmpty(userId))
-                return Unauthorized("آیدی یافت نشد.");
-
             // Duplicate check (composite)
             var existsCombo = await uow.Forms.AnyAsync(f =>
-                f.SupplierId == int.Parse(userId) &&
+                f.UserId == int.Parse(userId) &&
                 f.BrandId == dto.BrandId &&
                 f.CategoryId == dto.CategoryId &&
                 f.ProductGroupId == dto.GroupId);
@@ -371,7 +376,7 @@ namespace PriceList.Api.Controllers
             {
                 var title = dto.FormTitle.Trim();
                 var existsTitle = await uow.Forms.AnyAsync(
-                    f => f.SupplierId == int.Parse(userId) && f.FormTitle == title, ct);
+                    f => f.UserId == int.Parse(userId) && f.FormTitle == title, ct);
                 if (existsTitle)
                     return Conflict("عنوان فرم تکراری می‌باشد.");
             }
@@ -379,7 +384,7 @@ namespace PriceList.Api.Controllers
             // Create entity
             var entity = new Form
             {
-                SupplierId = int.Parse(userId),
+                UserId = int.Parse(userId),
                 BrandId = dto.BrandId,
                 CategoryId = dto.CategoryId,
                 ProductGroupId = dto.GroupId,

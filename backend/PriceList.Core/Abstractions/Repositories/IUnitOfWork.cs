@@ -14,7 +14,7 @@ namespace PriceList.Core.Abstractions.Repositories
         IBrandRepository Brands { get; }
         IErrorLogRepository Errors { get; }
         IUnitRepository Units { get; }
-        ISupplierRepository Suppliers { get; }
+        //ISupplierRepository Suppliers { get; }
         IFormRepository Forms { get; }
         IFormCellRepository FormCells { get; }
         IFormColumnDefRepository FormColumns { get; }

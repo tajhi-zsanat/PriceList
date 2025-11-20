@@ -1,5 +1,6 @@
 ﻿using PriceList.Core.Application.Dtos.Form;
 using PriceList.Core.Entities;
+using PriceList.Core.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -58,6 +59,8 @@ namespace PriceList.Core.Abstractions.Repositories
         Task ShiftRowsAsync(int formId, int insertAt, CancellationToken ct);
 
         Task<int> CreateRowAsync(int formId, int featureId, int insertAt, CancellationToken ct);
+
+        Task<bool> UpdateFormAsync(int formId, StatusForm status, CancellationToken ct);
 
         Task CreateCellsAsync(int formId, int rowId, CancellationToken ct);
 

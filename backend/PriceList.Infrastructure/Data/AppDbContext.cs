@@ -25,7 +25,6 @@ namespace PriceList.Infrastructure.Data
         public DbSet<ProductGroup> ProductGroups => Set<ProductGroup>();
         public DbSet<ProductType> ProductTypes => Set<ProductType>();
         public DbSet<Brand> Brands => Set<Brand>();
-        public DbSet<Supplier> Suppliers => Set<Supplier>();
         public DbSet<Unit> Units => Set<Unit>();
         public DbSet<ErrorLog> ErrorLog => Set<ErrorLog>();
 
@@ -41,6 +40,19 @@ namespace PriceList.Infrastructure.Data
             modelBuilder.ApplyShamsiAuditConventions();
             base.OnModelCreating(modelBuilder);
 
+            // GLOBAL SOFT DELETE FILTER
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+                if (typeof(ISoftDelete).IsAssignableFrom(entityType.ClrType))
+                {
+                    var method = typeof(AppDbContext).GetMethod(nameof(ApplySoftDeleteFilter),
+                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
+                        ?.MakeGenericMethod(entityType.ClrType);
+
+                    method?.Invoke(null, new object[] { modelBuilder });
+                }
+            }
+
             modelBuilder.Entity<RefreshToken>(e =>
             {
                 e.HasIndex(x => x.Token).IsUnique();
@@ -50,6 +62,12 @@ namespace PriceList.Infrastructure.Data
                     .HasForeignKey(x => x.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
+        }
+
+        private static void ApplySoftDeleteFilter<TEntity>(ModelBuilder builder)
+        where TEntity : class, ISoftDelete
+        {
+            builder.Entity<TEntity>().HasQueryFilter(e => !e.IsDeleted);
         }
 
         public override Task<int> SaveChangesAsync(CancellationToken ct = default)
@@ -82,6 +100,21 @@ namespace PriceList.Infrastructure.Data
                     e.Entity.UpdateDateAndTime = utcNow;
                     e.Entity.UpdateDate = persianDate;
                     e.Entity.UpdateTime = hhmm;
+                }
+            }
+
+            // --- Soft delete ---
+            foreach (var entry in ChangeTracker.Entries<ISoftDelete>())
+            {
+                if (entry.State == EntityState.Added)
+                {
+                    entry.Entity.IsDeleted = false;
+                }
+                else if (entry.State == EntityState.Deleted)
+                {
+                    // convert hard delete to soft delete
+                    entry.State = EntityState.Modified;
+                    entry.Entity.IsDeleted = true;
                 }
             }
 

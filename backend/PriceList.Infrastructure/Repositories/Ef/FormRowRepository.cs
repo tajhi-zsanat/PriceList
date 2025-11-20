@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.SqlServer.Server;
 using PriceList.Core.Abstractions.Repositories;
 using PriceList.Core.Entities;
 using PriceList.Infrastructure.Data;
@@ -20,53 +21,87 @@ namespace PriceList.Infrastructure.Repositories.Ef
 
         public async Task<int> GetFormByMaxRow(List<int> ids, CancellationToken ct)
         {
+            if (ids == null || ids.Count == 0)
+                return 0;
+
+            var mostRows = new Dictionary<int, int>();
+
             var desType = await _db.FormColumnDefs
-                .Where(c => c.Type == ColumnType.MultilineText && ids.Contains(c.FormId))
-                .Select(c => c.Index)
-                .FirstOrDefaultAsync(ct);
+               .Where(c => c.Type == ColumnType.MultilineText && ids.Contains(c.FormId))
+               .Select(c => new
+               {
+                   c.FormId,
+                   c.Index
+               })
+               .ToDictionaryAsync(f => f.FormId, f => f.Index, ct);
 
             var priceType = await _db.FormColumnDefs
                 .Where(c => c.Type == ColumnType.Price && ids.Contains(c.FormId))
-                .Select(c => c.Index)
-                .FirstOrDefaultAsync(ct);
+                .Select(c => new
+                {
+                    c.FormId,
+                    c.Index
+                })
+                .ToDictionaryAsync(f => f.FormId, f => f.Index, ct);
 
-            var rowsWithDescription = _db.FormCells
+            foreach (var formId in ids)
+            {
+                if (!desType.TryGetValue(formId, out int type))
+                    continue;
+
+                if (!priceType.TryGetValue(formId, out int price))
+                    continue;
+
+                var rowsWithDescription = _db.FormCells
                 .Where(c =>
-                    c.ColIndex == desType &&
+                    c.Row.FormId == formId &&
+                    c.ColIndex == type &&
                     c.Value != null &&
                     c.Value != "")
                 .Select(c => c.RowId);
 
-            var rowsWithPrice = _db.FormCells
+                var rowsWithPrice = _db.FormCells
                 .Where(c =>
-                    c.ColIndex == priceType &&
+                    c.Row.FormId == formId &&
+                    c.ColIndex == price &&
                     c.Value != null &&
                     c.Value != "")
                 .Select(c => c.RowId);
 
-            var validRowIds = rowsWithDescription
-                .Intersect(rowsWithPrice);
+                var validRowIds = rowsWithDescription
+                 .Intersect(rowsWithPrice);
 
-            var result = await _db.FormRows
-                .Where(fr => ids.Contains(fr.FormId) &&
+                var result = await _db.FormRows
+                .Where(fr => fr.FormId == formId &&
                              validRowIds.Contains(fr.Id))
-                .GroupBy(fr => fr.FormId)
-                .OrderByDescending(g => g.Count())
-                .Select(g => g.Key)
-                .FirstOrDefaultAsync(ct);
+                .CountAsync(ct);
 
-            return result;
+                mostRows[formId] = result;
+            }
+
+            if (mostRows.Count == 0)
+                return 0;
+
+            int keyOfMax = mostRows.Aggregate((l, r) => l.Value > r.Value ? l : r).Key;
+
+            return keyOfMax;
         }
 
         public async Task<int> GetCountRow(List<int> ids, CancellationToken ct)
         {
             var desType = await _db.FormColumnDefs
-              .Where(c => c.Type == ColumnType.MultilineText && ids.Contains(c.FormId))
+              .Where(c =>
+              ids.Contains(c.FormId) &&
+              c.Type == ColumnType.MultilineText
+              && ids.Contains(c.FormId))
               .Select(c => c.Index)
               .FirstOrDefaultAsync(ct);
 
             var priceType = await _db.FormColumnDefs
-                .Where(c => c.Type == ColumnType.Price && ids.Contains(c.FormId))
+                .Where(c =>
+                ids.Contains(c.FormId) &&
+                c.Type == ColumnType.Price &&
+                ids.Contains(c.FormId))
                 .Select(c => c.Index)
                 .FirstOrDefaultAsync(ct);
 

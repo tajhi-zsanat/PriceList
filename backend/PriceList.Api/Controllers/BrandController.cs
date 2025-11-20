@@ -64,18 +64,14 @@ namespace PriceList.Api.Controllers
             var list = await uow.Forms.ListAsync(
                 predicate: (f => f.CategoryId == categoryId && f.ProductGroupId == groupId),
                 selector: BrandMappings.ToListItemFromForm,
-                //selector: f => new
-                //{
-                //    f.Brand.Id,
-                //    f.Brand.Name,
-                //    f.Brand.DisplayOrder
-                //},
                 asNoTracking: true,
                 orderBy: q => q
                     .OrderBy(f => f.Brand.DisplayOrder == 0)
                     .ThenBy(f => f.Brand.DisplayOrder)
                     .ThenBy(f => f.Brand.Name),
                 ct);
+
+            list = list.Distinct().ToList();
 
             return Ok(list);
         }

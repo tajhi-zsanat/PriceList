@@ -52,6 +52,7 @@ export interface FeatureBucketDto {
 }
 
 export type Meta = {
+  formName: string;
   lastUpdate: string;
   totalRows: number;
   skip: number;

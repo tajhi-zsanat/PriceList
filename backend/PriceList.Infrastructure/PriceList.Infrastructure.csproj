@@ -18,6 +18,7 @@
     <Compile Remove="Configurations\ProductCustomPropertyConfiguration.cs" />
     <Compile Remove="Configurations\ProductFeatureConfiguration.cs" />
     <Compile Remove="Configurations\ProductTypeFeatureConfiguration.cs" />
+    <Compile Remove="Configurations\SupplierConfiguration.cs" />
     <Compile Remove="Repositories\Ef\ColorFeatureRepository.cs" />
     <Compile Remove="Repositories\Ef\FeatureRepository.cs" />
     <Compile Remove="Repositories\Ef\FormProductTypeRepo.cs" />
@@ -29,6 +30,7 @@
     <Compile Remove="Repositories\Ef\ProductImageRepository.cs" />
     <Compile Remove="Repositories\Ef\ProductRepository.cs" />
     <Compile Remove="Repositories\Ef\ProductTypeFeaturesRepository.cs" />
+    <Compile Remove="Repositories\Ef\SupplierRepository.cs" />
     <Compile Remove="Services\ProductPdfService.cs" />
   </ItemGroup>
 

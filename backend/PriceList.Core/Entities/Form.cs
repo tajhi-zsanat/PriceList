@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace PriceList.Core.Entities
 {
-    public class Form : ShamsiAuditableEntity
+    public class Form : ShamsiAuditableEntity, ISoftDelete
     {
         public int Id { get; set; }
 
@@ -15,14 +15,17 @@ namespace PriceList.Core.Entities
 
         public int DisplayOrder { get; set; }
 
+        public bool IsDeleted { get; set; }
+
+        public FormStatus Status { get; set; }
+
         public int CategoryId { get; set; }
         public Category Category { get; set; } = null!;
 
         public int ProductGroupId { get; set; }
         public ProductGroup ProductGroup { get; set; } = null!;
 
-        public int SupplierId { get; set; }
-        public Supplier Supplier { get; set; } = null!;
+        public int? UserId { get; set; }
 
         public int BrandId { get; set; }
         public Brand Brand { get; set; } = null!;
@@ -59,5 +62,12 @@ namespace PriceList.Core.Entities
         Price,
         More,
         NotAssign
+    }
+
+    public enum FormStatus
+    {
+        PendingApproval,
+        Rejected,
+        Confirmed
     }
 }

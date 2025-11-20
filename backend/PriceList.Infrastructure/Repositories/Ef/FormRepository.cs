@@ -379,5 +379,22 @@ WHERE r.FormId = @formId AND c.ColIndex = @index;";
             form.UpdateDate = persianDate;
             form.UpdateTime = hhmm;
         }
+
+        public async Task<bool> UpdateFormAsync(int formId, StatusForm status, CancellationToken ct)
+        {
+            var form = await _db.Forms
+         .FirstOrDefaultAsync(f => f.Id == formId, ct);
+
+            if (form == null)
+                return false;
+
+            if (status == StatusForm.Add)
+                form.Rows += 1;
+
+            else if (status == StatusForm.Remove)
+                form.Rows -= 1;
+
+            return true;
+        }
     }
 }

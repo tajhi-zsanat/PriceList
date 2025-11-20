@@ -6,7 +6,7 @@ export default function Protected() {
   const loc = useLocation();
   // Wait for hydration to finish; avoids false redirect on first render.
   if (!authReady) return null;
-  debugger;
+ 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace state={{ from: loc.pathname + loc.search }} />;
   }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace PriceList.Core.Application.Dtos.Form;
 public sealed record ScrollMeta(
+    string? FormName,
     string LastUpdate,
     int TotalRows,
     int Skip,

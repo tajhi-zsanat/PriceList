@@ -12,6 +12,7 @@ namespace PriceList.Core.Abstractions.Repositories
     {
         Task<(List<GridGroupByFeature> Groups, int TotalRows)> GroupRowsAndCellsByTypePagedAsync(
             int formId,
+            int userId,
             int page,
             int pageSize,
             CancellationToken ct);

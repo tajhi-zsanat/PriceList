@@ -1,4 +1,4 @@
-import { Link, NavLink } from "react-router-dom";
+import { Link, matchPath, NavLink, useLocation } from "react-router-dom";
 import arrow from "@/assets/img/admin/arrow_forward.png"
 import logo from "@/assets/img/pikatak.png";
 import SearchInput from "@/components/products/SearchInput";
@@ -11,8 +11,14 @@ import type { AdminHeaderProps } from "@/types";
 import { useAuth } from "@/app/AuthProvider";
 
 export default function AdminHeader({ onFormCreated }: AdminHeaderProps) {
+    const location = useLocation()
+
     const [modalOpen, setModalOpen] = useState(false);
     const { user } = useAuth();
+
+    const isFormsOrProducts =
+        matchPath("/admin/forms", location.pathname) ||
+        matchPath("/admin/products", location.pathname);
 
     return (
         <header>
@@ -60,9 +66,8 @@ export default function AdminHeader({ onFormCreated }: AdminHeaderProps) {
                         </NavLink>
                         <NavLink
                             to="/admin/forms"
-                            end
-                            className={({ isActive }) =>
-                                `cursor-pointer text-base ${isActive ? "text-[#1F78AE] font-bold" : ""
+                            className={() =>
+                                `cursor-pointer text-base ${isFormsOrProducts ? "text-[#1F78AE] font-bold" : ""
                                 }`
                             }
                         >

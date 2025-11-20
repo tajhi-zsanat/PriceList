@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PriceList.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using PriceList.Infrastructure.Data;
 namespace PriceList.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251119114801_AddUsereIdToForm")]
+    partial class AddUsereIdToForm
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -349,11 +352,6 @@ namespace PriceList.Infrastructure.Data.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<bool>("IsDeleted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
                     b.Property<int>("MaxCols")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
@@ -370,10 +368,8 @@ namespace PriceList.Infrastructure.Data.Migrations
                     b.Property<int>("Rows")
                         .HasColumnType("int");
 
-                    b.Property<int>("Status")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
+                    b.Property<int?>("SupplierId")
+                        .HasColumnType("int");
 
                     b.Property<string>("UpdateDate")
                         .HasMaxLength(10)
@@ -398,6 +394,8 @@ namespace PriceList.Infrastructure.Data.Migrations
                     b.HasIndex("CategoryId");
 
                     b.HasIndex("ProductGroupId");
+
+                    b.HasIndex("SupplierId");
 
                     b.HasIndex("UserId", "BrandId", "CategoryId", "ProductGroupId")
                         .IsUnique()
@@ -757,6 +755,73 @@ namespace PriceList.Infrastructure.Data.Migrations
                     b.ToTable("ProductTypes", (string)null);
                 });
 
+            modelBuilder.Entity("PriceList.Core.Entities.Supplier", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Address")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CreateDate")
+                        .HasMaxLength(10)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<DateTime>("CreateDateAndTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreateTime")
+                        .HasMaxLength(4)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(4)");
+
+                    b.Property<int>("DisplayOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FullName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("SupplierValueId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UpdateDate")
+                        .HasMaxLength(10)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<DateTime>("UpdateDateAndTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdateTime")
+                        .HasMaxLength(4)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(4)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Suppliers", (string)null);
+                });
+
             modelBuilder.Entity("PriceList.Core.Entities.Unit", b =>
                 {
                     b.Property<int>("Id")
@@ -961,6 +1026,10 @@ namespace PriceList.Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("PriceList.Core.Entities.Supplier", null)
+                        .WithMany("Forms")
+                        .HasForeignKey("SupplierId");
+
                     b.HasOne("PriceList.Infrastructure.Identity.AppUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -1091,6 +1160,11 @@ namespace PriceList.Infrastructure.Data.Migrations
                     b.Navigation("Forms");
 
                     b.Navigation("ProductTypes");
+                });
+
+            modelBuilder.Entity("PriceList.Core.Entities.Supplier", b =>
+                {
+                    b.Navigation("Forms");
                 });
 #pragma warning restore 612, 618
         }

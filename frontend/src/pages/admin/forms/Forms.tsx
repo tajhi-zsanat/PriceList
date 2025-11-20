@@ -8,10 +8,14 @@ import ErrorBanner from "./ErrorBanner";
 import type { FormsContextType } from "@/types";
 import { useOutletContext } from "react-router-dom";
 import frameIcon from "@/assets/img/admin/ChangeFrame.png"
+import { useEffect } from "react";
 
 export default function Forms() {
-  const { data, loading, error } = useOutletContext<FormsContextType>();
+  const { data, loading, error, reload } = useOutletContext<FormsContextType>();
 
+  useEffect(() => {
+    reload();
+  }, [reload]);
   return (
     <section className="w-full mt-4" role="region" aria-label="فرم‌ها">
 
