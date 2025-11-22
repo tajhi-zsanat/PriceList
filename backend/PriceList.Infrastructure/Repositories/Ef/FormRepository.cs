@@ -1,6 +1,6 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using Microsoft.AspNetCore.Http.Features;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.Extensions.Logging;
 using Microsoft.SqlServer.Server;
 using PriceList.Core.Abstractions.Repositories;
@@ -9,14 +9,9 @@ using PriceList.Core.Common;
 using PriceList.Core.Entities;
 using PriceList.Core.Enums;
 using PriceList.Infrastructure.Data;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Security.AccessControl;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace PriceList.Infrastructure.Repositories.Ef
 {
@@ -247,7 +242,7 @@ WHERE r.FormId = @formId AND c.ColIndex = @index;";
 
         public async Task<int> CreateFeatureAsync(int formId, string feature, int displayOrder, string color, CancellationToken ct)
         {
-            var entity = new FormFeature
+            var entity = new Core.Entities.FormFeature
             {
                 FormId = formId,
                 Name = feature.Trim(),
@@ -395,6 +390,30 @@ WHERE r.FormId = @formId AND c.ColIndex = @index;";
                 form.Rows -= 1;
 
             return true;
+        }
+
+        public async Task<List<GetRowNumberList>> GetRowNumberAsync(int formId, CancellationToken ct)
+        {
+            var rows = await _db.FormRows
+            .Where(fr => fr.FormId == formId)
+            .OrderBy(fr => fr.FormFeature.DisplayOrder == null ? int.MaxValue : fr.FormFeature.DisplayOrder)
+            .ThenBy(fr => fr.FormFeature.Name)
+            .ThenBy(fr => fr.RowIndex)
+            .ThenBy(fr => fr.Id)
+            .Select(fr => new
+            {
+                fr.Id,
+                FeatureName = fr.FormFeature.Name
+            })
+            .ToListAsync(ct);
+
+            return rows
+                .Select((x, index) => new GetRowNumberList(
+                    x.Id,
+                    index + 1,  
+                    x.FeatureName
+                ))
+                .ToList();
         }
     }
 }

@@ -68,5 +68,7 @@ namespace PriceList.Core.Abstractions.Repositories
         Task<bool> RowIndexExistsAsync(int formId, int rowId, CancellationToken ct);
 
         Task ShiftMinusRowsAsync(int formId, int removeAt, CancellationToken ct);
+
+        Task<List<GetRowNumberList>> GetRowNumberAsync(int formId, CancellationToken ct);
     }
 }

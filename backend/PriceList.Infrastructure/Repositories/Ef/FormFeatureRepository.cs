@@ -63,7 +63,7 @@ namespace PriceList.Infrastructure.Repositories.Ef
 
             var pageRows = await baseQuery
                 .OrderBy(x => x.FeatureOrder)
-                .ThenBy(x => x.FeatureName)    // tie-breaker for stability
+                .ThenBy(x => x.FeatureName)   
                 .ThenBy(x => x.RowIndex)
                 .ThenBy(x => x.Id)
                 .Skip(skip)

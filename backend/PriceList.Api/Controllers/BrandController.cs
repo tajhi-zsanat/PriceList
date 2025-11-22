@@ -61,17 +61,7 @@ namespace PriceList.Api.Controllers
             if (!isCategoryExist || !isGroupExist)
                 return BadRequest("شناسه دسته بندی نامعتبر می‌باشد.");
 
-            var list = await uow.Forms.ListAsync(
-                predicate: (f => f.CategoryId == categoryId && f.ProductGroupId == groupId),
-                selector: BrandMappings.ToListItemFromForm,
-                asNoTracking: true,
-                orderBy: q => q
-                    .OrderBy(f => f.Brand.DisplayOrder == 0)
-                    .ThenBy(f => f.Brand.DisplayOrder)
-                    .ThenBy(f => f.Brand.Name),
-                ct);
-
-            list = list.Distinct().ToList();
+            var list = await uow.Brands.GetBrandsAsync(categoryId, groupId, search, ct);
 
             return Ok(list);
         }

@@ -115,6 +115,30 @@ namespace PriceList.Api.Controllers
                 return new EmptyResult();
             }
         }
+
+        [HttpGet("{formId:int}/rows/order")]
+        public async Task<ActionResult<GetRowNumberList>> GetFormRowOrder(
+            int formId,
+            CancellationToken ct = default)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized("آیدی یافت نشد.");
+
+                var result = await uow.Forms.GetRowNumberAsync(formId, ct);
+
+
+                return Ok(result);
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                HttpContext.Response.StatusCode = 499;
+                return new EmptyResult();
+            }
+        }
         #endregion
 
         #region Put
