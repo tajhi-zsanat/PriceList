@@ -129,5 +129,15 @@ namespace PriceList.Infrastructure.Repositories.Ef
             return countRows;
         }
 
+        public async Task<List<int>> GetFeatureIDsRow(int id, CancellationToken ct)
+        {
+            var formRowFeatureIDs = await _db.FormRows
+                .Where(fr => fr.FormId == id && fr.FormFeatureId != null)
+                .Select(fr => fr.FormFeatureId!.Value)
+                .Distinct()
+                .ToListAsync(ct);
+
+            return formRowFeatureIDs;
+        }
     }
 }

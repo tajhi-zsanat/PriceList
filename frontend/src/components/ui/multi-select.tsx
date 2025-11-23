@@ -944,7 +944,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 												}}>
 												{`+ ${
 													selectedValues.length - responsiveSettings.maxCount
-												} more`}
+												} بیشتر`}
 												<XCircle
 													className={cn(
 														"ml-2 h-4 w-4 cursor-pointer",
@@ -1056,7 +1056,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 											}
 											aria-label={`انتخاب همه ${
 												getAllOptions().length
-											} options`}
+											} رکورد`}
 											className="cursor-pointer">
 											<div
 												className={cn(
@@ -1073,7 +1073,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 											<span>
 												(انتخاب همه
 												{getAllOptions().length > 20
-													? ` - ${getAllOptions().length} options`
+													? ` - ${getAllOptions().length} رکورد`
 													: ""}
 												)
 											</span>

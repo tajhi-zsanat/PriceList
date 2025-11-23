@@ -11,5 +11,6 @@ namespace PriceList.Core.Abstractions.Repositories
     {
         Task<int> GetFormByMaxRow(List<int> ids, CancellationToken ct);
         Task<int> GetCountRow(List<int> ids, CancellationToken ct);
+        Task<List<int>> GetFeatureIDsRow(int id, CancellationToken ct);
     }
 }

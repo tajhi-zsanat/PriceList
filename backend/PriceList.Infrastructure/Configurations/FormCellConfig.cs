@@ -16,12 +16,14 @@ namespace PriceList.Infrastructure.Configurations
             b.ToTable("FormCells");
             b.HasKey(x => x.Id);
 
+            b.HasIndex(x => new { x.RowId, x.ColIndex })
+                .IsUnique()
+                .IncludeProperties(x => x.Value);
+
+
             b.Property(x => x.ColIndex).IsRequired();
 
             b.Property(x => x.Value).HasMaxLength(250);
-
-            b.HasIndex(c => new { c.RowId, c.ColIndex })
-                   .IsUnique();
         }
     }
 }

@@ -115,6 +115,26 @@ namespace PriceList.Core.Application.Services
 
                 var affected = await uow.Forms.UpdateFormRowsAsync(formId, featureId, rowIds, ct);
 
+                var featureIDs = await uow.FormFeatures.ListAsync(
+                    predicate: fr => fr.FormId == formId,
+                    selector: fr => fr.Id,
+                    ct: ct);
+
+                var formRowFeatureIDs = await uow.FormRows.GetFeatureIDsRow(formId, ct);
+
+                var notExist = featureIDs.Except(formRowFeatureIDs).ToList();
+
+                if (notExist.Count != 0)
+                {
+                    var features = await uow.FormFeatures.ListAsync(
+                        predicate: f => notExist.Contains(f.Id),
+                        asNoTracking: false,
+                        ct: ct);
+
+                    uow.FormFeatures.RemoveRange(features);
+                    await uow.SaveChangesAsync(ct);
+                }
+
                 await uow.CommitTransactionAsync(ct);
                 return affected > 0 ? new(FeatureStatus.Created) : new(FeatureStatus.NoContent);
             }
@@ -182,7 +202,7 @@ namespace PriceList.Core.Application.Services
                         ct: ct
                         );
 
-                    if(feature == null)
+                    if (feature == null)
                         return new(FeatureStatus.FeatureRowNotFound);
 
                     uow.FormFeatures.Remove(feature);

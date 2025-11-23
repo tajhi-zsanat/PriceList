@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using PriceList.Core.Abstractions.Repositories;
@@ -100,26 +101,31 @@ builder.Services.AddSwaggerGen(c =>
         Description = "Backend for PriceList (React + .NET)"
     });
 
-    // OPTIONAL: enable annotations
-    // c.EnableAnnotations();
+    // 🔐 Tell Swagger about "Bearer" scheme
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter JWT token like: Bearer {your token}"
+    });
 
-    // OPTIONAL: XML comments (see step 3)
-    // var xml = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    // c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xml), true);
-
-    // OPTIONAL: JWT bearer support (uncomment when you add auth)
-    // c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme {
-    //   Name = "Authorization",
-    //   Type = SecuritySchemeType.Http,
-    //   Scheme = "bearer",
-    //   BearerFormat = "JWT",
-    //   In = ParameterLocation.Header,
-    //   Description = "Enter: Bearer {token}"
-    // });
-    // c.AddSecurityRequirement(new OpenApiSecurityRequirement {
-    //   { new OpenApiSecurityScheme { Reference = new OpenApiReference {
-    //         Type = ReferenceType.SecurityScheme, Id = "Bearer" }}, Array.Empty<string>() }
-    // });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
 });
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -134,7 +140,6 @@ builder.Services.AddScoped<IProductTypeRepository, ProductTypeRepository>();
 builder.Services.AddScoped<IBrandRepository, BrandRepository>();
 builder.Services.AddScoped<IErrorLogRepository, ErrorLogRepository>();
 builder.Services.AddScoped<IUnitRepository, UnitRepository>();
-//builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
 builder.Services.AddScoped<IFormRepository, FormRepository>();
 builder.Services.AddScoped<IFormCellRepository, FormCellRepository>();
 builder.Services.AddScoped<IFormColumnDefRepository, FormColumnDefRepository>();
@@ -153,8 +158,8 @@ var webRoot = builder.Environment.WebRootPath
 var uploadsPhysicalRoot = Path.Combine(webRoot, "uploads");
 builder.Services.Configure<FileStorageOptions>(opt =>
 {
-    opt.PhysicalRoot = uploadsPhysicalRoot; // e.g., .../wwwroot/uploads
-    opt.RequestPath = "/uploads";          // public prefix
+    opt.PhysicalRoot = uploadsPhysicalRoot; 
+    opt.RequestPath = "/uploads";         
 });
 builder.Services.AddSingleton<IFileStorage, LocalFileStorage>();
 
@@ -175,7 +180,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(o =>
     {
         o.SwaggerEndpoint("/swagger/v1/swagger.json", "PriceList API v1");
-        o.RoutePrefix = "swagger"; // UI at /swagger
+        o.RoutePrefix = "swagger"; 
     });
 }
 

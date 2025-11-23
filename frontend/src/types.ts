@@ -266,6 +266,19 @@ export interface GridResponse {
   };
 }
 
+export interface GetRowNumberList {
+  id: number;
+  rowNumber: number;
+  featureName: string | null;
+}
+
+export interface GetFeatureData {
+  id: number;
+  name: number;
+  displayOrder: string | null;
+  selectedRows: string | null;
+}
+
 // convenience
 // Nice typed key like "12-5"
 export type CellKey = `${number}-${number}`;

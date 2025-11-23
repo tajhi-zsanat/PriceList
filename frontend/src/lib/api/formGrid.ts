@@ -1,5 +1,5 @@
 import api from "@/lib/api";
-import type { GridResponse } from "@/types";
+import type { GetFeatureData, GetRowNumberList, GridResponse } from "@/types";
 
 // ---------- Types for responses ----------
 interface UploadImageResponse { imageUrl: string }   // <-- match backend casing
@@ -55,7 +55,7 @@ export interface removeHeaderDefRequest {
 export interface AddFeatureToRowsRequest {
   formId: string | number;
   feature: string | undefined;
-  rowIds: number[];
+  rowIds: number[] | string[];
   displayOrder: string;
   color?: string;
 }
@@ -130,4 +130,36 @@ export async function AddRow(payload: AddRowPayload) {
 
 export async function RemoveRow(payload: RemoveRowPayload) {
   return api.delete(`/api/Form/DeleteRow`, { data: payload });
+}
+
+export async function GetFormRowOrder({
+  formId,
+  signal,
+}: {
+  formId: string | number;
+  signal: AbortSignal;
+}): Promise<GetRowNumberList[]> {
+  const { data } = await api.get<GetRowNumberList[]>(
+    `/api/Form/${formId}/rows/order`,
+    { signal }
+  );
+
+  return data;
+}
+
+export async function GetFeatureData({
+  formId,
+  featureId,
+  signal,
+}: {
+  formId: string | number;
+  featureId: number | string;
+  signal: AbortSignal;
+}): Promise<GetFeatureData[]> {
+  const { data } = await api.get<GetFeatureData[]>(
+    `/api/Form/${formId}/${featureId}/data`,
+    { signal }
+  );
+
+  return data;
 }

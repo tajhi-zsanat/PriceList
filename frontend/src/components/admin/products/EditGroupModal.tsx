@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import type { GetRowNumberList } from "@/types";
 import { Label } from "@radix-ui/react-label";
 import { Input } from "@/components/ui/input";
-import { addFeatureToRows, GetFormRowOrder } from "@/lib/api/formGrid";
+import { addFeatureToRows, GetFeatureData, GetFormRowOrder } from "@/lib/api/formGrid";
 import {
     MultiSelect,
     type MultiSelectOption,
@@ -22,10 +22,11 @@ import {
 type Props = {
     trigger: React.ReactNode;
     formId: number | string;
+    featureId: number | string;
     onCreated?: () => void;
 };
 
-export default function AddGroupModal({ trigger, formId, onCreated }: Props) {
+export default function EditGroupModal({ trigger, formId, featureId, onCreated }: Props) {
     const [values, setValues] = useState<string[]>([]); // selected ids as string[]
     const [data, setData] = useState<GetRowNumberList[]>([]);
     const [options, setOptions] = useState<MultiSelectOption[]>([]);
@@ -39,10 +40,20 @@ export default function AddGroupModal({ trigger, formId, onCreated }: Props) {
 
     const palette = ["#206E4E", "#805F00", "#AE2E23", "#5E4DB3", "#1F78AE"];
 
-    const fetchFormRowOrder = async (ctrl: AbortController) => {
+    const fetchFormRowOrder = async (signal: AbortSignal) => {
         try {
-            const result = await GetFormRowOrder({ formId, ctrl });
+            const result = await GetFormRowOrder({ formId, signal });
             setData(result);
+        } catch {
+            toast.error("بارگذاری ردیف‌ها ناموفق بود.");
+        }
+    };
+
+    const fetchFeature = async (signal: AbortSignal) => {
+        try {
+            console.log("fetched");
+            const result = await GetFeatureData({ formId, featureId, signal });
+            // setData(result);
         } catch {
             toast.error("بارگذاری ردیف‌ها ناموفق بود.");
         }
@@ -51,10 +62,16 @@ export default function AddGroupModal({ trigger, formId, onCreated }: Props) {
     useEffect(() => {
         if (!open) return;
 
-        const ctrl = new AbortController();
-        fetchFormRowOrder(ctrl);
+        const ctrlFeature = new AbortController();
+        const ctrlRows = new AbortController();
 
-        return () => ctrl.abort();
+        fetchFeature(ctrlFeature.signal);
+        fetchFormRowOrder(ctrlRows.signal);
+
+        return () => {
+            ctrlFeature.abort();
+            ctrlRows.abort();
+        };
     }, [open, formId]);
 
     useEffect(() => {

@@ -10,6 +10,7 @@ using PriceList.Api.Dtos.Header;
 using PriceList.Api.Dtos.ProductFeature;
 using PriceList.Core.Abstractions.Repositories;
 using PriceList.Core.Abstractions.Storage;
+using PriceList.Core.Application.Dtos.Feature;
 using PriceList.Core.Application.Dtos.Form;
 using PriceList.Core.Application.Dtos.ProductGroup;
 using PriceList.Core.Application.Mappings;
@@ -130,6 +131,35 @@ namespace PriceList.Api.Controllers
 
                 var result = await uow.Forms.GetRowNumberAsync(formId, ct);
 
+
+                return Ok(result);
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                HttpContext.Response.StatusCode = 499;
+                return new EmptyResult();
+            }
+        }
+
+        [HttpGet("{formId:int}/{featureId:int}/data")]
+        public async Task<ActionResult<FeatureData>> GetFeatureData(
+            int formId,
+            int featureId,
+            CancellationToken ct = default)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized("آیدی یافت نشد.");
+
+                var result = await uow.FormFeatures.ListAsync(
+
+                    predicate: f => f.Id == featureId && f.FormId == formId,
+                    selector: FeatureMappings.item,
+                    ct: ct
+                 );
 
                 return Ok(result);
             }
