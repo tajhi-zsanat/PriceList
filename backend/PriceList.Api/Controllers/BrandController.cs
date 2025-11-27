@@ -2,22 +2,27 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client.Extensions.Msal;
 using PriceList.Api.Dtos;
 using PriceList.Api.Dtos.Brand;
+using PriceList.Api.Dtos.Category;
 using PriceList.Api.Helpers;
 using PriceList.Api.Mappings;
 using PriceList.Core.Abstractions.Repositories;
+using PriceList.Core.Abstractions.Storage;
 using PriceList.Core.Application.Dtos.Brand;
+using PriceList.Core.Application.Dtos.Category;
 using PriceList.Core.Application.Dtos.ProductGroup;
 using PriceList.Core.Application.Mappings;
 using PriceList.Core.Entities;
+using System.Text.Json;
 
 namespace PriceList.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     [Produces("application/json")]
-    public class BrandController(IUnitOfWork uow) : ControllerBase
+    public class BrandController(IUnitOfWork uow, IFileStorage storage) : ControllerBase
     {
         [HttpGet]
         [ProducesResponseType(typeof(List<BrandListItemDto>), StatusCodes.Status200OK)]
@@ -80,14 +85,15 @@ namespace PriceList.Api.Controllers
         }
 
         [HttpPost]
+        [Consumes("multipart/form-data")]
         [ProducesResponseType(typeof(BrandListItemDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<ActionResult<BrandListItemDto>> Create(
-            [FromBody] BrandInputDto dto,
+            [FromForm] CategoryCreateForm form,
             CancellationToken ct = default)
         {
-            var name = dto.Name?.Trim();
+            var name = form.Name?.Trim();
 
             if (string.IsNullOrWhiteSpace(name))
                 return BadRequest("نام برند الزامی است.");
@@ -99,11 +105,31 @@ namespace PriceList.Api.Controllers
             if (dupExists)
                 return Conflict("نام برند تکراری است.");
 
+            string? imagePath = null;
+            if (form.Image is not null && form.Image.Length > 0)
+            {
+                var allowed = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            { ".jpg", ".jpeg", ".png", ".webp", ".svg" };
+                var ext = Path.GetExtension(form.Image.FileName);
+                if (!allowed.Contains(ext))
+                    return BadRequest("فرمت تصویر نامعتبر است.");
+
+                try
+                {
+                    using var s = form.Image.OpenReadStream();
+                    imagePath = await storage.SaveAsync(s, form.Image.FileName, "brands", ct);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    return BadRequest(ex.Message);
+                }
+            }
+
             var entity = new Brand
             {
                 Name = name,
-                DisplayOrder = dto.DisplayOrder,
-                ImagePath = dto.ImagePath
+                DisplayOrder = form.DisplayOrder,
+                ImagePath = imagePath
             };
 
             await uow.Brands.AddAsync(entity, ct);
@@ -111,6 +137,17 @@ namespace PriceList.Api.Controllers
             try
             {
                 await uow.SaveChangesAsync(ct);
+
+                await uow.auditLogger.LogAsync(new AuditLog
+                {
+                    ActionType = ActionType.Create.ToString(),
+                    EntityName = EntityName.Brand.ToString(),
+                    EntityId = entity.Id.ToString(),
+                    Route = HttpContext.Request.Path,
+                    HttpMethod = HttpContext.Request.Method,
+                    Success = true,
+                    NewValuesJson = JsonSerializer.Serialize(entity)
+                }, ct);
             }
             catch (DbUpdateException ex) when (SqlExceptionHelpers.IsUniqueViolation(ex))
             {
@@ -158,9 +195,18 @@ namespace PriceList.Api.Controllers
 
             try
             {
-                // If 'entity' is tracked, Update() isn't required:
-                // uow.Categories.Update(entity);
                 await uow.SaveChangesAsync(ct);
+
+                await uow.auditLogger.LogAsync(new AuditLog
+                {
+                    ActionType = ActionType.Update.ToString(),
+                    EntityName = EntityName.Brand.ToString(),
+                    EntityId = entity.Id.ToString(),
+                    Route = HttpContext.Request.Path,
+                    HttpMethod = HttpContext.Request.Method,
+                    Success = true,
+                    NewValuesJson = JsonSerializer.Serialize(entity)
+                }, ct);
             }
             catch (DbUpdateException ex) when (SqlExceptionHelpers.IsUniqueViolation(ex))
             {
@@ -178,6 +224,7 @@ namespace PriceList.Api.Controllers
         public async Task<IActionResult> Delete(int id, CancellationToken ct = default)
         {
             var entity = await uow.Brands.GetByIdAsync(id, ct);
+
             if (entity is null)
                 return NotFound("برند پیدا نشد.");
 
@@ -185,14 +232,68 @@ namespace PriceList.Api.Controllers
             {
                 uow.Brands.Remove(entity);
                 await uow.SaveChangesAsync(ct);
+
+                await uow.auditLogger.LogAsync(new AuditLog
+                {
+                    ActionType = ActionType.Delete.ToString(),
+                    EntityName = EntityName.Brand.ToString(),
+                    EntityId = entity.Id.ToString(),
+                    Route = HttpContext.Request.Path,
+                    HttpMethod = HttpContext.Request.Method,
+                    Success = true,
+                    NewValuesJson = JsonSerializer.Serialize(entity)
+                }, ct);
+
             }
             catch (DbUpdateException ex) when (SqlExceptionHelpers.IsForeignKeyViolation(ex))
             {
-                // if you add this helper similar to IsUniqueViolation
                 return Conflict("امکان حذف برند به دلیل وابستگی وجود ندارد.");
             }
 
-            return NoContent(); // 204 — success, no response body
+            try { await storage.DeleteAsync(entity.ImagePath, ct); } catch { }
+
+            return NoContent(); 
+        }
+
+        [HttpDelete("{id:int}/image")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteImage(int id, CancellationToken ct = default)
+        {
+            if (id <= 0) return NotFound("شناسه برند نامعتبر است.");
+
+            var entity = await uow.Categories.GetByIdAsync(id, ct);
+            if (entity is null) return NotFound("برند پیدا نشد.");
+
+            if (string.IsNullOrWhiteSpace(entity.ImagePath))
+                return NoContent();
+
+            var path = entity.ImagePath;
+
+            entity.ImagePath = null;
+            await uow.SaveChangesAsync(ct);
+
+
+            await uow.auditLogger.LogAsync(new AuditLog
+            {
+                ActionType = ActionType.Delete.ToString(),
+                EntityName = EntityName.CategoryImage.ToString(),
+                EntityId = entity.Id.ToString(),
+                Route = HttpContext.Request.Path,
+                HttpMethod = HttpContext.Request.Method,
+                Success = true,
+                NewValuesJson = JsonSerializer.Serialize(entity)
+            }, ct);
+
+            try
+            {
+                await storage.DeleteAsync(path!, ct);
+            }
+            catch (Exception ex)
+            {
+            }
+
+            return NoContent();
         }
     }
 }

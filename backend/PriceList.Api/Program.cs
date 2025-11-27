@@ -43,7 +43,6 @@ builder.Services
 
 builder.Services.AddHttpContextAccessor();
 
-// JWT
 var jwt = builder.Configuration.GetSection("Jwt");
 var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["Key"]!));
 
@@ -63,16 +62,6 @@ builder.Services
             ClockSkew = TimeSpan.Zero
         };
     });
-
-// CORS (allow React dev server localhost:5173)
-//builder.Services.AddCors(opt =>
-//{
-//    opt.AddPolicy(CorsPolicy, policy =>
-//        policy.WithOrigins(webOrigin) // ⬅️ now configurable
-//              .AllowAnyHeader()
-//              .AllowAnyMethod()
-//              .AllowCredentials());
-//});
 
 const string CorsPolicy = "FrontendPolicy";
 builder.Services.AddCors(opt =>
@@ -128,9 +117,6 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-//builder.Services.AddOpenApi();
-
 // ✅ DI: interfaces (Core) → implementations (Infrastructure)
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
@@ -151,6 +137,8 @@ builder.Services.AddScoped<IFormService, FormService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IGroupService, GroupService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<IAuditLogger, AuditLogger>();
 
 // Decide where files live (under wwwroot/uploads)
 var webRoot = builder.Environment.WebRootPath

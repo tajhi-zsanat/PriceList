@@ -73,10 +73,10 @@ export default function Login() {
                 id="username"
                 value={username}
                 onChange={e => setUsername(e.target.value)}
-                className="w-full border rounded-xl px-5 py-5 focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full border rounded-xl px-5 pr-10 py-5 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="نام کاربری"
               />
-              <i className="fas fa-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+              <i className="fas fa-user absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
             </div>
 
             {/* PASSWORD */}
@@ -90,12 +90,12 @@ export default function Login() {
                 placeholder="رمز عبور"
               />
 
-              <i className="fas fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+              <i className="fas fa-lock absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
 
               <i
                 onClick={() => setShowPass(p => !p)}
                 className={`fas ${showPass ? "fa-eye-slash" : "fa-eye"
-                  } absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer`}
+                  } absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer`}
               ></i>
             </div>
           </div>

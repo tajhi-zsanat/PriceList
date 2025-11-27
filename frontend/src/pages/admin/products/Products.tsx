@@ -46,13 +46,13 @@ function ProductsInner() {
           </button>
           <button
             type="button"
-            className="flex items-center gap-2 bg-[#CFE2FF] p-2 rounded-lg border border-transparent transition hover:border-[#1F78AE]"
+            className="flex items-center gap-2 bg-[#CFE2FF] p-2 rounded-lg border border-transparent transition hover:border-[#1F78AE] cursor-pointer"
           >
             <span>وارد سازی فایل</span>
           </button>
           <button
             type="button"
-            className="flex items-center gap-2 bg-[#1F78AE] text-white p-2 rounded-lg border border-transparent transition hover:bg-[#0f4566]"
+            className="flex items-center gap-2 bg-[#1F78AE] text-white p-2 rounded-lg border border-transparent transition hover:bg-[#0f4566] cursor-pointer"
           >
             <span>خروجی اکسل</span>
           </button>

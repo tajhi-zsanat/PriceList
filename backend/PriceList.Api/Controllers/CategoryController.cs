@@ -10,6 +10,7 @@ using PriceList.Core.Abstractions.Storage;
 using PriceList.Core.Application.Dtos.Category;
 using PriceList.Core.Application.Mappings;
 using PriceList.Core.Entities;
+using System.Text.Json;
 
 namespace PriceList.Api.Controllers
 {
@@ -97,6 +98,17 @@ namespace PriceList.Api.Controllers
             try
             {
                 await uow.SaveChangesAsync(ct);
+
+                await uow.auditLogger.LogAsync(new AuditLog
+                {
+                    ActionType = ActionType.Create.ToString(),
+                    EntityName = EntityName.Category.ToString(),
+                    EntityId = entity.Id.ToString(),
+                    Route = HttpContext.Request.Path,
+                    HttpMethod = HttpContext.Request.Method,
+                    Success = true,
+                    NewValuesJson = JsonSerializer.Serialize(entity)
+                }, ct);
             }
             catch (DbUpdateException ex) when (SqlExceptionHelpers.IsUniqueViolation(ex))
             {
@@ -128,7 +140,6 @@ namespace PriceList.Api.Controllers
             if (string.IsNullOrWhiteSpace(name))
                 return BadRequest("نام دسته‌بندی الزامی است.");
 
-            // only if name changed
             if (!string.Equals(entity.Name, name, StringComparison.Ordinal))
             {
                 var dup = await uow.Categories.AnyAsync(
@@ -138,7 +149,6 @@ namespace PriceList.Api.Controllers
 
             if (form.Image is not null && form.Image.Length > 0)
             {
-                // Restrict to image types here (LocalFileStorage also validates)
                 var allowed = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             { ".jpg", ".jpeg", ".png", ".webp", ".svg" };
                 var ext = Path.GetExtension(form.Image.FileName);
@@ -148,7 +158,6 @@ namespace PriceList.Api.Controllers
                 using var s = form.Image.OpenReadStream();
                 var newPath = await storage.SaveAsync(s, form.Image.FileName, "categories", ct);
 
-                // delete old (best effort)
                 try { await storage.DeleteAsync(entity.ImagePath, ct); } catch { }
 
                 entity.ImagePath = newPath;
@@ -158,6 +167,18 @@ namespace PriceList.Api.Controllers
             entity.DisplayOrder = form.DisplayOrder;
 
             await uow.SaveChangesAsync(ct);
+
+            await uow.auditLogger.LogAsync(new AuditLog
+            {
+                ActionType = ActionType.Update.ToString(),
+                EntityName = EntityName.Category.ToString(),
+                EntityId = entity.Id.ToString(),
+                Route = HttpContext.Request.Path,
+                HttpMethod = HttpContext.Request.Method,
+                Success = true,
+                NewValuesJson = JsonSerializer.Serialize(entity)
+            }, ct);
+
             return Ok(CategoryApiMappers.ToListItemDto(entity));
         }
 
@@ -171,11 +192,20 @@ namespace PriceList.Api.Controllers
             var entity = await uow.Categories.GetByIdAsync(id, ct);
             if (entity is null) return NotFound("دسته‌بندی پیدا نشد.");
 
-            // remove DB row
             uow.Categories.Remove(entity);
             await uow.SaveChangesAsync(ct);
 
-            // best-effort file delete (don’t fail the request if this throws)
+            await uow.auditLogger.LogAsync(new AuditLog
+            {
+                ActionType = ActionType.Delete.ToString(),
+                EntityName = EntityName.Category.ToString(),
+                EntityId = entity.Id.ToString(),
+                Route = HttpContext.Request.Path,
+                HttpMethod = HttpContext.Request.Method,
+                Success = true,
+                NewValuesJson = JsonSerializer.Serialize(entity)
+            }, ct);
+
             try { await storage.DeleteAsync(entity.ImagePath, ct); } catch { }
 
             return NoContent();
@@ -191,15 +221,25 @@ namespace PriceList.Api.Controllers
             var entity = await uow.Categories.GetByIdAsync(id, ct);
             if (entity is null) return NotFound("دسته‌بندی پیدا نشد.");
 
-            // If there’s no image, treat as idempotent delete.
             if (string.IsNullOrWhiteSpace(entity.ImagePath))
                 return NoContent();
 
             var path = entity.ImagePath;
 
-            // Clear DB reference first to keep data consistent even if file delete fails.
             entity.ImagePath = null;
             await uow.SaveChangesAsync(ct);
+
+
+            await uow.auditLogger.LogAsync(new AuditLog
+            {
+                ActionType = ActionType.Delete.ToString(),
+                EntityName = EntityName.CategoryImage.ToString(),
+                EntityId = entity.Id.ToString(),
+                Route = HttpContext.Request.Path,
+                HttpMethod = HttpContext.Request.Method,
+                Success = true,
+                NewValuesJson = JsonSerializer.Serialize(entity)
+            }, ct);
 
             try
             {

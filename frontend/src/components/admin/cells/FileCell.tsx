@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import pdfIcon from "@/assets/img/admin/download-PDF_new_new_new.png";
+import pdfIcon from "@/assets/img/admin/download-PDF_new_new.png";
 import uploadIcon from "@/assets/img/admin/upload-PDF_new_new.png";
 import deleteIcon from "@/assets/img/admin/delete.png";
 import check from "@/assets/img/admin/check_small.png";

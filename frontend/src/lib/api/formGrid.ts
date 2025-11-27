@@ -47,12 +47,25 @@ export interface RemoveRowPayload {
   rowIndex: number;
 }
 
+export interface RemoveFormPayload {
+  formId: number;
+}
+
 export interface removeHeaderDefRequest {
   formId: number;
   index: number;
 }
 
 export interface AddFeatureToRowsRequest {
+  formId: string | number;
+  feature: string | undefined;
+  rowIds: number[] | string[];
+  displayOrder: string;
+  color?: string;
+}
+
+export interface EditFeatureToRowsRequest {
+  featureId: string | number;
   formId: string | number;
   feature: string | undefined;
   rowIds: number[] | string[];
@@ -123,6 +136,14 @@ export async function addFeatureToRows(
     , { signal });
 }
 
+export async function editFeatureToRows(
+  payload: EditFeatureToRowsRequest,
+  signal?: AbortSignal) {
+  return api.put(`/api/Form/features/assignments`
+    , payload
+    , { signal });
+}
+
 export async function AddRow(payload: AddRowPayload) {
   // Axios throws on non-2xx automatically
   return api.post(`/api/Form/CreateRow`, payload);
@@ -130,6 +151,16 @@ export async function AddRow(payload: AddRowPayload) {
 
 export async function RemoveRow(payload: RemoveRowPayload) {
   return api.delete(`/api/Form/DeleteRow`, { data: payload });
+}
+
+export async function archivesForm(
+  payload: RemoveFormPayload,
+  signal?: AbortSignal
+) {
+  return api.delete(`/api/Form/DeleteForm`, {
+    data: payload,
+    signal,
+  });
 }
 
 export async function GetFormRowOrder({
@@ -155,8 +186,8 @@ export async function GetFeatureData({
   formId: string | number;
   featureId: number | string;
   signal: AbortSignal;
-}): Promise<GetFeatureData[]> {
-  const { data } = await api.get<GetFeatureData[]>(
+}): Promise<GetFeatureData> {
+  const { data } = await api.get<GetFeatureData>(
     `/api/Form/${formId}/${featureId}/data`,
     { signal }
   );

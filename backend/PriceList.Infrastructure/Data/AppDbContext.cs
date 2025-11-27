@@ -27,6 +27,7 @@ namespace PriceList.Infrastructure.Data
         public DbSet<Brand> Brands => Set<Brand>();
         public DbSet<Unit> Units => Set<Unit>();
         public DbSet<ErrorLog> ErrorLog => Set<ErrorLog>();
+        public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
         public DbSet<Form> Forms => Set<Form>();
         public DbSet<FormColumnDef> FormColumnDefs => Set<FormColumnDef>();
@@ -40,7 +41,6 @@ namespace PriceList.Infrastructure.Data
             modelBuilder.ApplyShamsiAuditConventions();
             base.OnModelCreating(modelBuilder);
 
-            // GLOBAL SOFT DELETE FILTER
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
                 if (typeof(ISoftDelete).IsAssignableFrom(entityType.ClrType))

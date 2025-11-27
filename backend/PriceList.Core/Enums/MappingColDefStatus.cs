@@ -46,9 +46,12 @@ namespace PriceList.Core.Enums
         InvalidRow,
         FormRowNotFound,
         FeatureRowNotFound,
+        FormRowNameExist,
+        Updated,
+        FeatureNotFound,
     }
 
-    public sealed record AddFeatureToFormResult(FeatureStatus Status);
+    public sealed record AddEditFeatureToFormResult(FeatureStatus Status, int? FeatureId);
     public sealed record AddRowToFormResult(FeatureStatus Status);
     public sealed record RemoveRowResult(FeatureStatus Status);
 }

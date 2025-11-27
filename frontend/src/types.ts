@@ -137,6 +137,7 @@ export type FormListItemDto = {
   countProduct: string;
   brandName: string;
   updatedDate: string;
+  isdeleted: boolean;
 };
 
 export type FormCreateDto = {
@@ -274,9 +275,10 @@ export interface GetRowNumberList {
 
 export interface GetFeatureData {
   id: number;
-  name: number;
-  displayOrder: string | null;
-  selectedRows: string | null;
+  name: string;
+  displayOrder: string;
+  color: string;
+  selectedValue: number[];
 }
 
 // convenience

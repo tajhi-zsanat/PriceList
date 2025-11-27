@@ -22,7 +22,6 @@ const api = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// Attach Authorization header if we have a token
 api.interceptors.request.use((config) => {
   const token = getAccessToken();
   if (token) config.headers.Authorization = `Bearer ${token}`;
@@ -46,7 +45,6 @@ function onRefreshed(newToken: string | null) {
   pendingRequests = [];
 }
 
-
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
@@ -54,12 +52,12 @@ api.interceptors.response.use(
     const originalRequest = error.config as InternalAxiosRequestConfig & {
       _retry?: boolean;
     };
-    
+
     if (!status) return Promise.reject(error);
 
     const url = originalRequest.url ?? "";
 
-    // ❌ Don't try refresh for auth endpoints
+    // Do NOT try refresh for auth endpoints themselves
     if (
       url.includes("/api/Auth/login") ||
       url.includes("/api/Auth/register") ||
@@ -68,16 +66,15 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // ❌ Don't try refresh if already retried
+    // Only handle first 401 for this request
     if (status !== 401 || originalRequest._retry) {
       return Promise.reject(error);
     }
 
-    // ❌ If there is no access token, user is not logged in → go to login
+    // No access token = not logged in → redirect
     if (!getAccessToken()) {
       clearAccessToken();
       clearStoredUser();
-      // optional: redirect to login if not already there
       if (!window.location.pathname.startsWith("/login")) {
         window.location.href = "/login";
       }
@@ -86,8 +83,10 @@ api.interceptors.response.use(
 
     originalRequest._retry = true;
 
+    // 🔹 FIRST request that hits 401: start refresh
     if (!isRefreshing) {
       isRefreshing = true;
+
       try {
         const { data } = await refreshClient.post<{ accessToken: string }>(
           "/api/Auth/refresh",
@@ -99,21 +98,34 @@ api.interceptors.response.use(
           }
         );
 
-        setAccessToken(data.accessToken);
-        onRefreshed(data.accessToken);
+        const newToken = data.accessToken;
+
+        // Save new token
+        setAccessToken(newToken);
+
+        // Wake up all queued requests
+        onRefreshed(newToken);
+
+        // This FIRST request retries immediately
+        originalRequest.headers = originalRequest.headers ?? {};
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+
+        return api(originalRequest);
       } catch (e) {
+        // Refresh failed: clear everything, notify queued requests, redirect
+        onRefreshed(null);
         clearAccessToken();
         clearStoredUser();
-        onRefreshed(null);
-        isRefreshing = false;
 
         if (!window.location.pathname.startsWith("/login")) {
           window.location.href = "/login";
         }
 
-        return Promise.reject(error);
+        isRefreshing = false;
+        return Promise.reject(e);
+      } finally {
+        isRefreshing = false;
       }
-      isRefreshing = false;
     }
 
     return new Promise((resolve, reject) => {
@@ -125,11 +137,11 @@ api.interceptors.response.use(
 
         originalRequest.headers = originalRequest.headers ?? {};
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
+
         resolve(api(originalRequest));
       });
     });
   }
 );
-
 
 export default api;

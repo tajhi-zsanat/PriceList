@@ -39,9 +39,9 @@ export default function AddGroupModal({ trigger, formId, onCreated }: Props) {
 
     const palette = ["#206E4E", "#805F00", "#AE2E23", "#5E4DB3", "#1F78AE"];
 
-    const fetchFormRowOrder = async (ctrl: AbortController) => {
+    const fetchFormRowOrder = async (signal: AbortSignal) => {
         try {
-            const result = await GetFormRowOrder({ formId, ctrl });
+            const result = await GetFormRowOrder({ formId, signal });
             setData(result);
         } catch {
             toast.error("بارگذاری ردیف‌ها ناموفق بود.");
@@ -52,7 +52,7 @@ export default function AddGroupModal({ trigger, formId, onCreated }: Props) {
         if (!open) return;
 
         const ctrl = new AbortController();
-        fetchFormRowOrder(ctrl);
+        fetchFormRowOrder(ctrl.signal);
 
         return () => ctrl.abort();
     }, [open, formId]);
@@ -199,7 +199,7 @@ export default function AddGroupModal({ trigger, formId, onCreated }: Props) {
                             type="submit"
                             disabled={loading}
                         >
-                            {loading ? "در حال ثبت..." : "ثبت دسته‌بندی"}
+                            {loading ? "در حال ثبت..." : "ثبت ویژگی"}
                         </Button>
                         <DialogClose asChild>
                             <Button

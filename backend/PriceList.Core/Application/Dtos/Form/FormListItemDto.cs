@@ -12,5 +12,6 @@ public sealed record FormListItemDto(int Id,
     string GroupName,
     string? CountProduct,
     string BrandName,
-    string UpdatedDate
+    string UpdatedDate,
+    bool Isdeleted
     );

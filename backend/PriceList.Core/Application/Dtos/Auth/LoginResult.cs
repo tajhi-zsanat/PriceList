@@ -8,6 +8,8 @@ namespace PriceList.Core.Application.Dtos.Auth;
 
 public record LoginResult(bool Ok, 
     string AccessToken, 
+    int? UserId,
+    string? UserName,
     object User, 
     string RefreshTokenCookieValue, 
     DateTime RefreshTokenExpiresAt);

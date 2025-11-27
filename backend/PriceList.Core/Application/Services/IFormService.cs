@@ -14,7 +14,16 @@ namespace PriceList.Core.Application.Services
 
         Task<RemoveColDefResult> RemoveCustomColDef(int Index, int FormId, CancellationToken ct);
 
-        Task<AddFeatureToFormResult> AddFeature(
+        Task<AddEditFeatureToFormResult> AddFeature(
+            int formId,
+            string feature,
+            int[] rowIds,
+            int displayOrder,
+            string color,
+            CancellationToken ct);
+
+        Task<AddEditFeatureToFormResult> EditFeature(
+            int featureId,
             int formId,
             string feature,
             int[] rowIds,

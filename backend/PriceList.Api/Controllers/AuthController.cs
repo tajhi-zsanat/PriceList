@@ -3,15 +3,18 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using PriceList.Core.Abstractions.Repositories;
 using PriceList.Core.Application.Dtos.Auth;
 using PriceList.Core.Application.Services;
+using PriceList.Core.Entities;
 using PriceList.Infrastructure.Identity;
+using PriceList.Infrastructure.Repositories.Ef;
 using System.ComponentModel.DataAnnotations;
 
 [Route("api/[controller]")]
 [ApiController]
 [Produces("application/json")]
-public class AuthController(IAuthService auth) : ControllerBase
+public class AuthController(IAuthService auth, IUnitOfWork uow) : ControllerBase
 {
     const string RefreshCookieName = "pl_refresh";
     const string RefreshCsrfHeader = "X-PL-Refresh-CSRF";
@@ -36,13 +39,23 @@ public class AuthController(IAuthService auth) : ControllerBase
         var r = await auth.LoginAsync(dto, reqInfo, ct); // service decides refresh token & persistence
         if (!r.Ok) return Unauthorized();
 
-        // HTTP concern (cookie) lives in controller:
         SetRefreshCookie(r.RefreshTokenCookieValue, r.RefreshTokenExpiresAt);
+
+        await uow.auditLogger.LogAsync(new AuditLog
+        {
+            ActionType = ActionType.Login.ToString(),
+            EntityName = EntityName.User.ToString(),
+            UserId = r.UserId,
+            UserName = r.UserName,
+            EntityId = r.UserId.ToString(),
+            Route = HttpContext.Request.Path,
+            HttpMethod = HttpContext.Request.Method,
+            Success = true
+        }, ct);
 
         return Ok(new { accessToken = r.AccessToken, user = r.User });
     }
   
-    //[AllowAnonymous]
     [HttpPost("refresh")]
     public async Task<IActionResult> Refresh(CancellationToken ct)
     {
@@ -73,6 +86,16 @@ public class AuthController(IAuthService auth) : ControllerBase
         if (!string.IsNullOrEmpty(cookie))
             await auth.LogoutAsync(cookie, ct); // revoke on server
         Response.Cookies.Delete(RefreshCookieName);
+
+        await uow.auditLogger.LogAsync(new AuditLog
+        {
+            ActionType = "Logout",
+            EntityName = "User",
+            Route = HttpContext.Request.Path,
+            HttpMethod = HttpContext.Request.Method,
+            Success = true
+        }, ct);
+
         return Ok(new { message = "logged out" });
     }
 
@@ -85,7 +108,6 @@ public class AuthController(IAuthService auth) : ControllerBase
             SameSite = SameSiteMode.None,
             Expires = expiresAtUtc,
             IsEssential = true,
-           // Path = "/api/auth" // optionally narrow path
         });
     }
 }

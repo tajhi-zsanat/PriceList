@@ -38,10 +38,10 @@ namespace PriceList.Infrastructure.Services
             var ip = req.Ip;
 
             var user = await userManager.Users.FirstOrDefaultAsync(u => u.UserName == dto.UserName, ct);
-            if (user is null) return new LoginResult(false, "", null!, "", DateTime.MinValue);
+            if (user is null) return new LoginResult(false, "", null, null, null!, "", DateTime.MinValue);
 
             var pwd = await signInManager.CheckPasswordSignInAsync(user, dto.Password, lockoutOnFailure: true);
-            if (!pwd.Succeeded) return new LoginResult(false, "", null!, "", DateTime.MinValue);
+            if (!pwd.Succeeded) return new LoginResult(false, "", null, null, null!, "", DateTime.MinValue);
 
             var roles = await userManager.GetRolesAsync(user);
             var claims = await userManager.GetClaimsAsync(user);
@@ -62,7 +62,7 @@ namespace PriceList.Infrastructure.Services
             await db.SaveChangesAsync(ct);
 
             var userPayload = new { user.Id, user.UserName, user.DisplayName, roles };
-            return new LoginResult(true, access, userPayload, refresh, exp);
+            return new LoginResult(true, access, user.Id, user.UserName, userPayload, refresh, exp);
         }
 
         public async Task<RefreshResult> RefreshAsync(string refreshCookieValue, AuthRequestInfo req, CancellationToken ct)

@@ -1,9 +1,22 @@
 import FarsiText from "@/components/FarsiText";
 import more from "@/assets/img/more icon-mobile.png";
-import type { FormListItemDto } from "@/types";
-import { useNavigate } from "react-router-dom";
+import archives from "@/assets/img/admin/archives.png";
+import type { FormListItemDto, FormsContextType } from "@/types";
+import { useNavigate, useOutletContext } from "react-router-dom";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { useState } from "react";
+import { archivesForm } from "@/lib/api/formGrid";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export default function Row({ item }: { item: FormListItemDto }) {
+  const { reload } = useOutletContext<FormsContextType>();
+  const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
   const categories = `${item.categoryName}`;
   const groups = `${item.groupName}`;
@@ -12,16 +25,35 @@ export default function Row({ item }: { item: FormListItemDto }) {
     navigate(`/admin/products?formId=${item.id}`);
   };
 
+  const removeForm = async (formId: number) => {
+    if (busy) return;
+
+    if (!formId) {
+      toast.warning("شناسه نامعتبر می‌باشد.");
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const ctrlForm = new AbortController();
+      await archivesForm({ formId }, ctrlForm.signal);
+      toast.success("ردیف حذف گردید.");
+      await reload();
+    } catch {
+      toast.error("حذف ناموفق بود.");
+    } finally {
+      setBusy(false);
+    }
+  };
+  
   return (
     <div
       onClick={handleRowClick}
-      className="
-        grid grid-cols-13 items-center text-center
-        rounded-[20px] py-5 cursor-pointer
-        odd:bg-[#ECEFF1] even:bg-[#F5F5F5]
-        hover:scale-[1.01]
-         transition-scale duration-200 ease-in-out
-      "
+      className={cn(
+        "grid grid-cols-13 items-center text-center rounded-[20px] py-5 odd:bg-[#ECEFF1] even:bg-[#F5F5F5] hover:bg-[#DDE2E4] transition-scale duration-200 ease-in-out",
+        item.isdeleted &&  "opacity-50"
+      )}
+
       role="row"
     >
       <span className="col-span-1">
@@ -42,14 +74,37 @@ export default function Row({ item }: { item: FormListItemDto }) {
         <FarsiText>{item.updatedDate}</FarsiText>
       </span>
 
-      <span
-        className="col-span-1"
-        onClick={(e) => {
-          e.stopPropagation();
-          console.log("open more menu or dialog...");
-        }}
-      >
-        <img className="mx-auto cursor-pointer" src={more} alt="بیشتر" />
+      <span className="col-span-1">
+        <DropdownMenu
+          modal={false} dir="rtl"
+        >
+          <DropdownMenuTrigger
+            className="flex justify-center items-center m-auto cursor-pointer"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              className="m-auto"
+              src={more} alt="بیشتر"
+            />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              className="focus-visible:hidden"
+              onClick={(e) => {
+                e.stopPropagation();
+                removeForm(item.id)
+              }}
+            >
+              <img
+                className=""
+                src={archives}
+                alt="حذف"
+                aria-hidden="true"
+              />
+              <span>{!item.isdeleted ? "بایگانی فرم" : "خارج نمودن از بایگانی"}</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </span>
     </div>
   );

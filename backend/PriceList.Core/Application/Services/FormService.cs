@@ -88,11 +88,11 @@ namespace PriceList.Core.Application.Services
             }
         }
 
-        public async Task<AddFeatureToFormResult> AddFeature(
+        public async Task<AddEditFeatureToFormResult> AddFeature(
                 int formId, string feature, int[] rowIds, int displayOrder, string? color, CancellationToken ct)
         {
             if (!await uow.Forms.FormExistsAsync(formId, ct))
-                return new(FeatureStatus.FormNotFound);
+                return new(FeatureStatus.FormNotFound, null);
 
             await uow.BeginTransactionAsync(ct);
             try
@@ -103,14 +103,23 @@ namespace PriceList.Core.Application.Services
                     );
 
                 if (IsExistFeature)
-                    return new(FeatureStatus.IsExistFeature);
+                    return new(FeatureStatus.IsExistFeature, null);
+
+                var IsDisplayOrderExist = await uow.FormFeatures.AnyAsync(
+                    predicate: f => (f.DisplayOrder == displayOrder &&
+                    f.FormId == formId),
+                     ct: ct
+                    );
+
+                if (IsDisplayOrderExist)
+                    return new(FeatureStatus.DisplayOrderConflict, null);
 
                 var featureId = await uow.Forms.CreateFeatureAsync(formId, feature, displayOrder, color, ct);
 
                 if (await uow.Forms.AllRowsAlreadyHaveFeatureAsync(formId, featureId, rowIds, ct))
                 {
                     await uow.RollbackTransactionAsync(ct); // nothing to do
-                    return new(FeatureStatus.AlreadyAssigned);
+                    return new(FeatureStatus.AlreadyAssigned, null);
                 }
 
                 var affected = await uow.Forms.UpdateFormRowsAsync(formId, featureId, rowIds, ct);
@@ -136,7 +145,89 @@ namespace PriceList.Core.Application.Services
                 }
 
                 await uow.CommitTransactionAsync(ct);
-                return affected > 0 ? new(FeatureStatus.Created) : new(FeatureStatus.NoContent);
+                return affected > 0 ? new(FeatureStatus.Created, featureId) : new(FeatureStatus.NoContent, featureId);
+            }
+            catch
+            {
+                await uow.RollbackTransactionAsync(ct);
+                throw;
+            }
+        }
+
+        public async Task<AddEditFeatureToFormResult> EditFeature(
+            int featureId,
+            int formId,
+            string feature,
+            int[] rowIds,
+            int displayOrder,
+            string? color,
+            CancellationToken ct)
+        {
+            if (!await uow.Forms.FormExistsAsync(formId, ct))
+                return new(FeatureStatus.FormNotFound, null);
+
+            await uow.BeginTransactionAsync(ct);
+
+            try
+            {
+                var featureEntity = await uow.FormFeatures.FirstOrDefaultAsync(
+                    predicate: f => f.Id == featureId && f.FormId == formId,
+                    selector: f => f,
+                    asNoTracking: false,
+                    ct: ct);
+
+                if (featureEntity == null)
+                {
+                    await uow.RollbackTransactionAsync(ct);
+                    return new(FeatureStatus.FeatureNotFound, null); 
+                }
+
+                var nameExists = await uow.FormFeatures.AnyAsync(
+                    predicate: f => f.FormId == formId &&
+                                    f.Id != featureEntity.Id &&
+                                    f.Name.Trim() == feature.Trim(),
+                    ct: ct);
+
+                if (nameExists)
+                {
+                    await uow.RollbackTransactionAsync(ct);
+                    return new(FeatureStatus.FormRowNameExist, null);
+                }
+
+                var displayOrderExists = await uow.FormFeatures.AnyAsync(
+                    predicate: f => f.FormId == formId &&
+                                    f.Id != featureEntity.Id &&
+                                    f.DisplayOrder == displayOrder,
+                    ct: ct);
+
+                if (displayOrderExists)
+                {
+                    await uow.RollbackTransactionAsync(ct);
+                    return new(FeatureStatus.DisplayOrderConflict, null);
+                }
+
+                featureEntity.Name = feature;
+                featureEntity.DisplayOrder = displayOrder;
+                featureEntity.Color = color;
+
+                await uow.SaveChangesAsync(ct);
+
+                var affectedDelete = await uow.Forms.DeleteFormRowsAsync(featureId, ct);
+                var affectedAdd = await uow.Forms.AddFormRowsAsync(rowIds, featureId, ct);
+
+                var hasAnyRowsWithFeature = await uow.FormRows.AnyAsync(
+                    predicate: r => r.FormFeatureId == featureId,
+                    ct: ct);
+
+                if (!hasAnyRowsWithFeature)
+                {
+                    uow.FormFeatures.Remove(featureEntity);
+                    await uow.SaveChangesAsync(ct);
+                }
+
+                await uow.CommitTransactionAsync(ct);
+
+                return new(FeatureStatus.Updated, featureEntity.Id);
             }
             catch
             {

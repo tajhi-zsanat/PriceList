@@ -11,6 +11,9 @@ namespace PriceList.Core.Abstractions.Repositories
 {
     public interface IFormRepository : IGenericRepository<Form>
     {
+        Task<List<FormListItemDto>> GetFormsAsync(string userId, CancellationToken ct);
+        Task<Form> GetFormByIdAsync(int formId, CancellationToken ct);
+
         Task<bool> FormExistsAsync(int formId, CancellationToken ct);
         Task<(bool hasC1, bool hasC2, bool hasC3, int posUnit, int posC1, int posC2, int colCount)>
             GetColumnLayoutMetaAsync(int formId, CancellationToken ct);
@@ -49,6 +52,8 @@ namespace PriceList.Core.Abstractions.Repositories
             CancellationToken ct);
 
         Task<int> UpdateFormRowsAsync(int formId, int featureId, int[] rowIDs, CancellationToken ct);
+        Task<int> DeleteFormRowsAsync(int featureId, CancellationToken ct);
+        Task<int> AddFormRowsAsync(int[] rowIds, int featureId, CancellationToken ct);
 
         Task<bool> AllRowsAlreadyHaveFeatureAsync(
              int formId, int featureId, int[] rowIds, CancellationToken ct);

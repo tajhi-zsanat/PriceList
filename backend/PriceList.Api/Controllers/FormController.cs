@@ -18,15 +18,20 @@ using PriceList.Core.Application.Services;
 using PriceList.Core.Common;
 using PriceList.Core.Entities;
 using PriceList.Core.Enums;
+using PriceList.Infrastructure.Data.Migrations;
 using PriceList.Infrastructure.Identity;
+using PriceList.Infrastructure.Repositories.Ef;
 using System;
 using System.Security.Claims;
+using System.Text.Json;
 using System.Text.RegularExpressions;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace PriceList.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     [Produces("application/json")]
     public class FormController(IUnitOfWork uow, IFileStorage storage, IFormService formService) : ControllerBase
     {
@@ -43,14 +48,7 @@ namespace PriceList.Api.Controllers
                 if (string.IsNullOrEmpty(userId))
                     return Unauthorized("آیدی یافت نشد.");
 
-                var list = await uow.Forms.ListAsync(
-                predicate: (f => f.UserId == int.Parse(userId)),
-                        selector: FormMappings.ToListItem,
-                        asNoTracking: true,
-                        orderBy: q => q
-                            .OrderBy(c => c.DisplayOrder == 0)
-                            .ThenBy(c => c.FormTitle),
-                        ct);
+                var list = await uow.Forms.GetFormsAsync(userId, ct);
 
                 return Ok(list);
             }
@@ -154,7 +152,7 @@ namespace PriceList.Api.Controllers
                 if (string.IsNullOrEmpty(userId))
                     return Unauthorized("آیدی یافت نشد.");
 
-                var result = await uow.FormFeatures.ListAsync(
+                var result = await uow.FormFeatures.FirstOrDefaultAsync(
 
                     predicate: f => f.Id == featureId && f.FormId == formId,
                     selector: FeatureMappings.item,
@@ -181,6 +179,11 @@ namespace PriceList.Api.Controllers
             [FromBody] InsertCellDto dto,
             CancellationToken ct = default)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized("آیدی یافت نشد.");
+
             if (dto is null)
                 return BadRequest("بدنه درخواست خالی است.");
 
@@ -205,6 +208,17 @@ namespace PriceList.Api.Controllers
             await uow.Forms.DoUpdateDateAndTimeAsync(dto.FormId, ct);
 
             await uow.SaveChangesAsync(ct);
+
+            await uow.auditLogger.LogAsync(new AuditLog
+            {
+                ActionType = ActionType.Update.ToString(),
+                EntityName = EntityName.FormCell.ToString(),
+                EntityId = dto.Id.ToString(),
+                Route = HttpContext.Request.Path,
+                HttpMethod = HttpContext.Request.Method,
+                Success = true,
+                NewValuesJson = JsonSerializer.Serialize(dto)
+            }, ct);
 
             return StatusCode(StatusCodes.Status201Created);
         }
@@ -242,6 +256,17 @@ namespace PriceList.Api.Controllers
             await uow.Forms.DoUpdateDateAndTimeAsync(dto.FormId, ct);
 
             await uow.SaveChangesAsync(ct);
+
+            await uow.auditLogger.LogAsync(new AuditLog
+            {
+                ActionType = ActionType.Delete.ToString(),
+                EntityName = EntityName.FormCellMedia.ToString(),
+                EntityId = dto.Id.ToString(),
+                Route = HttpContext.Request.Path,
+                HttpMethod = HttpContext.Request.Method,
+                Success = true,
+                NewValuesJson = JsonSerializer.Serialize(dto)
+            }, ct);
 
             return StatusCode(StatusCodes.Status201Created);
         }
@@ -284,6 +309,17 @@ namespace PriceList.Api.Controllers
             await uow.Forms.DoUpdateDateAndTimeAsync(dto.FormId, ct);
 
             await uow.SaveChangesAsync(ct);
+
+            await uow.auditLogger.LogAsync(new AuditLog
+            {
+                ActionType = ActionType.Update.ToString(),
+                EntityName = EntityName.FormCellImage.ToString(),
+                EntityId = dto.Id.ToString(),
+                Route = HttpContext.Request.Path,
+                HttpMethod = HttpContext.Request.Method,
+                Success = true,
+                NewValuesJson = JsonSerializer.Serialize(dto)
+            }, ct);
 
             var res = new ImageUrlDto(newPath);
 
@@ -328,6 +364,17 @@ namespace PriceList.Api.Controllers
 
             await uow.SaveChangesAsync(ct);
 
+            await uow.auditLogger.LogAsync(new AuditLog
+            {
+                ActionType = ActionType.Update.ToString(),
+                EntityName = EntityName.FormCellMedia.ToString(),
+                EntityId = dto.Id.ToString(),
+                Route = HttpContext.Request.Path,
+                HttpMethod = HttpContext.Request.Method,
+                Success = true,
+                NewValuesJson = JsonSerializer.Serialize(dto)
+            }, ct);
+
             var res = new FileUrlDto(newPath);
 
             return StatusCode(StatusCodes.Status201Created, res);
@@ -364,7 +411,105 @@ namespace PriceList.Api.Controllers
             uow.FormColumns.Update(existing);
             await uow.SaveChangesAsync(ct);
 
+            await uow.auditLogger.LogAsync(new AuditLog
+            {
+                ActionType = ActionType.Update.ToString(),
+                EntityName = EntityName.FormCellHeader.ToString(),
+                EntityId = dto.FormId.ToString(),
+                Route = HttpContext.Request.Path,
+                HttpMethod = HttpContext.Request.Method,
+                Success = true,
+                NewValuesJson = JsonSerializer.Serialize(dto)
+            }, ct);
+
             return StatusCode(StatusCodes.Status201Created);
+        }
+
+        [HttpPut("features/assignments")]
+        [Consumes("application/json")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        public async Task<IActionResult> Edit([FromBody] EditFeatureToRowsDto dto, CancellationToken ct = default)
+        {
+            if (dto is null) return BadRequest("بدنهٔ درخواست خالی است.");
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+
+            if (dto.FormId <= 0 || dto.FeatureId <= 0)
+                return BadRequest("شناسه‌های فرم/نوع نامعتبر است.");
+
+            if (string.IsNullOrWhiteSpace(dto.Feature))
+                return BadRequest("ویژگی وارد نشده است.");
+
+            var rowIds = dto.RowIds.Where(id => id > 0).Distinct().ToArray();
+
+            if (rowIds.Length > 0)
+            {
+                var existingRows = await uow.FormRows.ListAsync(
+                    predicate: r => r.FormId == dto.FormId && rowIds.Contains(r.Id),
+                    selector: r => r.Id,
+                    ct: ct
+                );
+
+                if (existingRows.Count != rowIds.Length)
+                    return BadRequest("بعضی از ردیف‌های ارسال‌شده یافت نشد یا متعلق به این فرم نیست.");
+            }
+
+            if (string.IsNullOrEmpty(dto.Color))
+                return BadRequest("لطفاً رنگ ویژگی را وارد نمایید.");
+
+            var res = await formService.EditFeature(
+                 dto.FeatureId,
+                 dto.FormId,
+                 dto.Feature,
+                 rowIds: rowIds,
+                 dto.DisplayOrder,
+                 dto.Color,
+                 ct);
+
+            if (res.Status == FeatureStatus.Updated)
+            {
+                await uow.auditLogger.LogAsync(new AuditLog
+                {
+                    ActionType = ActionType.Update.ToString(),
+                    EntityName = EntityName.Feature.ToString(),
+                    EntityId = res.FeatureId.ToString(),
+                    Route = HttpContext.Request.Path,
+                    HttpMethod = HttpContext.Request.Method,
+                    Success = true,
+                    NewValuesJson = JsonSerializer.Serialize(dto)
+                }, ct);
+            }
+
+
+            return res.Status switch
+            {
+                FeatureStatus.FormNotFound =>
+                    NotFound("شناسهٔ فرم نامعتبر است."),
+
+                FeatureStatus.DisplayOrderConflict =>
+                    Conflict("ترتیب نمایش در این فرم قبلاً استفاده شده است."),
+
+                FeatureStatus.IsExistFeature =>
+                    Conflict("ویژگی با این نام قبلاً برای این فرم ایجاد شده است."),
+
+                FeatureStatus.AlreadyAssigned =>
+                    Conflict("این ویژگی قبلاً برای تمامی ردیف‌های انتخاب‌شده ثبت شده است."),
+
+                FeatureStatus.FormRowNameExist =>
+                    Conflict("این نام قبلاً انتخاب شده است."),
+
+                FeatureStatus.NoContent =>
+                    NoContent(),
+
+                FeatureStatus.Created or FeatureStatus.Updated =>
+                    Ok("با موفقیت ثبت شد."),
+
+                _ => Problem(
+                    statusCode: StatusCodes.Status500InternalServerError,
+                    title: "ثبت نوع برای ردیف‌ها با خطا مواجه شد.")
+            };
         }
         #endregion
 
@@ -379,7 +524,6 @@ namespace PriceList.Api.Controllers
         {
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
 
-            // Resolve supplier from auth/tenant (TODO)
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (string.IsNullOrEmpty(userId))
@@ -387,7 +531,6 @@ namespace PriceList.Api.Controllers
 
             if (dto is null) return BadRequest("بدنه درخواست خالی است.");
 
-            // Validate columns and rows
             if (dto.Columns is < FormBuilder.MinTotalCols or > FormBuilder.MaxTotalCols)
                 return BadRequest($"تعداد ستون باید بین {FormBuilder.MinTotalCols} و {FormBuilder.MaxTotalCols} باشد.");
 
@@ -401,21 +544,15 @@ namespace PriceList.Api.Controllers
 
             if (isDisplayOrderExist)
                 return BadRequest("ترتیب نمایش قبلاً ثبت شده است.");
-            // Validate ids
-            //if (dto.BrandId <= 0 || dto.CategoryId <= 0 || dto.GroupId <= 0 || dto.TypeId <= 0)
-            //    return BadRequest("شناسه نامعتبر می‌باشد.");
 
-            // Load lookups
             var brand = await uow.Brands.GetByIdAsync(dto.BrandId, ct);
             var category = await uow.Categories.GetByIdAsync(dto.CategoryId, ct);
             var group = await uow.ProductGroups.GetByIdAsync(dto.GroupId, ct);
-            //var type = await uow.ProductTypes.GetByIdAsync(dto.TypeId, ct);
 
             if (brand is null) return NotFound("برند یافت نشد.");
             if (category is null) return NotFound("دسته‌بندی یافت نشد.");
             if (group is null) return NotFound("دسته‌بندی یافت نشد.");
 
-            // Duplicate check (composite)
             var existsCombo = await uow.Forms.AnyAsync(f =>
                 f.UserId == int.Parse(userId) &&
                 f.BrandId == dto.BrandId &&
@@ -425,7 +562,6 @@ namespace PriceList.Api.Controllers
             if (existsCombo)
                 return Conflict("فرم با این ترکیب قبلاً ایجاد شده است.");
 
-            // Duplicate title (optional)
             if (!string.IsNullOrWhiteSpace(dto.FormTitle))
             {
                 var title = dto.FormTitle.Trim();
@@ -435,7 +571,6 @@ namespace PriceList.Api.Controllers
                     return Conflict("عنوان فرم تکراری می‌باشد.");
             }
 
-            // Create entity
             var entity = new Form
             {
                 UserId = int.Parse(userId),
@@ -451,11 +586,11 @@ namespace PriceList.Api.Controllers
             try
             {
                 await uow.Forms.AddAsync(entity, ct);
-                await uow.SaveChangesAsync(ct); // get entity.Id
+                await uow.SaveChangesAsync(ct);
 
                 var cols = FormBuilder.BuildDefaultColumns(entity.Id, dto.Columns);
                 await uow.FormColumns.AddRangeAsync(cols, ct);
-                await uow.SaveChangesAsync(ct); // ensure Index & ids are persisted
+                await uow.SaveChangesAsync(ct);
 
                 var formRows = FormBuilder.BuildDefaultFormRows(entity.Id, dto.Rows);
                 await uow.FormRows.AddRangeAsync(formRows, ct);
@@ -467,6 +602,17 @@ namespace PriceList.Api.Controllers
 
                 await uow.CommitTransactionAsync(ct);
 
+                await uow.auditLogger.LogAsync(new AuditLog
+                {
+                    ActionType = ActionType.Create.ToString(),
+                    EntityName = EntityName.Form.ToString(),
+                    EntityId = entity.Id.ToString(),
+                    Route = HttpContext.Request.Path,
+                    HttpMethod = HttpContext.Request.Method,
+                    Success = true,
+                    NewValuesJson = JsonSerializer.Serialize(dto)
+                }, ct);
+
                 return StatusCode(StatusCodes.Status201Created);
             }
             catch (DbUpdateException)
@@ -477,7 +623,7 @@ namespace PriceList.Api.Controllers
             catch
             {
                 await uow.RollbackTransactionAsync(ct);
-                throw; // or: return Problem("خطای غیرمنتظره رخ داد.");
+                throw;
             }
         }
 
@@ -489,6 +635,11 @@ namespace PriceList.Api.Controllers
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<IActionResult> CreateColDef([FromBody] FormColDefCreate dto, CancellationToken ct = default)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized("آیدی یافت نشد.");
+
             if (dto is null) return BadRequest("بدنه درخواست خالی است.");
 
             if (dto.CustomColDef == null || !dto.CustomColDef.Any())
@@ -502,13 +653,23 @@ namespace PriceList.Api.Controllers
                 results.Add(i);
             }
 
-            // If all failed with same error, surface that. Otherwise return 201 with details.
             if (results.All(r => r.Status == MappingColDefStatus.FormNotFound))
                 return NotFound("شناسه فرم نامعتبر می‌باشد.");
             if (results.All(r => r.Status == MappingColDefStatus.MaxColumnsReached))
                 return BadRequest("حداکثر تعداد سرستون‌ها قبلاً ثبت شده است.");
             if (results.All(r => r.Status == MappingColDefStatus.AlreadyExists))
                 return Conflict("ستون‌های سفارشی موردنظر قبلاً وجود دارند.");
+
+            await uow.auditLogger.LogAsync(new AuditLog
+            {
+                ActionType = ActionType.Create.ToString(),
+                EntityName = EntityName.FormCol.ToString(),
+                EntityId = dto.FormId.ToString(),
+                Route = HttpContext.Request.Path,
+                HttpMethod = HttpContext.Request.Method,
+                Success = true,
+                NewValuesJson = JsonSerializer.Serialize(dto)
+            }, ct);
 
             return StatusCode(StatusCodes.Status201Created, results);
         }
@@ -558,6 +719,20 @@ namespace PriceList.Api.Controllers
                  dto.Color,
                  ct);
 
+            if (res.Status == FeatureStatus.Created)
+            {
+                await uow.auditLogger.LogAsync(new AuditLog
+                {
+                    ActionType = ActionType.Create.ToString(),
+                    EntityName = EntityName.Feature.ToString(),
+                    EntityId = res.FeatureId.ToString(),
+                    Route = HttpContext.Request.Path,
+                    HttpMethod = HttpContext.Request.Method,
+                    Success = true,
+                    NewValuesJson = JsonSerializer.Serialize(dto)
+                }, ct);
+            }
+
             return res.Status switch
             {
                 FeatureStatus.FormNotFound => NotFound("شناسهٔ فرم نامعتبر است."),
@@ -565,7 +740,7 @@ namespace PriceList.Api.Controllers
                 FeatureStatus.IsExistFeature => NotFound("ویژگی با این نام قبلاً برای این فرم ایجاد شده است."),
                 FeatureStatus.AlreadyAssigned => NoContent(),
                 FeatureStatus.NoContent => NoContent(),
-                FeatureStatus.Created => NoContent(),
+                FeatureStatus.Created => Created(string.Empty, "ویژگی با موفقیت ایجاد شد."),
                 _ => Problem(statusCode: 500, title: "ثبت نوع برای ردیف‌ها با خطا مواجه شد.")
             };
         }
@@ -581,6 +756,20 @@ namespace PriceList.Api.Controllers
             if (dto is null) return BadRequest("بدنه درخواست خالی است.");
 
             var res = await formService.AddRowAndCell(dto.FormId, dto.FeatureId, dto.RowIndex, ct);
+
+            if (res.Status == FeatureStatus.NoContent)
+            {
+                await uow.auditLogger.LogAsync(new AuditLog
+                {
+                    ActionType = ActionType.Create.ToString(),
+                    EntityName = EntityName.FormRow.ToString(),
+                    EntityId = dto.FormId.ToString(),
+                    Route = HttpContext.Request.Path,
+                    HttpMethod = HttpContext.Request.Method,
+                    Success = true,
+                    NewValuesJson = JsonSerializer.Serialize(dto)
+                }, ct);
+            }
 
             return res.Status switch
             {
@@ -607,6 +796,20 @@ namespace PriceList.Api.Controllers
 
             var res = await formService.RemoveCustomColDef(dto.FormId, dto.Index, ct);
 
+            if (res.Status == RemoveColDefStatus.NoContent)
+            {
+                await uow.auditLogger.LogAsync(new AuditLog
+                {
+                    ActionType = ActionType.Delete.ToString(),
+                    EntityName = EntityName.FormCol.ToString(),
+                    EntityId = dto.FormId.ToString(),
+                    Route = HttpContext.Request.Path,
+                    HttpMethod = HttpContext.Request.Method,
+                    Success = true,
+                    NewValuesJson = JsonSerializer.Serialize(dto)
+                }, ct);
+            }
+
             return res.Status switch
             {
                 RemoveColDefStatus.FormNotFound => NotFound("شناسه فرم نامعتبر می‌باشد."),
@@ -626,6 +829,20 @@ namespace PriceList.Api.Controllers
 
             var res = await formService.RemoveRow(dto.FormId, dto.RowIndex, ct);
 
+            if (res.Status == FeatureStatus.NoContent)
+            {
+                await uow.auditLogger.LogAsync(new AuditLog
+                {
+                    ActionType = ActionType.Delete.ToString(),
+                    EntityName = EntityName.FormRow.ToString(),
+                    EntityId = dto.FormId.ToString(),
+                    Route = HttpContext.Request.Path,
+                    HttpMethod = HttpContext.Request.Method,
+                    Success = true,
+                    NewValuesJson = JsonSerializer.Serialize(dto)
+                }, ct);
+            }
+
             return res.Status switch
             {
                 FeatureStatus.FormNotFound => NotFound("شناسه فرم نامعتبر می‌باشد."),
@@ -634,6 +851,37 @@ namespace PriceList.Api.Controllers
                 FeatureStatus.NoContent => NoContent(),
                 _ => Problem(statusCode: 500, title: "حذف ستون با خطا مواجه شد.")
             };
+        }
+
+        [HttpDelete("DeleteForm")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> Delete(
+            RemoveForm dto,
+            CancellationToken ct = default)
+        {
+            if (dto.FormId <= 0)
+                return BadRequest("شناسه فرم نامعتبر می باشد.");
+
+            var entity = await uow.Forms.GetFormByIdAsync(dto.FormId, ct);
+            if (entity is null) return NotFound("فرم پیدا نشد.");
+
+            entity.IsDeleted = !entity.IsDeleted;
+            await uow.SaveChangesAsync(ct);
+
+
+            await uow.auditLogger.LogAsync(new AuditLog
+            {
+                ActionType = ActionType.Delete.ToString(),
+                EntityName = EntityName.Form.ToString(),
+                EntityId = dto.FormId.ToString(),
+                Route = HttpContext.Request.Path,
+                HttpMethod = HttpContext.Request.Method,
+                Success = true,
+                NewValuesJson = JsonSerializer.Serialize(dto)
+            }, ct);
+
+            return NoContent();
         }
         #endregion
     }

@@ -18,7 +18,8 @@ namespace PriceList.Core.Application.Mappings
                 f.ProductGroup.Name,
                 f.Rows.ToString(),
                 f.Brand.Name,
-                f.UpdateDate);
+                f.UpdateDate,
+                f.IsDeleted);
 
         public static readonly Expression<Func<FormColumnDef, FormColumnDefDto>> ToFormColumnDefDto =
             cell => new FormColumnDefDto(

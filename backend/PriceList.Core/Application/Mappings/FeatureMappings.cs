@@ -16,6 +16,7 @@ namespace PriceList.Core.Application.Mappings
          b => new FeatureData(b.Id,
              b.Name,
              b.DisplayOrder,
+             b.Color,
              b.Rows.Select(r => r.Id).ToList()
           );
     }

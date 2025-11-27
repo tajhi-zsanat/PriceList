@@ -64,8 +64,6 @@ export function MoreCell({ moreIcon, featureId, formId, rowIndex, onAdded }: {
                     />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                    {/* <DropdownMenuLabel>My Account</DropdownMenuLabel> */}
-                    {/* <DropdownMenuSeparator /> */}
                     <DropdownMenuItem
                         className="focus-visible:hidden"
                         onSelect={() => removeRow(rowIndex)}

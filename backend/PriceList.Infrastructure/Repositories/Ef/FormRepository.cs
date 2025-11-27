@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.SqlServer.Server;
 using PriceList.Core.Abstractions.Repositories;
 using PriceList.Core.Application.Dtos.Form;
+using PriceList.Core.Application.Mappings;
 using PriceList.Core.Common;
 using PriceList.Core.Entities;
 using PriceList.Core.Enums;
@@ -40,6 +41,34 @@ namespace PriceList.Infrastructure.Repositories.Ef
             var pTime = local.ToString("HHmm");
 
             return (utcNow, pDate, pTime);
+        }
+
+        public async Task<List<FormListItemDto>> GetFormsAsync(string userId, CancellationToken ct)
+        {
+            var resutl = await _db.Forms
+                .IgnoreQueryFilters()
+                .AsNoTracking()
+                .Where(f => f.UserId == int.Parse(userId))
+                .OrderBy(c => c.DisplayOrder == 0)
+                .ThenBy(c => c.FormTitle)
+                .Select(FormMappings.ToListItem)
+                .ToListAsync();
+
+            return resutl;
+        }
+
+        public async Task<Form> GetFormByIdAsync(int formId, CancellationToken ct)
+        {
+
+            var entity = await _db.Forms
+                .IgnoreQueryFilters()
+                .Where(f => f.Id == formId)
+                .FirstOrDefaultAsync();
+
+            if (entity == null)
+                return null;
+
+            return entity;
         }
 
         public async Task<bool> FormExistsAsync(int formId, CancellationToken ct)
@@ -267,6 +296,29 @@ WHERE r.FormId = @formId AND c.ColIndex = @index;";
             return affected;
         }
 
+        public async Task<int> DeleteFormRowsAsync(int featureId, CancellationToken ct)
+        {
+            var affected = await _db.FormRows
+                .Where(r => r.FormFeatureId == featureId)
+                .ExecuteUpdateAsync(
+                    s => s.SetProperty(r => r.FormFeatureId, (int?)null),
+                    ct);
+
+            return affected;
+        }
+
+        public async Task<int> AddFormRowsAsync(int[] rowIds, int featureId, CancellationToken ct)
+        {
+            // Update only rows that belong to the same form + in provided ids
+            var affected = await _db.FormRows
+                .Where(r => rowIds.Contains(r.Id))
+                .ExecuteUpdateAsync(
+                    s => s.SetProperty(r => r.FormFeatureId, featureId),
+                    ct);
+
+            return affected;
+        }
+
         public async Task<bool> AllRowsAlreadyHaveFeatureAsync(
              int formId, int featureId, int[] rowIds, CancellationToken ct)
         {
@@ -410,7 +462,7 @@ WHERE r.FormId = @formId AND c.ColIndex = @index;";
             return rows
                 .Select((x, index) => new GetRowNumberList(
                     x.Id,
-                    index + 1,  
+                    index + 1,
                     x.FeatureName
                 ))
                 .ToList();

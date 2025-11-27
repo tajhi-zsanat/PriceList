@@ -14,7 +14,7 @@ export default function ActionBar() {
 
         <button
           type="button"
-          className="flex items-center gap-2 bg-[#CFE2FF] p-2 rounded-lg border border-transparent transition hover:border-[#1F78AE]"
+          className="flex items-center gap-2 bg-[#CFE2FF] p-2 rounded-lg border border-transparent transition hover:border-[#1F78AE] cursor-pointer"
         >
           <img src={percent} alt="" aria-hidden="true" className="w-5 h-5" />
           <span>ثبت تخفیف گروهی</span>
@@ -22,7 +22,7 @@ export default function ActionBar() {
 
         <button
           type="button"
-          className="flex items-center gap-2 bg-[#1F78AE] text-white p-2 rounded-lg border border-transparent transition hover:bg-[#0f4566]"
+          className="flex items-center gap-2 bg-[#1F78AE] text-white p-2 rounded-lg border border-transparent transition hover:bg-[#0f4566] cursor-pointer"
         >
           <img src={arrow} alt="" aria-hidden="true" className="w-5 h-5" />
           <span>افزایش گروهی مبلغ</span>

@@ -14,6 +14,7 @@ using PriceList.Core.Application.Mappings;
 using PriceList.Core.Application.Services;
 using PriceList.Core.Entities;
 using PriceList.Core.Enums;
+using System.Text.Json;
 
 namespace PriceList.Api.Controllers
 {
@@ -137,6 +138,17 @@ namespace PriceList.Api.Controllers
             try
             {
                 await uow.SaveChangesAsync(ct);
+
+                await uow.auditLogger.LogAsync(new AuditLog
+                {
+                    ActionType = ActionType.Create.ToString(),
+                    EntityName = EntityName.ProductGroup.ToString(),
+                    EntityId = entity.Id.ToString(),
+                    Route = HttpContext.Request.Path,
+                    HttpMethod = HttpContext.Request.Method,
+                    Success = true,
+                    NewValuesJson = JsonSerializer.Serialize(entity)
+                }, ct);
             }
             catch (DbUpdateException ex) when (SqlExceptionHelpers.IsUniqueViolation(ex))
             {
@@ -179,7 +191,6 @@ namespace PriceList.Api.Controllers
             if (!categoryExists)
                 return NotFound("دسته‌بندی یافت نشد.");
 
-            // Only check duplicates if Category or Name changed
             var nameChanged = !string.Equals(entity.Name, name, StringComparison.Ordinal);
             var categoryChanged = entity.CategoryId != form.CategoryId;
 
@@ -219,9 +230,18 @@ namespace PriceList.Api.Controllers
 
             try
             {
-                // If entity is tracked, Update() is optional:
-                // uow.ProductGroups.Update(entity);
                 await uow.SaveChangesAsync(ct);
+
+                await uow.auditLogger.LogAsync(new AuditLog
+                {
+                    ActionType = ActionType.Update.ToString(),
+                    EntityName = EntityName.ProductGroup.ToString(),
+                    EntityId = entity.Id.ToString(),
+                    Route = HttpContext.Request.Path,
+                    HttpMethod = HttpContext.Request.Method,
+                    Success = true,
+                    NewValuesJson = JsonSerializer.Serialize(entity)
+                }, ct);
             }
             catch (DbUpdateException ex) when (SqlExceptionHelpers.IsUniqueViolation(ex))
             {
@@ -229,7 +249,7 @@ namespace PriceList.Api.Controllers
             }
 
             var result = ProductGroupApiMappers.ToListItemDto(entity);
-            return Ok(result); // or NoContent() if you prefer a lighter response
+            return Ok(result); 
         }
 
         [HttpDelete("{id:int}")]
@@ -246,6 +266,17 @@ namespace PriceList.Api.Controllers
             {
                 uow.ProductGroups.Remove(entity);
                 await uow.SaveChangesAsync(ct);
+
+                await uow.auditLogger.LogAsync(new AuditLog
+                {
+                    ActionType = ActionType.Delete.ToString(),
+                    EntityName = EntityName.ProductGroup.ToString(),
+                    EntityId = entity.Id.ToString(),
+                    Route = HttpContext.Request.Path,
+                    HttpMethod = HttpContext.Request.Method,
+                    Success = true,
+                    NewValuesJson = JsonSerializer.Serialize(entity)
+                }, ct);
             }
             catch (DbUpdateException ex) when (SqlExceptionHelpers.IsForeignKeyViolation(ex))
             {
@@ -272,13 +303,23 @@ namespace PriceList.Api.Controllers
 
             var path = entity.ImagePath;
 
-            // Clear DB reference first to keep data consistent even if file delete fails.
             entity.ImagePath = null;
             await uow.SaveChangesAsync(ct);
 
             try
             {
                 await storage.DeleteAsync(path!, ct);
+
+                await uow.auditLogger.LogAsync(new AuditLog
+                {
+                    ActionType = ActionType.Delete.ToString(),
+                    EntityName = EntityName.ProductGroupImage.ToString(),
+                    EntityId = entity.Id.ToString(),
+                    Route = HttpContext.Request.Path,
+                    HttpMethod = HttpContext.Request.Method,
+                    Success = true,
+                    NewValuesJson = JsonSerializer.Serialize(entity)
+                }, ct);
             }
             catch (Exception ex)
             {
