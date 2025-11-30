@@ -36,7 +36,7 @@ public class AuthController(IAuthService auth, IUnitOfWork uow) : ControllerBase
             UserAgent: Request.Headers.UserAgent.ToString()
         );
 
-        var r = await auth.LoginAsync(dto, reqInfo, ct); // service decides refresh token & persistence
+        var r = await auth.LoginAsync(dto, reqInfo, ct); 
         if (!r.Ok) return Unauthorized();
 
         SetRefreshCookie(r.RefreshTokenCookieValue, r.RefreshTokenExpiresAt);

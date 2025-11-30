@@ -16,7 +16,7 @@ export default function Breadcrumbs() {
 
   return (
     <nav className="text-sm text-gray-600 flex flex-wrap gap-x-2 gap-y-1 sm:mx-16 pt-4">
-      <Link to="/" state={{ categoryName: s.categoryName }}>
+      <Link to="/category" state={{ categoryName: s.categoryName }}>
         دسته‌بندی‌ها
       </Link>
       {categoryId && (

@@ -7,6 +7,7 @@ import Protected from "./guards/Protected";
 import RoleGuard from "./guards/RoleGuard";
 
 // Public pages
+const Home = lazy(() => import("@/pages/public/home/Home"));
 const Category = lazy(() => import("@/pages/public/category/Category"));
 const ProductGroups = lazy(() => import("@/pages/public/productGroups/ProductGroups"));
 const ProductTypes = lazy(() => import("@/pages/public/productTypes/ProductTypes"));
@@ -34,7 +35,8 @@ const router = createBrowserRouter([
   {
     element: <PublicLayout />,
     children: [
-      { index: true, element: Load(<Category />) },
+      { index: true, element: Load(<Home />) },
+      { path: "/Category", element: Load(<Category />) },
       { path: "/Category/:categoryId/groups", element: Load(<ProductGroups />) },
       { path: "/Category/:categoryId/groups/:groupId/types", element: Load(<ProductTypes />) },
       { path: "/Category/:categoryId/groups/:groupId/brands", element: Load(<Brands />) },
