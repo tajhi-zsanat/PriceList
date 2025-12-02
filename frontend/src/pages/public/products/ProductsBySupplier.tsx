@@ -1,4 +1,4 @@
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useParams, useSearchParams } from "react-router-dom";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import "./Products.css";
 import time from '@/assets/img/ion_time-outline.png';
@@ -15,11 +15,13 @@ import ProductHeader from "@/components/products/ProductHeader";
 const TAKE = 10;
 
 export default function ProductsBySupplier() {
+    const [searchParams] = useSearchParams();
     const { categoryId, groupId, typeId, brandId } = useParams();
     const loc = useLocation() as { state?: { brandName?: string } };
     const { brandName } = loc.state || {};
-
-    const { data, loading, error, hasMore, loadMore } = useInfiniteProducts({ params: { categoryId, groupId, typeId, brandId }, take: TAKE });
+    const formId = searchParams.get("formId");
+    
+    const { data, loading, error, hasMore, loadMore } = useInfiniteProducts({ params: { categoryId, groupId, typeId, brandId }, take: TAKE, formId: formId });
 
     return (
         <div className="flex-1">

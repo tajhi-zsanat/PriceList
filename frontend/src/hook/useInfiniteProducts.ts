@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import api from "@/lib/api";
 import type { FormCellsScrollResponseDto, GridGroup, UseInfiniteProductsArgs } from "@/types";
 
-export function useInfiniteProducts({ params, take = 1 }: UseInfiniteProductsArgs) {
+export function useInfiniteProducts({ params, take = 1, formId }: UseInfiniteProductsArgs) {
     const [data, setData] = useState<FormCellsScrollResponseDto | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -38,7 +38,7 @@ export function useInfiniteProducts({ params, take = 1 }: UseInfiniteProductsArg
 
         try {
             const res = await api.get<FormCellsScrollResponseDto>("/api/Product", {
-                params: { categoryId, groupId, brandId, skip: nextSkip, take },
+                params: { categoryId, groupId, brandId, skip: nextSkip, take, formId },
                 signal: controller.signal,
             });
 
@@ -105,7 +105,7 @@ export function useInfiniteProducts({ params, take = 1 }: UseInfiniteProductsArg
             loadingRef.current = false;
             if (ctrlRef.current === controller) ctrlRef.current = null;
         }
-    }, [params.categoryId, params.groupId, params.brandId, take]);
+    }, [params.categoryId, params.groupId, params.brandId, take, formId ]);
 
 
 

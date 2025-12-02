@@ -21,16 +21,17 @@ namespace PriceList.Api.Controllers
     {
         [HttpGet]
         public async Task<ActionResult<FormCellsScrollResponseDto>> GetAll(
-            [FromQuery] int categoryId = 1,
-            [FromQuery] int groupId = 10,
-            [FromQuery] int brandId = 10,
-            [FromQuery] int skip = 0,
-            [FromQuery] int take = 20,
+            int categoryId = 1,
+            int groupId = 10,
+            int brandId = 10,
+            int skip = 0,
+            int take = 20,
+            int? formId = null,
             CancellationToken ct = default)
         {
             try
             {
-                var res = await _productService.GetProducts(categoryId, groupId, brandId, skip, take, ct);
+                var res = await _productService.GetProducts(categoryId, groupId, brandId, skip, take, formId, ct);
 
                 if (res.Status == Product.Initial)
                 {
@@ -56,7 +57,7 @@ namespace PriceList.Api.Controllers
                                 IsEssential = true,
                                 Expires = DateTimeOffset.UtcNow.AddYears(1),
                                 SameSite = SameSiteMode.None,
-                                Secure = true 
+                                Secure = true
                             });
                         }
 

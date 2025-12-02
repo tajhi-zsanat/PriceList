@@ -17,5 +17,6 @@ public class PopularFormDto
     public int CategoryId { get; set; }
     public int ProductGroupId { get; set; }
     public int BrandId { get; set; }
+    public DateTime UpdateDateAndTime { get; set; }
 }
 

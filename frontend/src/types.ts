@@ -34,6 +34,12 @@ export type BrandListItemDto = {
   imagePath?: string | null;
 };
 
+export interface SelectedValues {
+  categoryId: number | null;
+  groupId: number | null;
+  brandId: number | null;
+}
+
 // Products
 export type FeaturesIDs = "__OTHERS__" | string;
 
@@ -84,6 +90,7 @@ export interface FormCellsScrollResponseDto {
 export type UseInfiniteProductsArgs = {
   params: { categoryId?: string; groupId?: string; typeId?: string; brandId?: string };
   take?: number;
+  formId: string | null;
 };
 
 export type PriceToolbarProps = {

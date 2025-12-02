@@ -1,6 +1,7 @@
 import heroImage from "@/assets/img/home/hero-Main.webp";
 import whatsappIcon from "@/assets/img/home/logos_whatsapp-icon.png";
 import shopIcon from "@/assets/img/home/shop.png";
+import FarsiText from "../FarsiText";
 
 export default function Hero() {
     return (
@@ -32,18 +33,22 @@ export default function Hero() {
                 </p>
 
                 <div className="flex justify-center items-center gap-3 mt-4 flex-wrap">
-                    <button
+                    <a
+                        href="https://wa.me/989374371848"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="
-                            flex items-center gap-2 text-white bg-[#1F78AE]
-                            rounded-[8px] px-6 py-2 text-[16px] font-medium
-                            hover:bg-[#166088] transition cursor-pointer
-                        "
+    flex items-center gap-2 text-white bg-[#1F78AE]
+    rounded-[8px] px-6 py-2 text-[16px] font-medium
+    hover:bg-[#166088] transition cursor-pointer
+  "
                     >
                         <img src={whatsappIcon} alt="" className="w-6 h-6" />
-                        0912-3456790
-                    </button>
+                        <FarsiText>98-9374371848+</FarsiText>
+                    </a>
 
-                    <button
+
+                    <a href="https://pikatak.com/" target="_blank"
                         className="
                             flex items-center gap-2 text-[#1B1B1E] bg-white
                             rounded-[8px] px-6 py-2 text-[16px] font-medium
@@ -52,7 +57,7 @@ export default function Hero() {
                     >
                         <img src={shopIcon} alt="" className="w-6 h-6" />
                         خرید از وبسایت پیکاتک
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>

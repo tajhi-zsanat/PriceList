@@ -1,6 +1,7 @@
 ﻿using PriceList.Core.Abstractions.Repositories;
 using PriceList.Core.Application.Dtos.Form;
 using PriceList.Core.Application.Mappings;
+using PriceList.Core.Application.Services;
 using PriceList.Core.Enums;
 using System;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PriceList.Core.Application.Services
+namespace PriceList.Infrastructure.Services
 {
     public sealed class ProductService(IUnitOfWork _uow) : IProductService
     {

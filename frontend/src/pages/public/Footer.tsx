@@ -10,7 +10,10 @@ export default function Footer() {
         <footer className="bg-[#ECEFF1] pb-12">
             <div className="flex flex-col">
                 <div className="bg-[#F5F5F5] pt-16 pb-8">
-                    <div className="flex justify-center items-center w-16 h-16 bg-[#d3d3d3] rounded-full cursor-pointer mx-auto mt-2">
+                    <div
+                        className="flex justify-center items-center w-16 h-16 bg-[#d3d3d3] rounded-full cursor-pointer mx-auto mt-2"
+                        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                    >
                         <img src={arrowIcon} className="w-6 h-[25px]" alt="" loading="lazy" />
                     </div>
                 </div>
@@ -26,7 +29,7 @@ export default function Footer() {
                 </div>
             </div>
 
-            <div className="bg-[#ECEFF1] text-[#666666] p-4">
+            <div className="bg-[#ECEFF1] text-[#666666] py-4 px-8 max-w-6xl mx-auto">
                 <div className="flex items-center justify-between">
                     <div className="flex flex-col">
                         <span>پیکاتک رشد و توسعه کسب و کار صنعتی</span>
@@ -39,7 +42,7 @@ export default function Footer() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 p-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 py-4 px-8 max-w-6xl mx-auto">
                 <div className="flex flex-col gap-4">
                     <p className="text-base font-medium">اطلاعات</p>
                     <a className="text-[#666666] hover:text-black transition-all" target="_blank" href="https://pikatak.com/panel/%d8%aa%d8%b9%d8%b1%d9%81%d9%87-%d8%ae%d8%af%d9%85%d8%a7%d8%aa-%d9%be%db%8c%da%a9%d8%a7%d8%aa%da%a9/">تعرفه خدمات پیکاتک</a>

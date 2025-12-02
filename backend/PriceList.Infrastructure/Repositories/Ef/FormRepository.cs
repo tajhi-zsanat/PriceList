@@ -71,6 +71,12 @@ namespace PriceList.Infrastructure.Repositories.Ef
             return entity;
         }
 
+
+        public async Task<DateTime> GetLastFormOrViewUpdatedAsync(CancellationToken ct)
+        {
+            return await _db.Forms.MaxAsync(f => (DateTime)f.UpdateDateAndTime, ct);
+        }
+
         public async Task<bool> FormExistsAsync(int formId, CancellationToken ct)
            => await _db.Forms.AnyAsync(f => f.Id == formId, ct);
 

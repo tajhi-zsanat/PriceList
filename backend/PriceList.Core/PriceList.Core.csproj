@@ -22,6 +22,10 @@
     <Compile Remove="Abstractions\Services\IProductPdfService.cs" />
     <Compile Remove="Application\Mappings\ProductHeaderMappings.cs" />
     <Compile Remove="Application\Mappings\ProductMappings.cs" />
+    <Compile Remove="Application\Services\FormService.cs" />
+    <Compile Remove="Application\Services\FormViewService.cs" />
+    <Compile Remove="Application\Services\GroupService.cs" />
+    <Compile Remove="Application\Services\ProductService.cs" />
     <Compile Remove="Entities\ColorFeature.cs" />
     <Compile Remove="Entities\Feature.cs" />
     <Compile Remove="Entities\FormCellFeatureValue.cs" />

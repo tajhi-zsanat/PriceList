@@ -13,6 +13,7 @@ namespace PriceList.Core.Abstractions.Repositories
     {
         Task<List<FormListItemDto>> GetFormsAsync(string userId, CancellationToken ct);
         Task<Form> GetFormByIdAsync(int formId, CancellationToken ct);
+        Task<DateTime> GetLastFormOrViewUpdatedAsync(CancellationToken ct);
 
         Task<bool> FormExistsAsync(int formId, CancellationToken ct);
         Task<(bool hasC1, bool hasC2, bool hasC3, int posUnit, int posC1, int posC2, int colCount)>

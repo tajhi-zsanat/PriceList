@@ -3,7 +3,6 @@ import "keen-slider/keen-slider.min.css";
 import type { JSX } from "react";
 import HeroSearchBox from "./HeroSearchBox";
 
-import category from "@/assets/img/home/category.png";
 import bottomArrow from "@/assets/img/home/arrow-down.png";
 import arrowRightIcon from "@/assets/img/home/arrow-right.png";
 import arrowLeftIcon from "@/assets/img/home/arrow-left.png";
@@ -66,7 +65,7 @@ export default function HeroSlider({ images }: HeroSliderProps): JSX.Element {
         <img src={arrowLeftIcon} alt="" />
       </button>
 
-        <HeroSearchBox categoryIcon={category} arrowDownIcon={bottomArrow} />
+      <HeroSearchBox arrowDownIcon={bottomArrow} />
     </div>
   );
 }

@@ -16,6 +16,7 @@ namespace PriceList.Core.Application.Services
             int brand,
             int skip,
             int take,
+            int? formId,
             CancellationToken ct);
     }
 }
