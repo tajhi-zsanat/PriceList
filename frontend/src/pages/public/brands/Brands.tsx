@@ -58,7 +58,7 @@ export default function Brands() {
                       state={{ categoryName, groupName, brandName: b.name }}
                       className="card-link"
                     >
-                      <div className="flex items-center justify-center w-full h-28 overflow-hidden">
+                      <div className="card-media">
                         <img
                           src={b.imagePath ? imgUrl(b.imagePath) : noImage}
                           alt={b.imagePath ? b.name : "no image"}

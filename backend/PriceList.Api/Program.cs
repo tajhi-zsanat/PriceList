@@ -131,6 +131,7 @@ builder.Services.AddScoped<IFormCellRepository, FormCellRepository>();
 builder.Services.AddScoped<IFormColumnDefRepository, FormColumnDefRepository>();
 builder.Services.AddScoped<IFormRowRepository, FormRowRepository>();
 builder.Services.AddScoped<IFormFeatureRepository, FormFeatureRepository>();
+builder.Services.AddScoped<IFormViewRepository, FormViewRepository>();
 
 //Service
 builder.Services.AddScoped<IFormService, FormService>();
@@ -138,6 +139,7 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IGroupService, GroupService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<IFormViewService, FormViewService>();
 builder.Services.AddScoped<IAuditLogger, AuditLogger>();
 
 // Decide where files live (under wwwroot/uploads)

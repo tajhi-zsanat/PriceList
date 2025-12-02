@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using PriceList.Core.Application.Dtos.Product;
 using PriceList.Core.Common;
 using PriceList.Core.Entities;
 using PriceList.Infrastructure.Identity;
@@ -28,6 +29,7 @@ namespace PriceList.Infrastructure.Data
         public DbSet<Unit> Units => Set<Unit>();
         public DbSet<ErrorLog> ErrorLog => Set<ErrorLog>();
         public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+        public DbSet<FormView> FormViews => Set<FormView>();
 
         public DbSet<Form> Forms => Set<Form>();
         public DbSet<FormColumnDef> FormColumnDefs => Set<FormColumnDef>();
@@ -35,11 +37,19 @@ namespace PriceList.Infrastructure.Data
         public DbSet<FormRow> FormRows => Set<FormRow>();
         public DbSet<FormFeature> FormFeature => Set<FormFeature>();
 
+        // SP
+        public DbSet<PopularFormDto> PopularForms { get; set; } = default!;
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
             modelBuilder.ApplyShamsiAuditConventions();
             base.OnModelCreating(modelBuilder);
+
+            // This entity is not mapped to a table
+            modelBuilder.Entity<PopularFormDto>()
+                .HasNoKey()
+                .ToView(null);
 
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {

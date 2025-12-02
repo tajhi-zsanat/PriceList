@@ -29,6 +29,7 @@ namespace PriceList.Infrastructure.Repositories.Ef
         public IFormFeatureRepository FormFeatures { get; }
         public IAuditLogger auditLogger { get; }
         public ICurrentUserService currentUserService { get; }
+        public IFormViewRepository FormViews { get; }
 
         public UnitOfWork(
             AppDbContext db,
@@ -45,7 +46,8 @@ namespace PriceList.Infrastructure.Repositories.Ef
             IFormRowRepository formRows,
             IFormFeatureRepository formFeatures,
             IAuditLogger auditLogger,
-            ICurrentUserService currentUserService)
+            ICurrentUserService currentUserService,
+            IFormViewRepository formViews)
         {
             _db = db;
             Categories = categories;
@@ -62,6 +64,7 @@ namespace PriceList.Infrastructure.Repositories.Ef
             FormFeatures = formFeatures;
             this.auditLogger = auditLogger;
             this.currentUserService = currentUserService;
+            FormViews = formViews;
         }
 
         public Task<int> SaveChangesAsync(CancellationToken ct = default) => _db.SaveChangesAsync(ct);

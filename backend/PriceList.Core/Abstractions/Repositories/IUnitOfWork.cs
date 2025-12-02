@@ -21,6 +21,7 @@ namespace PriceList.Core.Abstractions.Repositories
         IFormRowRepository FormRows { get; }
         IFormFeatureRepository FormFeatures { get; }
         IAuditLogger auditLogger { get; }
+        public IFormViewRepository FormViews { get; }
         ICurrentUserService currentUserService { get; }
 
         Task<int> SaveChangesAsync(CancellationToken ct = default);

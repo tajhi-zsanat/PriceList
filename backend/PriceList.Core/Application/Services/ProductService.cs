@@ -30,6 +30,7 @@ namespace PriceList.Core.Application.Services
             if (formIds == null || !formIds.Any())
             {
                 return new FormCellsScrollResponseDto(
+                    null,
                     Status: Product.NoContent,
                     Headers: null,
                     Cells: null,
@@ -41,6 +42,7 @@ namespace PriceList.Core.Application.Services
             if (formId == 0)
             {
                 return new FormCellsScrollResponseDto(
+                    null,
                     Status: Product.NoContent,
                     Headers: null,
                     Cells: null,
@@ -91,6 +93,7 @@ namespace PriceList.Core.Application.Services
 
             // 6) Final DTO – success
             return new FormCellsScrollResponseDto(
+                formId,
                 Status: Product.Initial,
                 Headers: headers,
                 Cells: groups,

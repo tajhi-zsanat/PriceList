@@ -4,7 +4,7 @@ import api from "@/lib/api";
 import type { ProductGroupListItemDto } from "@/types";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import { imgUrl } from "@/lib/helpers";
-import noImage from '@/assets/img/no-image.png';
+import noImage from '@/assets/img/no-image.svg';
 import loadingImage from '@/assets/img/loading.gif';
 
 export default function ProductGroups() {

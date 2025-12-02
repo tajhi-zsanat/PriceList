@@ -39,6 +39,7 @@ namespace PriceList.Core.Entities
         Create,
         Update,
         Delete,
+        Visit,
     }
 
     public enum EntityName
@@ -57,6 +58,7 @@ namespace PriceList.Core.Entities
         ProductGroup,
         ProductGroupImage,
         Brand,
-        Brandimage
+        Brandimage,
+        VisitProducts,
     }
 }

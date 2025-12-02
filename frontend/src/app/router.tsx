@@ -23,7 +23,7 @@ const Setting = lazy(() => import("@/pages/admin/setting/Setting"));
 const Tariff = lazy(() => import("@/pages/admin/tariff/Tariff"));
 
 const Forbidden = () => <div>403 — دسترسی ندارید</div>;
-const NotFound = () => <div>صفحه یافت نشد</div>;
+const NotFound = lazy(() => import("@/pages/public/NotFound"));
 
 const Load = (el: React.ReactElement) => <Suspense fallback={null}>{el}</Suspense>;
 

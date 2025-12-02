@@ -26,7 +26,7 @@ export default function HeroSlider({ images }: HeroSliderProps): JSX.Element {
   });
 
   return (
-    <div className="relative max-w-[1920px] m-auto h-full" dir="rtl">
+    <div className="relative mb-28 max-w-[1920px] m-auto h-full" dir="rtl">
       <div ref={sliderRef} className="keen-slider">
         {images.map((img, i) => (
           <div className="keen-slider__slide" key={i}>

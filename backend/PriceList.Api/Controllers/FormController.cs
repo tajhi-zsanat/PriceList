@@ -123,7 +123,7 @@ namespace PriceList.Api.Controllers
             try
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
+                
                 if (string.IsNullOrEmpty(userId))
                     return Unauthorized("آیدی یافت نشد.");
 

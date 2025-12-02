@@ -1,6 +1,7 @@
 import '@/pages/public/PublicHeader.css'
 import { Outlet, useLocation } from "react-router-dom";
 import PublicHeader from "@/pages/public/PublicHeader";
+import Footer from '@/pages/public/Footer';
 
 export default function PublicLayout() {
     const location = useLocation();
@@ -11,11 +12,12 @@ export default function PublicLayout() {
             <PublicHeader />
             <main className={
                 isHome
-                    ? ""         
-                    : "flex flex-1"    
+                    ? ""
+                    : "flex flex-1"
             }>
                 <Outlet />
             </main>
+            <Footer />
         </div>
     );
 }

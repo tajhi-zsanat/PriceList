@@ -2,7 +2,7 @@
 import FarsiText from "@/components/FarsiText";
 import moreIcon from "../../assets/img/more icon-mobile.png";
 import pdfProduct from "../../assets/img/admin/download-PDF_new_new_new.png";
-import noImage from '@/assets/img/no-image.png';
+import noImage from '@/assets/img/no-image.svg';
 import { resolveImgSrc } from "@/lib/helpers";
 import type { FormHeader, GridCell } from "@/types";
 

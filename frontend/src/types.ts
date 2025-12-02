@@ -1,7 +1,19 @@
+export type PopularFormDto = {
+  id: number;
+  formTitle: string;
+  updateDate: string;
+  rowCountWithDescriptionAndPrice: number;
+  imagePath: string | null;
+  viewCount: number;
+  categoryId: number;
+  productGroupId: number;
+  brandId: number;
+};
+
 export type CategoryListItemDto = {
   id: number;
   name: string;
-  imagePath: string | null; // present, may be null
+  imagePath: string | null;
 };
 
 export type ProductGroupListItemDto = {

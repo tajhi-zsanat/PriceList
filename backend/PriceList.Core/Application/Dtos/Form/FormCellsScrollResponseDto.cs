@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace PriceList.Core.Application.Dtos.Form;
 public sealed record FormCellsScrollResponseDto(
+    int? formId,
     Product Status,
     IReadOnlyList<FormColumnDefDto> Headers,
     IReadOnlyList<GridGroupByFeature> Cells,

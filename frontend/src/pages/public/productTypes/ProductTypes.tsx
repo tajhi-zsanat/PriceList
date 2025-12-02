@@ -4,7 +4,7 @@ import api from "@/lib/api";
 import { imgUrl } from "@/lib/helpers";
 import type { ProductTypeListItemDto } from "@/types";
 import Breadcrumbs from "@/components/Breadcrumbs";
-import noImage from '@/assets/img/no-image.png';
+import noImage from '@/assets/img/no-image.svg';
 import loadingImage from '@/assets/img/loading.gif';
 
 export default function ProductTypes() {
