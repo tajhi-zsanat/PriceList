@@ -11,16 +11,20 @@ import SearchInput from "@/components/products/SearchInput";
 import InfiniteSentinel from "@/components/products/InfiniteSentinel";
 import { useInfiniteProducts } from "@/hook/useInfiniteProducts";
 import ProductHeader from "@/components/products/ProductHeader";
+import { useState } from "react";
 
 const TAKE = 10;
 
 export default function ProductsBySupplier() {
+    const [term, setTerm] = useState("");
     const [searchParams] = useSearchParams();
     const { categoryId, groupId, typeId, brandId } = useParams();
+
     const loc = useLocation() as { state?: { brandName?: string } };
+
     const { brandName } = loc.state || {};
     const formId = searchParams.get("formId");
-    
+
     const { data, loading, error, hasMore, loadMore } = useInfiniteProducts({ params: { categoryId, groupId, typeId, brandId }, take: TAKE, formId: formId });
 
     return (
@@ -53,7 +57,10 @@ export default function ProductsBySupplier() {
                     <div className="flex items-center justify-between bg-[#ECEFF1] py-4 px-8">
                         <FeatureChips data={data ?? null} />
                         <div className="flex items-center gap-3">
-                            <SearchInput value={""} onChange={() => { }} />
+                            <SearchInput
+                                value={term}
+                                onChange={setTerm}
+                            />
                             <div><img src={expand} alt="expand" /></div>
                         </div>
                     </div>
